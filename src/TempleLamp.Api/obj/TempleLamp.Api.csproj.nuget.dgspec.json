@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Administrator\\Desktop\\money\\src\\TempleLamp.Api\\TempleLamp.Api.csproj": {}
+    "C:\\Users\\USER\\Desktop\\點燈\\src\\TempleLamp.Api\\TempleLamp.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Administrator\\Desktop\\money\\src\\TempleLamp.Api\\TempleLamp.Api.csproj": {
+    "C:\\Users\\USER\\Desktop\\點燈\\src\\TempleLamp.Api\\TempleLamp.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Administrator\\Desktop\\money\\src\\TempleLamp.Api\\TempleLamp.Api.csproj",
+        "projectUniqueName": "C:\\Users\\USER\\Desktop\\點燈\\src\\TempleLamp.Api\\TempleLamp.Api.csproj",
         "projectName": "TempleLamp.Api",
-        "projectPath": "C:\\Users\\Administrator\\Desktop\\money\\src\\TempleLamp.Api\\TempleLamp.Api.csproj",
-        "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Administrator\\Desktop\\money\\src\\TempleLamp.Api\\obj\\",
+        "projectPath": "C:\\Users\\USER\\Desktop\\點燈\\src\\TempleLamp.Api\\TempleLamp.Api.csproj",
+        "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\USER\\Desktop\\點燈\\src\\TempleLamp.Api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -45,11 +45,29 @@
           "dependencies": {
             "Dapper": {
               "target": "Package",
-              "version": "[2.1.35, )"
+              "version": "[2.1.66, )"
             },
             "Microsoft.Data.SqlClient": {
               "target": "Package",
               "version": "[5.2.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[10.0.1, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.10, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",

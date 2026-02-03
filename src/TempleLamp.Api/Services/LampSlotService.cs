@@ -98,8 +98,8 @@ public class LampSlotService : ILampSlotService
         }
 
         // ===== Step 2: 建立 Connection + Transaction =====
-        await using var connection = _connectionFactory.CreateConnection();
-        await connection.OpenAsync();
+        using var connection = _connectionFactory.CreateConnection();
+        connection.Open();
         using var transaction = connection.BeginTransaction();
 
         try
@@ -207,8 +207,8 @@ public class LampSlotService : ILampSlotService
         }
 
         // ===== Step 2: 建立 Connection + Transaction =====
-        await using var connection = _connectionFactory.CreateConnection();
-        await connection.OpenAsync();
+        using var connection = _connectionFactory.CreateConnection();
+        connection.Open();
         using var transaction = connection.BeginTransaction();
 
         try

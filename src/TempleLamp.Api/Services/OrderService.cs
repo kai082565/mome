@@ -98,8 +98,8 @@ public class OrderService : IOrderService
         }
 
         // ===== Step 3: 建立單一 Connection + Transaction =====
-        await using var connection = _connectionFactory.CreateConnection();
-        await connection.OpenAsync();
+        using var connection = _connectionFactory.CreateConnection();
+        connection.Open();
         using var transaction = connection.BeginTransaction();
 
         try
@@ -253,8 +253,8 @@ public class OrderService : IOrderService
         }
 
         // 開始交易
-        await using var connection = _connectionFactory.CreateConnection();
-        await connection.OpenAsync();
+        using var connection = _connectionFactory.CreateConnection();
+        connection.Open();
         using var transaction = connection.BeginTransaction();
 
         try
@@ -334,8 +334,8 @@ public class OrderService : IOrderService
         }
 
         // 開始交易
-        await using var connection = _connectionFactory.CreateConnection();
-        await connection.OpenAsync();
+        using var connection = _connectionFactory.CreateConnection();
+        connection.Open();
         using var transaction = connection.BeginTransaction();
 
         try

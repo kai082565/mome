@@ -52,21 +52,21 @@ public class LampSlotRepository : ILampSlotRepository
     {
         const string sql = @"
             SELECT
-                s.SlotId,
-                s.LampTypeId,
-                t.Name AS LampTypeName,
-                s.SlotNumber,
-                s.Zone,
-                s.Row,
-                s.[Column],
-                s.Year,
-                s.Price,
-                s.Status,
-                s.LockedByWorkstation,
-                s.LockExpiresAt
-            FROM LampSlots s
-            INNER JOIN LampTypes t ON s.LampTypeId = t.LampTypeId
-            WHERE s.SlotId = @SlotId";
+                s.""slot_id"" AS ""SlotId"",
+                s.""lamp_type_id"" AS ""LampTypeId"",
+                t.""name"" AS ""LampTypeName"",
+                s.""slot_number"" AS ""SlotNumber"",
+                s.""zone"" AS ""Zone"",
+                s.""row"" AS ""Row"",
+                s.""column"" AS ""Column"",
+                s.""year"" AS ""Year"",
+                s.""price"" AS ""Price"",
+                s.""status"" AS ""Status"",
+                s.""locked_by_workstation"" AS ""LockedByWorkstation"",
+                s.""lock_expires_at"" AS ""LockExpiresAt""
+            FROM public.lamp_slots s
+            INNER JOIN public.lamp_types t ON s.""lamp_type_id"" = t.""lamp_type_id""
+            WHERE s.""slot_id"" = @SlotId";
 
         using var connection = _connectionFactory.CreateConnection();
         return await connection.QuerySingleOrDefaultAsync<LampSlotResponse>(sql, new { SlotId = slotId });
@@ -76,52 +76,52 @@ public class LampSlotRepository : ILampSlotRepository
     {
         var sql = @"
             SELECT
-                s.SlotId,
-                s.LampTypeId,
-                t.Name AS LampTypeName,
-                s.SlotNumber,
-                s.Zone,
-                s.Row,
-                s.[Column],
-                s.Year,
-                s.Price,
-                s.Status,
-                s.LockedByWorkstation,
-                s.LockExpiresAt
-            FROM LampSlots s
-            INNER JOIN LampTypes t ON s.LampTypeId = t.LampTypeId
+                s.""slot_id"" AS ""SlotId"",
+                s.""lamp_type_id"" AS ""LampTypeId"",
+                t.""name"" AS ""LampTypeName"",
+                s.""slot_number"" AS ""SlotNumber"",
+                s.""zone"" AS ""Zone"",
+                s.""row"" AS ""Row"",
+                s.""column"" AS ""Column"",
+                s.""year"" AS ""Year"",
+                s.""price"" AS ""Price"",
+                s.""status"" AS ""Status"",
+                s.""locked_by_workstation"" AS ""LockedByWorkstation"",
+                s.""lock_expires_at"" AS ""LockExpiresAt""
+            FROM public.lamp_slots s
+            INNER JOIN public.lamp_types t ON s.""lamp_type_id"" = t.""lamp_type_id""
             WHERE 1=1";
 
         var parameters = new DynamicParameters();
 
         if (lampTypeId.HasValue)
         {
-            sql += " AND s.LampTypeId = @LampTypeId";
+            sql += @" AND s.""lamp_type_id"" = @LampTypeId";
             parameters.Add("LampTypeId", lampTypeId.Value);
         }
 
         if (!string.IsNullOrEmpty(zone))
         {
-            sql += " AND s.Zone = @Zone";
+            sql += @" AND s.""zone"" = @Zone";
             parameters.Add("Zone", zone);
         }
 
         if (availableOnly)
         {
-            sql += " AND s.Status = 'AVAILABLE'";
+            sql += @" AND s.""status"" = 'AVAILABLE'";
         }
 
         if (year.HasValue)
         {
-            sql += " AND s.Year = @Year";
+            sql += @" AND s.""year"" = @Year";
             parameters.Add("Year", year.Value);
         }
         else
         {
-            sql += " AND s.Year = YEAR(GETDATE())";
+            sql += @" AND s.""year"" = EXTRACT(YEAR FROM NOW())";
         }
 
-        sql += " ORDER BY s.Zone, s.Row, s.[Column]";
+        sql += @" ORDER BY s.""zone"", s.""row"", s.""column""";
 
         using var connection = _connectionFactory.CreateConnection();
         return await connection.QueryAsync<LampSlotResponse>(sql, parameters);
@@ -131,17 +131,17 @@ public class LampSlotRepository : ILampSlotRepository
     {
         const string sql = @"
             SELECT
-                t.LampTypeId,
-                t.Name,
-                t.Description,
-                t.DefaultPrice,
-                (SELECT COUNT(*) FROM LampSlots s
-                 WHERE s.LampTypeId = t.LampTypeId
-                 AND s.Status = 'AVAILABLE'
-                 AND s.Year = YEAR(GETDATE())) AS AvailableSlotCount
-            FROM LampTypes t
-            WHERE t.IsActive = 1
-            ORDER BY t.SortOrder, t.Name";
+                t.""lamp_type_id"" AS ""LampTypeId"",
+                t.""name"" AS ""Name"",
+                t.""description"" AS ""Description"",
+                t.""default_price"" AS ""DefaultPrice"",
+                (SELECT COUNT(*) FROM public.lamp_slots s
+                 WHERE s.""lamp_type_id"" = t.""lamp_type_id""
+                 AND s.""status"" = 'AVAILABLE'
+                 AND s.""year"" = EXTRACT(YEAR FROM NOW())) AS ""AvailableSlotCount""
+            FROM public.lamp_types t
+            WHERE t.""is_active"" = true
+            ORDER BY t.""sort_order"", t.""name""";
 
         using var connection = _connectionFactory.CreateConnection();
         return await connection.QueryAsync<LampTypeResponse>(sql);
@@ -150,13 +150,13 @@ public class LampSlotRepository : ILampSlotRepository
     public async Task ReleaseExpiredLocksAsync()
     {
         const string sql = @"
-            UPDATE LampSlots
-            SET Status = 'AVAILABLE',
-                LockedByWorkstation = NULL,
-                LockExpiresAt = NULL,
-                UpdatedAt = GETDATE()
-            WHERE Status = 'LOCKED'
-              AND LockExpiresAt < GETDATE()";
+            UPDATE public.lamp_slots
+            SET ""status"" = 'AVAILABLE',
+                ""locked_by_workstation"" = NULL,
+                ""lock_expires_at"" = NULL,
+                ""updated_at"" = NOW()
+            WHERE ""status"" = 'LOCKED'
+              AND ""lock_expires_at"" < NOW()";
 
         using var connection = _connectionFactory.CreateConnection();
         var affected = await connection.ExecuteAsync(sql);
@@ -172,31 +172,26 @@ public class LampSlotRepository : ILampSlotRepository
     #region 交易內操作（接收外部 Connection + Transaction）
 
     /// <summary>
-    /// 嘗試鎖定燈位（使用預存程序 sp_TryLockLampSlot）
+    /// 嘗試鎖定燈位（使用 PostgreSQL 函數 try_lock_lamp_slot）
     /// 必須在 Transaction 內呼叫
     /// </summary>
     public async Task<LockResult> TryLockAsync(int slotId, string workstationId, int lockDurationSeconds, IDbConnection connection, IDbTransaction transaction)
     {
-        const string sql = "EXEC sp_TryLockLampSlot @SlotId, @WorkstationId, @LockDurationSeconds, @Success OUTPUT, @FailureReason OUTPUT, @LockExpiresAt OUTPUT, @Price OUTPUT";
+        const string sql = @"
+            SELECT
+                ""success"" AS ""Success"",
+                ""failure_reason"" AS ""FailureReason"",
+                ""lock_expires_at"" AS ""LockExpiresAt"",
+                ""price"" AS ""Price""
+            FROM public.try_lock_lamp_slot(@SlotId, @WorkstationId, @LockDurationSeconds)";
 
-        var parameters = new DynamicParameters();
-        parameters.Add("SlotId", slotId);
-        parameters.Add("WorkstationId", workstationId);
-        parameters.Add("LockDurationSeconds", lockDurationSeconds);
-        parameters.Add("Success", dbType: DbType.Boolean, direction: ParameterDirection.Output);
-        parameters.Add("FailureReason", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
-        parameters.Add("LockExpiresAt", dbType: DbType.DateTime, direction: ParameterDirection.Output);
-        parameters.Add("Price", dbType: DbType.Decimal, direction: ParameterDirection.Output);
+        var result = await connection.QuerySingleOrDefaultAsync<LockResult>(
+            sql,
+            new { SlotId = slotId, WorkstationId = workstationId, LockDurationSeconds = lockDurationSeconds },
+            transaction
+        );
 
-        await connection.ExecuteAsync(sql, parameters, transaction);
-
-        var result = new LockResult
-        {
-            Success = parameters.Get<bool>("Success"),
-            FailureReason = parameters.Get<string?>("FailureReason"),
-            LockExpiresAt = parameters.Get<DateTime?>("LockExpiresAt"),
-            Price = parameters.Get<decimal?>("Price") ?? 0
-        };
+        result ??= new LockResult { Success = false, FailureReason = "函數呼叫失敗" };
 
         if (result.Success)
         {
@@ -212,19 +207,19 @@ public class LampSlotRepository : ILampSlotRepository
     }
 
     /// <summary>
-    /// 釋放燈位鎖定（使用 UPDLOCK, ROWLOCK）
+    /// 釋放燈位鎖定（PostgreSQL 使用 FOR UPDATE）
     /// </summary>
     public async Task<bool> ReleaseAsync(int slotId, string workstationId, IDbConnection connection, IDbTransaction transaction)
     {
         const string sql = @"
-            UPDATE LampSlots WITH (UPDLOCK, ROWLOCK)
-            SET Status = 'AVAILABLE',
-                LockedByWorkstation = NULL,
-                LockExpiresAt = NULL,
-                UpdatedAt = GETDATE()
-            WHERE SlotId = @SlotId
-              AND LockedByWorkstation = @WorkstationId
-              AND Status = 'LOCKED'";
+            UPDATE public.lamp_slots
+            SET ""status"" = 'AVAILABLE',
+                ""locked_by_workstation"" = NULL,
+                ""lock_expires_at"" = NULL,
+                ""updated_at"" = NOW()
+            WHERE ""slot_id"" = @SlotId
+              AND ""locked_by_workstation"" = @WorkstationId
+              AND ""status"" = 'LOCKED'";
 
         var affected = await connection.ExecuteAsync(sql, new { SlotId = slotId, WorkstationId = workstationId }, transaction);
 
@@ -242,12 +237,12 @@ public class LampSlotRepository : ILampSlotRepository
     public async Task<bool> MarkAsSoldAsync(int slotId, IDbConnection connection, IDbTransaction transaction)
     {
         const string sql = @"
-            UPDATE LampSlots
-            SET Status = 'SOLD',
-                LockedByWorkstation = NULL,
-                LockExpiresAt = NULL,
-                UpdatedAt = GETDATE()
-            WHERE SlotId = @SlotId";
+            UPDATE public.lamp_slots
+            SET ""status"" = 'SOLD',
+                ""locked_by_workstation"" = NULL,
+                ""lock_expires_at"" = NULL,
+                ""updated_at"" = NOW()
+            WHERE ""slot_id"" = @SlotId";
 
         var affected = await connection.ExecuteAsync(sql, new { SlotId = slotId }, transaction);
         return affected > 0;

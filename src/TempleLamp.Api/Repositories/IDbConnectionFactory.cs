@@ -1,4 +1,5 @@
-using Microsoft.Data.SqlClient;
+using System.Data;
+using Npgsql;
 
 namespace TempleLamp.Api.Repositories;
 
@@ -7,24 +8,24 @@ namespace TempleLamp.Api.Repositories;
 /// </summary>
 public interface IDbConnectionFactory
 {
-    SqlConnection CreateConnection();
+    IDbConnection CreateConnection();
 }
 
 /// <summary>
-/// SQL Server 連線工廠實作
+/// PostgreSQL（Supabase）連線工廠實作
 /// </summary>
-public class SqlConnectionFactory : IDbConnectionFactory
+public class DbConnectionFactory : IDbConnectionFactory
 {
     private readonly string _connectionString;
 
-    public SqlConnectionFactory(IConfiguration configuration)
+    public DbConnectionFactory(IConfiguration configuration)
     {
         _connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("未設定 DefaultConnection 連線字串");
     }
 
-    public SqlConnection CreateConnection()
+    public IDbConnection CreateConnection()
     {
-        return new SqlConnection(_connectionString);
+        return new NpgsqlConnection(_connectionString);
     }
 }

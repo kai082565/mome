@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TempleLamp.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5c158d5fd3b594670e3a599ee4a9cec5c9266a25")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7a4c3810a73508bfe359f4a9faee7ae1f208ef59")]
 [assembly: System.Reflection.AssemblyProductAttribute("TempleLamp.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TempleLamp.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

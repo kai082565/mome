@@ -1,5 +1,4 @@
 using Dapper;
-using Microsoft.Data.SqlClient;
 using TempleLamp.Api.DTOs.Responses;
 
 namespace TempleLamp.Api.Repositories;

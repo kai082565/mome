@@ -13,7 +13,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
+        services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<ILampSlotRepository, LampSlotRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();

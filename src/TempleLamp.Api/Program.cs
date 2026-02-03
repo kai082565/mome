@@ -1,9 +1,15 @@
+using Microsoft.EntityFrameworkCore;
+using TempleLamp.Api.Data;
 using TempleLamp.Api.Extensions;
 using TempleLamp.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ===== 加入服務 =====
+
+// Entity Framework Core + PostgreSQL
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Controllers
 builder.Services.AddControllers();
