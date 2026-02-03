@@ -1,5 +1,5 @@
+using System.Data;
 using Dapper;
-using Microsoft.Data.SqlClient;
 using TempleLamp.Api.DTOs.Responses;
 
 namespace TempleLamp.Api.Repositories;
@@ -9,15 +9,18 @@ namespace TempleLamp.Api.Repositories;
 /// </summary>
 public interface IOrderRepository
 {
+    // ===== 查詢（自建連線） =====
     Task<OrderResponse?> GetByIdAsync(int orderId);
     Task<OrderResponse?> GetByOrderNumberAsync(string orderNumber);
-    Task<string> GenerateOrderNumberAsync(SqlTransaction transaction);
-    Task<int> CreateAsync(OrderCreateData data, SqlTransaction transaction);
-    Task<int> CreateOrderItemAsync(int orderId, int slotId, decimal unitPrice, SqlTransaction transaction);
-    Task<bool> UpdateStatusAsync(int orderId, string status, SqlTransaction transaction);
-    Task<int> CreatePaymentAsync(PaymentCreateData data, SqlTransaction transaction);
     Task<IEnumerable<OrderItemResponse>> GetOrderItemsAsync(int orderId);
     Task<PaymentResponse?> GetPaymentAsync(int orderId);
+
+    // ===== 交易內操作（接收外部 Connection + Transaction） =====
+    Task<string> GenerateOrderNumberAsync(IDbConnection connection, IDbTransaction transaction);
+    Task<int> CreateAsync(OrderCreateData data, IDbConnection connection, IDbTransaction transaction);
+    Task<int> CreateOrderItemAsync(int orderId, int slotId, decimal unitPrice, IDbConnection connection, IDbTransaction transaction);
+    Task<bool> UpdateStatusAsync(int orderId, string status, IDbConnection connection, IDbTransaction transaction);
+    Task<int> CreatePaymentAsync(PaymentCreateData data, IDbConnection connection, IDbTransaction transaction);
 }
 
 /// <summary>
@@ -60,6 +63,8 @@ public class OrderRepository : IOrderRepository
         _connectionFactory = connectionFactory;
         _logger = logger;
     }
+
+    #region 查詢（自建連線）
 
     public async Task<OrderResponse?> GetByIdAsync(int orderId)
     {
@@ -125,88 +130,6 @@ public class OrderRepository : IOrderRepository
         return order;
     }
 
-    /// <summary>
-    /// 產生訂單編號（使用預存程序）
-    /// </summary>
-    public async Task<string> GenerateOrderNumberAsync(SqlTransaction transaction)
-    {
-        const string sql = "EXEC sp_GenerateOrderNumber @OrderNumber OUTPUT";
-
-        var parameters = new DynamicParameters();
-        parameters.Add("OrderNumber", dbType: System.Data.DbType.String, size: 50, direction: System.Data.ParameterDirection.Output);
-
-        await transaction.Connection!.ExecuteAsync(sql, parameters, transaction);
-
-        var orderNumber = parameters.Get<string>("OrderNumber");
-        _logger.LogDebug("產生訂單編號: {OrderNumber}", orderNumber);
-
-        return orderNumber;
-    }
-
-    public async Task<int> CreateAsync(OrderCreateData data, SqlTransaction transaction)
-    {
-        const string sql = @"
-            INSERT INTO Orders (CustomerId, OrderNumber, LightingName, BlessingContent, Status, TotalAmount, CreatedByWorkstation, Notes, CreatedAt)
-            OUTPUT INSERTED.OrderId
-            VALUES (@CustomerId, @OrderNumber, @LightingName, @BlessingContent, 'PENDING', @TotalAmount, @CreatedByWorkstation, @Notes, GETDATE())";
-
-        var orderId = await transaction.Connection!.ExecuteScalarAsync<int>(sql, data, transaction);
-        _logger.LogInformation("建立訂單: OrderId={OrderId}, OrderNumber={OrderNumber}", orderId, data.OrderNumber);
-
-        return orderId;
-    }
-
-    public async Task<int> CreateOrderItemAsync(int orderId, int slotId, decimal unitPrice, SqlTransaction transaction)
-    {
-        const string sql = @"
-            INSERT INTO OrderItems (OrderId, SlotId, UnitPrice, CreatedAt)
-            OUTPUT INSERTED.OrderItemId
-            VALUES (@OrderId, @SlotId, @UnitPrice, GETDATE())";
-
-        var itemId = await transaction.Connection!.ExecuteScalarAsync<int>(sql, new
-        {
-            OrderId = orderId,
-            SlotId = slotId,
-            UnitPrice = unitPrice
-        }, transaction);
-
-        return itemId;
-    }
-
-    public async Task<bool> UpdateStatusAsync(int orderId, string status, SqlTransaction transaction)
-    {
-        const string sql = @"
-            UPDATE Orders
-            SET Status = @Status, UpdatedAt = GETDATE()
-            WHERE OrderId = @OrderId";
-
-        var affected = await transaction.Connection!.ExecuteAsync(sql, new
-        {
-            OrderId = orderId,
-            Status = status
-        }, transaction);
-
-        if (affected > 0)
-        {
-            _logger.LogInformation("訂單狀態更新: OrderId={OrderId}, Status={Status}", orderId, status);
-        }
-
-        return affected > 0;
-    }
-
-    public async Task<int> CreatePaymentAsync(PaymentCreateData data, SqlTransaction transaction)
-    {
-        const string sql = @"
-            INSERT INTO Payments (OrderId, PaymentMethod, AmountDue, AmountReceived, ChangeAmount, ReceivedByWorkstation, Notes, PaymentTime)
-            OUTPUT INSERTED.PaymentId
-            VALUES (@OrderId, @PaymentMethod, @AmountDue, @AmountReceived, @AmountReceived - @AmountDue, @ReceivedByWorkstation, @Notes, GETDATE())";
-
-        var paymentId = await transaction.Connection!.ExecuteScalarAsync<int>(sql, data, transaction);
-        _logger.LogInformation("建立付款記錄: PaymentId={PaymentId}, OrderId={OrderId}", paymentId, data.OrderId);
-
-        return paymentId;
-    }
-
     public async Task<IEnumerable<OrderItemResponse>> GetOrderItemsAsync(int orderId)
     {
         const string sql = @"
@@ -246,4 +169,104 @@ public class OrderRepository : IOrderRepository
         using var connection = _connectionFactory.CreateConnection();
         return await connection.QuerySingleOrDefaultAsync<PaymentResponse>(sql, new { OrderId = orderId });
     }
+
+    #endregion
+
+    #region 交易內操作（接收外部 Connection + Transaction）
+
+    /// <summary>
+    /// 產生訂單編號（使用預存程序）
+    /// </summary>
+    public async Task<string> GenerateOrderNumberAsync(IDbConnection connection, IDbTransaction transaction)
+    {
+        const string sql = "EXEC sp_GenerateOrderNumber @OrderNumber OUTPUT";
+
+        var parameters = new DynamicParameters();
+        parameters.Add("OrderNumber", dbType: DbType.String, size: 50, direction: ParameterDirection.Output);
+
+        await connection.ExecuteAsync(sql, parameters, transaction);
+
+        var orderNumber = parameters.Get<string>("OrderNumber");
+        _logger.LogDebug("產生訂單編號: {OrderNumber}", orderNumber);
+
+        return orderNumber;
+    }
+
+    /// <summary>
+    /// 建立訂單
+    /// </summary>
+    public async Task<int> CreateAsync(OrderCreateData data, IDbConnection connection, IDbTransaction transaction)
+    {
+        const string sql = @"
+            INSERT INTO Orders (CustomerId, OrderNumber, LightingName, BlessingContent, Status, TotalAmount, CreatedByWorkstation, Notes, CreatedAt)
+            OUTPUT INSERTED.OrderId
+            VALUES (@CustomerId, @OrderNumber, @LightingName, @BlessingContent, 'PENDING', @TotalAmount, @CreatedByWorkstation, @Notes, GETDATE())";
+
+        var orderId = await connection.ExecuteScalarAsync<int>(sql, data, transaction);
+        _logger.LogInformation("建立訂單: OrderId={OrderId}, OrderNumber={OrderNumber}", orderId, data.OrderNumber);
+
+        return orderId;
+    }
+
+    /// <summary>
+    /// 建立訂單明細
+    /// </summary>
+    public async Task<int> CreateOrderItemAsync(int orderId, int slotId, decimal unitPrice, IDbConnection connection, IDbTransaction transaction)
+    {
+        const string sql = @"
+            INSERT INTO OrderItems (OrderId, SlotId, UnitPrice, CreatedAt)
+            OUTPUT INSERTED.OrderItemId
+            VALUES (@OrderId, @SlotId, @UnitPrice, GETDATE())";
+
+        var itemId = await connection.ExecuteScalarAsync<int>(sql, new
+        {
+            OrderId = orderId,
+            SlotId = slotId,
+            UnitPrice = unitPrice
+        }, transaction);
+
+        return itemId;
+    }
+
+    /// <summary>
+    /// 更新訂單狀態
+    /// </summary>
+    public async Task<bool> UpdateStatusAsync(int orderId, string status, IDbConnection connection, IDbTransaction transaction)
+    {
+        const string sql = @"
+            UPDATE Orders
+            SET Status = @Status, UpdatedAt = GETDATE()
+            WHERE OrderId = @OrderId";
+
+        var affected = await connection.ExecuteAsync(sql, new
+        {
+            OrderId = orderId,
+            Status = status
+        }, transaction);
+
+        if (affected > 0)
+        {
+            _logger.LogInformation("訂單狀態更新: OrderId={OrderId}, Status={Status}", orderId, status);
+        }
+
+        return affected > 0;
+    }
+
+    /// <summary>
+    /// 建立付款記錄
+    /// </summary>
+    public async Task<int> CreatePaymentAsync(PaymentCreateData data, IDbConnection connection, IDbTransaction transaction)
+    {
+        const string sql = @"
+            INSERT INTO Payments (OrderId, PaymentMethod, AmountDue, AmountReceived, ChangeAmount, ReceivedByWorkstation, Notes, PaymentTime)
+            OUTPUT INSERTED.PaymentId
+            VALUES (@OrderId, @PaymentMethod, @AmountDue, @AmountReceived, @AmountReceived - @AmountDue, @ReceivedByWorkstation, @Notes, GETDATE())";
+
+        var paymentId = await connection.ExecuteScalarAsync<int>(sql, data, transaction);
+        _logger.LogInformation("建立付款記錄: PaymentId={PaymentId}, OrderId={OrderId}", paymentId, data.OrderId);
+
+        return paymentId;
+    }
+
+    #endregion
 }

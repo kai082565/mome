@@ -1,5 +1,5 @@
+using System.Data;
 using Dapper;
-using Microsoft.Data.SqlClient;
 using TempleLamp.Api.DTOs.Responses;
 
 namespace TempleLamp.Api.Repositories;
@@ -9,13 +9,16 @@ namespace TempleLamp.Api.Repositories;
 /// </summary>
 public interface ILampSlotRepository
 {
+    // ===== 查詢（自建連線） =====
     Task<LampSlotResponse?> GetByIdAsync(int slotId);
     Task<IEnumerable<LampSlotResponse>> QueryAsync(int? lampTypeId, string? zone, bool availableOnly, int? year);
     Task<IEnumerable<LampTypeResponse>> GetLampTypesAsync();
-    Task<LockResult> TryLockAsync(int slotId, string workstationId, int lockDurationSeconds, SqlTransaction? transaction = null);
-    Task<bool> ReleaseAsync(int slotId, string workstationId);
-    Task<bool> MarkAsSoldAsync(int slotId, SqlTransaction transaction);
     Task ReleaseExpiredLocksAsync();
+
+    // ===== 交易內操作（接收外部 Connection + Transaction） =====
+    Task<LockResult> TryLockAsync(int slotId, string workstationId, int lockDurationSeconds, IDbConnection connection, IDbTransaction transaction);
+    Task<bool> ReleaseAsync(int slotId, string workstationId, IDbConnection connection, IDbTransaction transaction);
+    Task<bool> MarkAsSoldAsync(int slotId, IDbConnection connection, IDbTransaction transaction);
 }
 
 /// <summary>
@@ -26,6 +29,7 @@ public class LockResult
     public bool Success { get; set; }
     public string? FailureReason { get; set; }
     public DateTime? LockExpiresAt { get; set; }
+    public decimal Price { get; set; }
 }
 
 /// <summary>
@@ -41,6 +45,8 @@ public class LampSlotRepository : ILampSlotRepository
         _connectionFactory = connectionFactory;
         _logger = logger;
     }
+
+    #region 查詢（自建連線）
 
     public async Task<LampSlotResponse?> GetByIdAsync(int slotId)
     {
@@ -141,105 +147,6 @@ public class LampSlotRepository : ILampSlotRepository
         return await connection.QueryAsync<LampTypeResponse>(sql);
     }
 
-    /// <summary>
-    /// 嘗試鎖定燈位（使用預存程序）
-    /// </summary>
-    public async Task<LockResult> TryLockAsync(int slotId, string workstationId, int lockDurationSeconds, SqlTransaction? transaction = null)
-    {
-        const string sql = "EXEC sp_TryLockLampSlot @SlotId, @WorkstationId, @LockDurationSeconds, @Success OUTPUT, @FailureReason OUTPUT, @LockExpiresAt OUTPUT";
-
-        SqlConnection connection;
-        bool ownsConnection = false;
-
-        if (transaction != null)
-        {
-            connection = transaction.Connection!;
-        }
-        else
-        {
-            connection = _connectionFactory.CreateConnection();
-            await connection.OpenAsync();
-            ownsConnection = true;
-        }
-
-        try
-        {
-            var parameters = new DynamicParameters();
-            parameters.Add("SlotId", slotId);
-            parameters.Add("WorkstationId", workstationId);
-            parameters.Add("LockDurationSeconds", lockDurationSeconds);
-            parameters.Add("Success", dbType: System.Data.DbType.Boolean, direction: System.Data.ParameterDirection.Output);
-            parameters.Add("FailureReason", dbType: System.Data.DbType.String, size: 200, direction: System.Data.ParameterDirection.Output);
-            parameters.Add("LockExpiresAt", dbType: System.Data.DbType.DateTime, direction: System.Data.ParameterDirection.Output);
-
-            await connection.ExecuteAsync(sql, parameters, transaction);
-
-            var result = new LockResult
-            {
-                Success = parameters.Get<bool>("Success"),
-                FailureReason = parameters.Get<string?>("FailureReason"),
-                LockExpiresAt = parameters.Get<DateTime?>("LockExpiresAt")
-            };
-
-            if (result.Success)
-            {
-                _logger.LogInformation("燈位鎖定成功: SlotId={SlotId}, Workstation={Workstation}, ExpiresAt={ExpiresAt}",
-                    slotId, workstationId, result.LockExpiresAt);
-            }
-            else
-            {
-                _logger.LogWarning("燈位鎖定失敗: SlotId={SlotId}, Reason={Reason}", slotId, result.FailureReason);
-            }
-
-            return result;
-        }
-        finally
-        {
-            if (ownsConnection)
-            {
-                await connection.CloseAsync();
-                await connection.DisposeAsync();
-            }
-        }
-    }
-
-    public async Task<bool> ReleaseAsync(int slotId, string workstationId)
-    {
-        const string sql = @"
-            UPDATE LampSlots WITH (UPDLOCK, ROWLOCK)
-            SET Status = 'AVAILABLE',
-                LockedByWorkstation = NULL,
-                LockExpiresAt = NULL,
-                UpdatedAt = GETDATE()
-            WHERE SlotId = @SlotId
-              AND LockedByWorkstation = @WorkstationId
-              AND Status = 'LOCKED'";
-
-        using var connection = _connectionFactory.CreateConnection();
-        var affected = await connection.ExecuteAsync(sql, new { SlotId = slotId, WorkstationId = workstationId });
-
-        if (affected > 0)
-        {
-            _logger.LogInformation("燈位釋放成功: SlotId={SlotId}, Workstation={Workstation}", slotId, workstationId);
-        }
-
-        return affected > 0;
-    }
-
-    public async Task<bool> MarkAsSoldAsync(int slotId, SqlTransaction transaction)
-    {
-        const string sql = @"
-            UPDATE LampSlots
-            SET Status = 'SOLD',
-                LockedByWorkstation = NULL,
-                LockExpiresAt = NULL,
-                UpdatedAt = GETDATE()
-            WHERE SlotId = @SlotId";
-
-        var affected = await transaction.Connection!.ExecuteAsync(sql, new { SlotId = slotId }, transaction);
-        return affected > 0;
-    }
-
     public async Task ReleaseExpiredLocksAsync()
     {
         const string sql = @"
@@ -259,4 +166,92 @@ public class LampSlotRepository : ILampSlotRepository
             _logger.LogInformation("釋放過期鎖定: 共 {Count} 個燈位", affected);
         }
     }
+
+    #endregion
+
+    #region 交易內操作（接收外部 Connection + Transaction）
+
+    /// <summary>
+    /// 嘗試鎖定燈位（使用預存程序 sp_TryLockLampSlot）
+    /// 必須在 Transaction 內呼叫
+    /// </summary>
+    public async Task<LockResult> TryLockAsync(int slotId, string workstationId, int lockDurationSeconds, IDbConnection connection, IDbTransaction transaction)
+    {
+        const string sql = "EXEC sp_TryLockLampSlot @SlotId, @WorkstationId, @LockDurationSeconds, @Success OUTPUT, @FailureReason OUTPUT, @LockExpiresAt OUTPUT, @Price OUTPUT";
+
+        var parameters = new DynamicParameters();
+        parameters.Add("SlotId", slotId);
+        parameters.Add("WorkstationId", workstationId);
+        parameters.Add("LockDurationSeconds", lockDurationSeconds);
+        parameters.Add("Success", dbType: DbType.Boolean, direction: ParameterDirection.Output);
+        parameters.Add("FailureReason", dbType: DbType.String, size: 200, direction: ParameterDirection.Output);
+        parameters.Add("LockExpiresAt", dbType: DbType.DateTime, direction: ParameterDirection.Output);
+        parameters.Add("Price", dbType: DbType.Decimal, direction: ParameterDirection.Output);
+
+        await connection.ExecuteAsync(sql, parameters, transaction);
+
+        var result = new LockResult
+        {
+            Success = parameters.Get<bool>("Success"),
+            FailureReason = parameters.Get<string?>("FailureReason"),
+            LockExpiresAt = parameters.Get<DateTime?>("LockExpiresAt"),
+            Price = parameters.Get<decimal?>("Price") ?? 0
+        };
+
+        if (result.Success)
+        {
+            _logger.LogInformation("燈位鎖定成功: SlotId={SlotId}, Workstation={Workstation}, ExpiresAt={ExpiresAt}",
+                slotId, workstationId, result.LockExpiresAt);
+        }
+        else
+        {
+            _logger.LogWarning("燈位鎖定失敗: SlotId={SlotId}, Reason={Reason}", slotId, result.FailureReason);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 釋放燈位鎖定（使用 UPDLOCK, ROWLOCK）
+    /// </summary>
+    public async Task<bool> ReleaseAsync(int slotId, string workstationId, IDbConnection connection, IDbTransaction transaction)
+    {
+        const string sql = @"
+            UPDATE LampSlots WITH (UPDLOCK, ROWLOCK)
+            SET Status = 'AVAILABLE',
+                LockedByWorkstation = NULL,
+                LockExpiresAt = NULL,
+                UpdatedAt = GETDATE()
+            WHERE SlotId = @SlotId
+              AND LockedByWorkstation = @WorkstationId
+              AND Status = 'LOCKED'";
+
+        var affected = await connection.ExecuteAsync(sql, new { SlotId = slotId, WorkstationId = workstationId }, transaction);
+
+        if (affected > 0)
+        {
+            _logger.LogInformation("燈位釋放成功: SlotId={SlotId}, Workstation={Workstation}", slotId, workstationId);
+        }
+
+        return affected > 0;
+    }
+
+    /// <summary>
+    /// 標記燈位為已售出
+    /// </summary>
+    public async Task<bool> MarkAsSoldAsync(int slotId, IDbConnection connection, IDbTransaction transaction)
+    {
+        const string sql = @"
+            UPDATE LampSlots
+            SET Status = 'SOLD',
+                LockedByWorkstation = NULL,
+                LockExpiresAt = NULL,
+                UpdatedAt = GETDATE()
+            WHERE SlotId = @SlotId";
+
+        var affected = await connection.ExecuteAsync(sql, new { SlotId = slotId }, transaction);
+        return affected > 0;
+    }
+
+    #endregion
 }

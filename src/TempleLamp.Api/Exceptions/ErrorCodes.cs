@@ -23,6 +23,7 @@ public static class ErrorCodes
     public const string SLOT_LOCK_EXPIRED = "ERR_3004";
     public const string SLOT_LOCK_FAILED = "ERR_3005";
     public const string SLOT_NOT_LOCKED_BY_YOU = "ERR_3006";
+    public const string SLOT_RELEASE_FAILED = "ERR_3007";
 
     // 訂單相關 (4xxx)
     public const string ORDER_NOT_FOUND = "ERR_4001";

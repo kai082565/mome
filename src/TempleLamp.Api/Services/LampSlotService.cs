@@ -1,3 +1,4 @@
+using System.Data;
 using TempleLamp.Api.DTOs.Requests;
 using TempleLamp.Api.DTOs.Responses;
 using TempleLamp.Api.Exceptions;
@@ -24,15 +25,18 @@ public class LampSlotService : ILampSlotService
 {
     private readonly ILampSlotRepository _lampSlotRepository;
     private readonly IAuditRepository _auditRepository;
+    private readonly IDbConnectionFactory _connectionFactory;
     private readonly ILogger<LampSlotService> _logger;
 
     public LampSlotService(
         ILampSlotRepository lampSlotRepository,
         IAuditRepository auditRepository,
+        IDbConnectionFactory connectionFactory,
         ILogger<LampSlotService> logger)
     {
         _lampSlotRepository = lampSlotRepository;
         _auditRepository = auditRepository;
+        _connectionFactory = connectionFactory;
         _logger = logger;
     }
 
@@ -73,57 +77,123 @@ public class LampSlotService : ILampSlotService
         return await _lampSlotRepository.GetLampTypesAsync();
     }
 
+    /// <summary>
+    /// 鎖定燈位（單一 Transaction 內完成）
+    ///
+    /// 流程：
+    /// 1. 驗證燈位存在（Transaction 外）
+    /// 2. 建立 Connection + Transaction
+    /// 3. 呼叫 sp_TryLockLampSlot
+    /// 4. 若鎖定失敗 → Rollback → 回傳錯誤
+    /// 5. Insert AuditLogs
+    /// 6. Commit Transaction
+    /// </summary>
     public async Task<LockLampSlotResponse> LockAsync(int slotId, string workstationId, LockLampSlotRequest request)
     {
-        // 確認燈位存在
+        // ===== Step 1: 驗證燈位存在（Transaction 外） =====
         var slot = await _lampSlotRepository.GetByIdAsync(slotId);
         if (slot == null)
         {
             throw new NotFoundException(ErrorCodes.SLOT_NOT_FOUND, $"找不到燈位 ID: {slotId}");
         }
 
-        // 嘗試鎖定
-        var lockResult = await _lampSlotRepository.TryLockAsync(slotId, workstationId, request.LockDurationSeconds);
+        // ===== Step 2: 建立 Connection + Transaction =====
+        await using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync();
+        using var transaction = connection.BeginTransaction();
 
-        if (!lockResult.Success)
+        try
         {
-            _logger.LogWarning("燈位鎖定失敗: SlotId={SlotId}, Workstation={Workstation}, Reason={Reason}",
-                slotId, workstationId, lockResult.FailureReason);
+            // ===== Step 3: 呼叫 sp_TryLockLampSlot =====
+            var lockResult = await _lampSlotRepository.TryLockAsync(
+                slotId,
+                workstationId,
+                request.LockDurationSeconds,
+                connection,
+                transaction
+            );
 
-            // 根據失敗原因決定例外類型
-            if (lockResult.FailureReason?.Contains("已被鎖定") == true ||
-                lockResult.FailureReason?.Contains("LOCKED") == true)
+            // ===== Step 4: 若鎖定失敗 → Rollback → 回傳錯誤 =====
+            if (!lockResult.Success)
             {
-                throw new ConflictException(ErrorCodes.SLOT_LOCKED, lockResult.FailureReason);
+                _logger.LogWarning("燈位鎖定失敗: SlotId={SlotId}, Workstation={Workstation}, Reason={Reason}",
+                    slotId, workstationId, lockResult.FailureReason);
+
+                await RollbackTransactionAsync(transaction);
+
+                // 根據失敗原因決定例外類型
+                if (lockResult.FailureReason?.Contains("已被鎖定") == true ||
+                    lockResult.FailureReason?.Contains("LOCKED") == true)
+                {
+                    throw new ConflictException(ErrorCodes.SLOT_LOCKED, lockResult.FailureReason);
+                }
+
+                if (lockResult.FailureReason?.Contains("已售出") == true ||
+                    lockResult.FailureReason?.Contains("SOLD") == true)
+                {
+                    throw new ConflictException(ErrorCodes.SLOT_NOT_AVAILABLE, "燈位已售出");
+                }
+
+                throw new BusinessException(ErrorCodes.SLOT_LOCK_FAILED, lockResult.FailureReason ?? "鎖定失敗");
             }
 
-            if (lockResult.FailureReason?.Contains("已售出") == true ||
-                lockResult.FailureReason?.Contains("SOLD") == true)
-            {
-                throw new ConflictException(ErrorCodes.SLOT_NOT_AVAILABLE, "燈位已售出");
-            }
+            // ===== Step 5: Insert AuditLogs =====
+            await _auditRepository.LogAsync(
+                "LOCK",
+                "LampSlot",
+                slotId,
+                workstationId,
+                $"鎖定至 {lockResult.LockExpiresAt:yyyy-MM-dd HH:mm:ss}",
+                connection,
+                transaction
+            );
 
-            throw new BusinessException(ErrorCodes.SLOT_LOCK_FAILED, lockResult.FailureReason ?? "鎖定失敗");
+            // ===== Step 6: Commit Transaction =====
+            transaction.Commit();
+
+            _logger.LogInformation("燈位鎖定成功: SlotId={SlotId}, Workstation={Workstation}, ExpiresAt={ExpiresAt}",
+                slotId, workstationId, lockResult.LockExpiresAt);
+
+            // 取得更新後的燈位資訊
+            var updatedSlot = await _lampSlotRepository.GetByIdAsync(slotId);
+
+            return new LockLampSlotResponse
+            {
+                Success = true,
+                Slot = updatedSlot,
+                LockExpiresAt = lockResult.LockExpiresAt
+            };
         }
-
-        // 記錄稽核
-        await _auditRepository.LogAsync("LOCK", "LampSlot", slotId, workstationId,
-            $"鎖定至 {lockResult.LockExpiresAt:yyyy-MM-dd HH:mm:ss}");
-
-        // 取得更新後的燈位資訊
-        var updatedSlot = await _lampSlotRepository.GetByIdAsync(slotId);
-
-        return new LockLampSlotResponse
+        catch (BusinessException)
         {
-            Success = true,
-            Slot = updatedSlot,
-            LockExpiresAt = lockResult.LockExpiresAt
-        };
+            // 業務例外已經 Rollback，直接拋出
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // 系統例外：確保 Rollback 後包裝成 BusinessException
+            await RollbackTransactionAsync(transaction);
+
+            _logger.LogError(ex, "燈位鎖定失敗(系統錯誤): SlotId={SlotId}, Workstation={Workstation}",
+                slotId, workstationId);
+
+            throw new BusinessException(ErrorCodes.SLOT_LOCK_FAILED, "燈位鎖定失敗: " + ex.Message);
+        }
     }
 
+    /// <summary>
+    /// 釋放燈位鎖定（單一 Transaction 內完成）
+    ///
+    /// 流程：
+    /// 1. 驗證燈位存在與權限（Transaction 外）
+    /// 2. 建立 Connection + Transaction
+    /// 3. 執行 Release
+    /// 4. Insert AuditLogs
+    /// 5. Commit Transaction
+    /// </summary>
     public async Task<bool> ReleaseAsync(int slotId, string workstationId)
     {
-        // 確認燈位存在
+        // ===== Step 1: 驗證燈位存在與權限（Transaction 外） =====
         var slot = await _lampSlotRepository.GetByIdAsync(slotId);
         if (slot == null)
         {
@@ -136,14 +206,77 @@ public class LampSlotService : ILampSlotService
             throw new BusinessException(ErrorCodes.SLOT_NOT_LOCKED_BY_YOU, "此燈位非由您的工作站鎖定");
         }
 
-        var released = await _lampSlotRepository.ReleaseAsync(slotId, workstationId);
+        // ===== Step 2: 建立 Connection + Transaction =====
+        await using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync();
+        using var transaction = connection.BeginTransaction();
 
-        if (released)
+        try
         {
-            await _auditRepository.LogAsync("RELEASE", "LampSlot", slotId, workstationId);
-            _logger.LogInformation("燈位已釋放: SlotId={SlotId}, Workstation={Workstation}", slotId, workstationId);
+            // ===== Step 3: 執行 Release =====
+            var released = await _lampSlotRepository.ReleaseAsync(slotId, workstationId, connection, transaction);
+
+            if (released)
+            {
+                // ===== Step 4: Insert AuditLogs =====
+                await _auditRepository.LogAsync(
+                    "RELEASE",
+                    "LampSlot",
+                    slotId,
+                    workstationId,
+                    null,
+                    connection,
+                    transaction
+                );
+            }
+
+            // ===== Step 5: Commit Transaction =====
+            transaction.Commit();
+
+            if (released)
+            {
+                _logger.LogInformation("燈位已釋放: SlotId={SlotId}, Workstation={Workstation}", slotId, workstationId);
+            }
+
+            return released;
+        }
+        catch (BusinessException)
+        {
+            await RollbackTransactionAsync(transaction);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            await RollbackTransactionAsync(transaction);
+
+            _logger.LogError(ex, "燈位釋放失敗: SlotId={SlotId}, Workstation={Workstation}",
+                slotId, workstationId);
+
+            throw new BusinessException(ErrorCodes.SLOT_RELEASE_FAILED, "燈位釋放失敗: " + ex.Message);
+        }
+    }
+
+    #region Private Methods
+
+    /// <summary>
+    /// 安全地 Rollback Transaction（忽略已完成或已 Rollback 的情況）
+    /// </summary>
+    private static async Task RollbackTransactionAsync(IDbTransaction transaction)
+    {
+        try
+        {
+            if (transaction.Connection != null)
+            {
+                transaction.Rollback();
+            }
+        }
+        catch
+        {
+            // 忽略 Rollback 錯誤（可能已經 Rollback 或 Connection 已關閉）
         }
 
-        return released;
+        await Task.CompletedTask;
     }
+
+    #endregion
 }

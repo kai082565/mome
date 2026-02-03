@@ -1,5 +1,5 @@
+using System.Data;
 using System.Text;
-using Microsoft.Data.SqlClient;
 using TempleLamp.Api.DTOs.Requests;
 using TempleLamp.Api.DTOs.Responses;
 using TempleLamp.Api.Exceptions;
@@ -61,24 +61,32 @@ public class OrderService : IOrderService
     }
 
     /// <summary>
-    /// 建立訂單（交易性操作）
-    /// 1. 驗證客戶存在
-    /// 2. 驗證所有燈位已被此工作站鎖定
-    /// 3. 產生訂單編號
-    /// 4. 建立訂單與明細
-    /// 5. 記錄稽核
+    /// 建立訂單（單一 Transaction 內完成所有操作）
+    ///
+    /// 流程：
+    /// 1. 驗證客戶存在（Transaction 外）
+    /// 2. 驗證燈位存在並取得價格（Transaction 外）
+    /// 3. 建立單一 Connection + Transaction
+    /// 4. 呼叫 sp_TryLockLampSlot 鎖定所有燈位
+    /// 5. 若任一燈位鎖定失敗 → Rollback → 回傳錯誤
+    /// 6. Insert Orders
+    /// 7. Insert OrderItems
+    /// 8. Insert AuditLogs
+    /// 9. Commit Transaction
+    ///
+    /// WorkstationId 由 Controller 從 HttpContext 取得後傳入
     /// </summary>
     public async Task<OrderResponse> CreateAsync(CreateOrderRequest request, string workstationId)
     {
-        // 驗證客戶
+        // ===== Step 1: 驗證客戶存在（Transaction 外） =====
         var customer = await _customerRepository.GetByIdAsync(request.CustomerId);
         if (customer == null)
         {
             throw new NotFoundException(ErrorCodes.CUSTOMER_NOT_FOUND, $"找不到客戶 ID: {request.CustomerId}");
         }
 
-        // 驗證燈位
-        var slots = new List<LampSlotResponse>();
+        // ===== Step 2: 驗證燈位存在（Transaction 外，僅驗證不取價格） =====
+        var slotInfoList = new List<LampSlotResponse>();
         foreach (var slotId in request.LampSlotIds)
         {
             var slot = await _lampSlotRepository.GetByIdAsync(slotId);
@@ -86,38 +94,71 @@ public class OrderService : IOrderService
             {
                 throw new NotFoundException(ErrorCodes.SLOT_NOT_FOUND, $"找不到燈位 ID: {slotId}");
             }
-
-            // 確認燈位已被此工作站鎖定
-            if (slot.Status != "LOCKED" || slot.LockedByWorkstation != workstationId)
-            {
-                throw new BusinessException(ErrorCodes.SLOT_NOT_LOCKED_BY_YOU,
-                    $"燈位 {slot.SlotNumber} 未被您的工作站鎖定");
-            }
-
-            // 確認鎖定未過期
-            if (slot.LockExpiresAt.HasValue && slot.LockExpiresAt.Value < DateTime.Now)
-            {
-                throw new BusinessException(ErrorCodes.SLOT_LOCK_EXPIRED,
-                    $"燈位 {slot.SlotNumber} 的鎖定已過期");
-            }
-
-            slots.Add(slot);
+            slotInfoList.Add(slot);
         }
 
-        // 計算總金額
-        var totalAmount = slots.Sum(s => s.Price);
-
-        // 開始交易
+        // ===== Step 3: 建立單一 Connection + Transaction =====
         await using var connection = _connectionFactory.CreateConnection();
         await connection.OpenAsync();
-        await using var transaction = connection.BeginTransaction();
+        using var transaction = connection.BeginTransaction();
 
         try
         {
-            // 產生訂單編號
-            var orderNumber = await _orderRepository.GenerateOrderNumberAsync(transaction);
+            // ===== Step 4: 呼叫 sp_TryLockLampSlot 鎖定所有燈位並取得價格 =====
+            // 使用 Dictionary 儲存每個燈位的鎖定結果（包含 Transaction 內的價格）
+            var lockResults = new Dictionary<int, LockResult>();
 
-            // 建立訂單
+            foreach (var slot in slotInfoList)
+            {
+                var lockResult = await _lampSlotRepository.TryLockAsync(
+                    slot.SlotId,
+                    workstationId,
+                    lockDurationSeconds: 600,  // 訂單處理鎖定 10 分鐘
+                    connection,
+                    transaction
+                );
+
+                // ===== Step 5: 若鎖定失敗 → Rollback → 回傳錯誤 =====
+                if (!lockResult.Success)
+                {
+                    _logger.LogWarning(
+                        "燈位鎖定失敗，訂單建立中止: SlotId={SlotId}, SlotNumber={SlotNumber}, Reason={Reason}, Workstation={Workstation}",
+                        slot.SlotId, slot.SlotNumber, lockResult.FailureReason, workstationId);
+
+                    // Rollback（會自動釋放已鎖定的燈位）
+                    await RollbackTransactionAsync(transaction);
+
+                    // 根據失敗原因回傳對應錯誤
+                    if (lockResult.FailureReason?.Contains("已被鎖定") == true ||
+                        lockResult.FailureReason?.Contains("LOCKED") == true)
+                    {
+                        throw new ConflictException(ErrorCodes.SLOT_LOCKED,
+                            $"燈位 {slot.SlotNumber} 已被其他工作站鎖定");
+                    }
+
+                    if (lockResult.FailureReason?.Contains("已售出") == true ||
+                        lockResult.FailureReason?.Contains("SOLD") == true)
+                    {
+                        throw new ConflictException(ErrorCodes.SLOT_NOT_AVAILABLE,
+                            $"燈位 {slot.SlotNumber} 已售出");
+                    }
+
+                    throw new BusinessException(ErrorCodes.SLOT_LOCK_FAILED,
+                        $"燈位 {slot.SlotNumber} 鎖定失敗: {lockResult.FailureReason}");
+                }
+
+                // 儲存鎖定結果（包含 Transaction 內取得的價格）
+                lockResults[slot.SlotId] = lockResult;
+
+                _logger.LogDebug("燈位鎖定成功: SlotId={SlotId}, Price={Price}, ExpiresAt={ExpiresAt}",
+                    slot.SlotId, lockResult.Price, lockResult.LockExpiresAt);
+            }
+
+            // ===== Step 6: 計算總金額（使用 Transaction 內的價格） =====
+            var totalAmount = lockResults.Values.Sum(r => r.Price);
+
+            var orderNumber = await _orderRepository.GenerateOrderNumberAsync(connection, transaction);
+
             var orderData = new OrderCreateData
             {
                 CustomerId = request.CustomerId,
@@ -129,41 +170,57 @@ public class OrderService : IOrderService
                 Notes = request.Notes
             };
 
-            var orderId = await _orderRepository.CreateAsync(orderData, transaction);
+            var orderId = await _orderRepository.CreateAsync(orderData, connection, transaction);
 
-            // 建立訂單明細
-            foreach (var slot in slots)
+            // ===== Step 7: Insert OrderItems（使用 Transaction 內的價格） =====
+            foreach (var slot in slotInfoList)
             {
-                await _orderRepository.CreateOrderItemAsync(orderId, slot.SlotId, slot.Price, transaction);
+                var price = lockResults[slot.SlotId].Price;
+                await _orderRepository.CreateOrderItemAsync(orderId, slot.SlotId, price, connection, transaction);
             }
 
-            // 記錄稽核
-            await _auditRepository.LogAsync("CREATE", "Order", orderId, workstationId,
-                $"訂單編號: {orderNumber}, 燈位數: {slots.Count}, 總金額: {totalAmount}", transaction);
+            // ===== Step 8: Insert AuditLogs =====
+            var slotNumbers = string.Join(", ", slotInfoList.Select(s => s.SlotNumber));
+            await _auditRepository.LogAsync(
+                "CREATE",
+                "Order",
+                orderId,
+                workstationId,
+                $"訂單編號: {orderNumber}, 燈位: [{slotNumbers}], 總金額: {totalAmount:N0}",
+                connection,
+                transaction
+            );
 
-            await transaction.CommitAsync();
+            // ===== Step 9: Commit Transaction =====
+            transaction.Commit();
 
-            _logger.LogInformation("訂單建立成功: OrderId={OrderId}, OrderNumber={OrderNumber}, TotalAmount={TotalAmount}",
-                orderId, orderNumber, totalAmount);
+            _logger.LogInformation(
+                "訂單建立成功: OrderId={OrderId}, OrderNumber={OrderNumber}, SlotCount={SlotCount}, TotalAmount={TotalAmount}, Workstation={Workstation}",
+                orderId, orderNumber, slotInfoList.Count, totalAmount, workstationId);
 
             return await GetByIdAsync(orderId);
         }
+        catch (BusinessException)
+        {
+            // 確保 Rollback（RollbackTransactionAsync 內部會忽略重複 Rollback）
+            await RollbackTransactionAsync(transaction);
+            throw;
+        }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, "訂單建立失敗: CustomerId={CustomerId}, SlotCount={SlotCount}",
-                request.CustomerId, request.LampSlotIds.Count);
+            // 確保 Rollback 後包裝成 BusinessException
+            await RollbackTransactionAsync(transaction);
+
+            _logger.LogError(ex,
+                "訂單建立失敗(系統錯誤): CustomerId={CustomerId}, SlotCount={SlotCount}, Workstation={Workstation}",
+                request.CustomerId, request.LampSlotIds.Count, workstationId);
+
             throw new BusinessException(ErrorCodes.ORDER_CREATE_FAILED, "訂單建立失敗: " + ex.Message);
         }
     }
 
     /// <summary>
     /// 確認訂單（付款完成）
-    /// 1. 驗證訂單狀態
-    /// 2. 驗證付款金額
-    /// 3. 建立付款記錄
-    /// 4. 更新訂單狀態
-    /// 5. 將燈位標記為已售出
     /// </summary>
     public async Task<OrderResponse> ConfirmAsync(int orderId, ConfirmOrderRequest request, string workstationId)
     {
@@ -198,7 +255,7 @@ public class OrderService : IOrderService
         // 開始交易
         await using var connection = _connectionFactory.CreateConnection();
         await connection.OpenAsync();
-        await using var transaction = connection.BeginTransaction();
+        using var transaction = connection.BeginTransaction();
 
         try
         {
@@ -213,23 +270,29 @@ public class OrderService : IOrderService
                 Notes = request.PaymentNotes
             };
 
-            await _orderRepository.CreatePaymentAsync(paymentData, transaction);
+            await _orderRepository.CreatePaymentAsync(paymentData, connection, transaction);
 
             // 更新訂單狀態
-            await _orderRepository.UpdateStatusAsync(orderId, "CONFIRMED", transaction);
+            await _orderRepository.UpdateStatusAsync(orderId, "CONFIRMED", connection, transaction);
 
             // 將所有燈位標記為已售出
             foreach (var item in order.Items)
             {
-                await _lampSlotRepository.MarkAsSoldAsync(item.SlotId, transaction);
+                await _lampSlotRepository.MarkAsSoldAsync(item.SlotId, connection, transaction);
             }
 
             // 記錄稽核
-            await _auditRepository.LogAsync("CONFIRM", "Order", orderId, workstationId,
+            await _auditRepository.LogAsync(
+                "CONFIRM",
+                "Order",
+                orderId,
+                workstationId,
                 $"付款方式: {request.PaymentMethod}, 實收: {request.AmountReceived}, 找零: {request.AmountReceived - order.TotalAmount}",
-                transaction);
+                connection,
+                transaction
+            );
 
-            await transaction.CommitAsync();
+            transaction.Commit();
 
             _logger.LogInformation("訂單確認成功: OrderId={OrderId}, PaymentMethod={PaymentMethod}, Amount={Amount}",
                 orderId, request.PaymentMethod, request.AmountReceived);
@@ -238,12 +301,12 @@ public class OrderService : IOrderService
         }
         catch (BusinessException)
         {
-            await transaction.RollbackAsync();
+            await RollbackTransactionAsync(transaction);
             throw;
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackTransactionAsync(transaction);
             _logger.LogError(ex, "訂單確認失敗: OrderId={OrderId}", orderId);
             throw new BusinessException(ErrorCodes.ORDER_PAYMENT_FAILED, "付款處理失敗: " + ex.Message);
         }
@@ -251,9 +314,6 @@ public class OrderService : IOrderService
 
     /// <summary>
     /// 取消訂單
-    /// 1. 驗證訂單狀態
-    /// 2. 更新訂單狀態
-    /// 3. 釋放燈位（若尚未售出）
     /// </summary>
     public async Task<OrderResponse> CancelAsync(int orderId, CancelOrderRequest request, string workstationId)
     {
@@ -276,31 +336,31 @@ public class OrderService : IOrderService
         // 開始交易
         await using var connection = _connectionFactory.CreateConnection();
         await connection.OpenAsync();
-        await using var transaction = connection.BeginTransaction();
+        using var transaction = connection.BeginTransaction();
 
         try
         {
             // 更新訂單狀態
-            await _orderRepository.UpdateStatusAsync(orderId, "CANCELLED", transaction);
+            await _orderRepository.UpdateStatusAsync(orderId, "CANCELLED", connection, transaction);
 
-            // 記錄稽核
-            await _auditRepository.LogAsync("CANCEL", "Order", orderId, workstationId,
-                $"取消原因: {request.Reason}", transaction);
-
-            await transaction.CommitAsync();
-
-            // 釋放相關燈位（非交易內，失敗不影響取消結果）
+            // 釋放所有燈位
             foreach (var item in order.Items)
             {
-                try
-                {
-                    await _lampSlotRepository.ReleaseAsync(item.SlotId, order.CreatedByWorkstation);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "釋放燈位失敗（非嚴重）: SlotId={SlotId}", item.SlotId);
-                }
+                await _lampSlotRepository.ReleaseAsync(item.SlotId, order.CreatedByWorkstation, connection, transaction);
             }
+
+            // 記錄稽核
+            await _auditRepository.LogAsync(
+                "CANCEL",
+                "Order",
+                orderId,
+                workstationId,
+                $"取消原因: {request.Reason}",
+                connection,
+                transaction
+            );
+
+            transaction.Commit();
 
             _logger.LogInformation("訂單取消成功: OrderId={OrderId}, Reason={Reason}", orderId, request.Reason);
 
@@ -308,12 +368,12 @@ public class OrderService : IOrderService
         }
         catch (BusinessException)
         {
-            await transaction.RollbackAsync();
+            await RollbackTransactionAsync(transaction);
             throw;
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await RollbackTransactionAsync(transaction);
             _logger.LogError(ex, "訂單取消失敗: OrderId={OrderId}", orderId);
             throw;
         }
@@ -332,7 +392,7 @@ public class OrderService : IOrderService
         {
             ReceiptNumber = $"R-{order.OrderNumber}",
             Order = order,
-            TempleName = "範例宮",  // TODO: 從設定檔讀取
+            TempleName = "範例宮",
             TempleAddress = "台北市中正區範例路一號",
             TemplePhone = "02-1234-5678",
             PrintTime = DateTime.Now,
@@ -350,7 +410,6 @@ public class OrderService : IOrderService
         await _auditRepository.LogAsync("PRINT", "Receipt", orderId, workstationId,
             $"收據編號: {receipt.ReceiptNumber}, 份數: {request.Copies}");
 
-        // 實際列印邏輯（由 WPF 端處理，這裡僅回傳收據資料）
         return new PrintResultResponse
         {
             Success = true,
@@ -360,7 +419,29 @@ public class OrderService : IOrderService
         };
     }
 
-    private string FormatReceiptContent(OrderResponse order)
+    #region Private Methods
+
+    /// <summary>
+    /// 安全地 Rollback Transaction（忽略已完成或已 Rollback 的情況）
+    /// </summary>
+    private static async Task RollbackTransactionAsync(IDbTransaction transaction)
+    {
+        try
+        {
+            if (transaction.Connection != null)
+            {
+                transaction.Rollback();
+            }
+        }
+        catch
+        {
+            // 忽略 Rollback 錯誤（可能已經 Rollback 或 Connection 已關閉）
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private static string FormatReceiptContent(OrderResponse order)
     {
         var sb = new StringBuilder();
 
@@ -411,4 +492,6 @@ public class OrderService : IOrderService
 
         return sb.ToString();
     }
+
+    #endregion
 }

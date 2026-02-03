@@ -1,0 +1,528 @@
+<Window x:Class="TempleLamp.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:TempleLamp.Desktop.ViewModels"
+        Title="點燈櫃檯系統"
+        Height="800" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+
+    <Grid Background="#F5F5F5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 標題列 -->
+        <Border Grid.Row="0" Background="#1976D2" Padding="16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="點燈櫃檯系統" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="工作站: " Foreground="White"/>
+                    <TextBlock Text="{x:Static local:App.WorkstationId}" Foreground="White" FontWeight="Bold"
+                               xmlns:local="clr-namespace:TempleLamp.Desktop"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 步驟指示器 -->
+        <Border Grid.Row="1" Background="White" Padding="16" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <!-- Step 1 -->
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="32" Height="32" CornerRadius="16"
+                            Background="{Binding CurrentStep, Converter={StaticResource StepColorConverter}, ConverterParameter=1, FallbackValue=#1976D2}">
+                        <TextBlock Text="1" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                    </Border>
+                    <TextBlock Text="選擇燈位" VerticalAlignment="Center" Margin="8,0,24,0"/>
+                </StackPanel>
+                <TextBlock Text="→" VerticalAlignment="Center" Margin="0,0,24,0" Foreground="#999"/>
+
+                <!-- Step 2 -->
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="32" Height="32" CornerRadius="16"
+                            Background="{Binding CurrentStep, Converter={StaticResource StepColorConverter}, ConverterParameter=2, FallbackValue=#E0E0E0}">
+                        <TextBlock Text="2" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                    </Border>
+                    <TextBlock Text="客戶資料" VerticalAlignment="Center" Margin="8,0,24,0"/>
+                </StackPanel>
+                <TextBlock Text="→" VerticalAlignment="Center" Margin="0,0,24,0" Foreground="#999"/>
+
+                <!-- Step 3 -->
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="32" Height="32" CornerRadius="16"
+                            Background="{Binding CurrentStep, Converter={StaticResource StepColorConverter}, ConverterParameter=3, FallbackValue=#E0E0E0}">
+                        <TextBlock Text="3" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                    </Border>
+                    <TextBlock Text="確認訂單" VerticalAlignment="Center" Margin="8,0,24,0"/>
+                </StackPanel>
+                <TextBlock Text="→" VerticalAlignment="Center" Margin="0,0,24,0" Foreground="#999"/>
+
+                <!-- Step 4 -->
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="32" Height="32" CornerRadius="16"
+                            Background="{Binding CurrentStep, Converter={StaticResource StepColorConverter}, ConverterParameter=4, FallbackValue=#E0E0E0}">
+                        <TextBlock Text="4" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                    </Border>
+                    <TextBlock Text="付款" VerticalAlignment="Center" Margin="8,0,24,0"/>
+                </StackPanel>
+                <TextBlock Text="→" VerticalAlignment="Center" Margin="0,0,24,0" Foreground="#999"/>
+
+                <!-- Step 5 -->
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="32" Height="32" CornerRadius="16"
+                            Background="{Binding CurrentStep, Converter={StaticResource StepColorConverter}, ConverterParameter=5, FallbackValue=#E0E0E0}">
+                        <TextBlock Text="5" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                    </Border>
+                    <TextBlock Text="收據" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- 主要內容區域 -->
+        <Grid Grid.Row="2" Margin="16">
+            <!-- Step 1: 燈位選擇 -->
+            <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibilityConverter}, ConverterParameter=1}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="300"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 左側：燈位清單 -->
+                <Border Background="White" CornerRadius="8" Padding="16" Margin="0,0,8,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="選擇燈位" Style="{StaticResource HeaderStyle}"/>
+
+                        <!-- 篩選條件 -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,16">
+                            <TextBlock Text="燈種:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox Width="200"
+                                      ItemsSource="{Binding LampTypes}"
+                                      SelectedItem="{Binding SelectedLampType}"
+                                      DisplayMemberPath="Name"/>
+                            <Button Content="查詢" Command="{Binding LoadLampSlotsCommand}" Margin="8,0,0,0"/>
+                        </StackPanel>
+
+                        <!-- 燈位清單 -->
+                        <ListBox Grid.Row="2"
+                                 ItemsSource="{Binding LampSlots}"
+                                 BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource SlotCard}" Width="140" Cursor="Hand"
+                                            MouseLeftButtonUp="SlotCard_Click">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding SlotNumber}" FontWeight="Bold" FontSize="14"/>
+                                            <TextBlock Text="{Binding LampTypeName}" Foreground="#666" FontSize="12"/>
+                                            <TextBlock Text="{Binding Zone}" Foreground="#666" FontSize="12"/>
+                                            <TextBlock FontSize="16" FontWeight="Bold" Foreground="#1976D2">
+                                                <Run Text="$"/>
+                                                <Run Text="{Binding Price, StringFormat=N0, Mode=OneWay}"/>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding StatusDisplay}"
+                                                       Foreground="{Binding Status, Converter={StaticResource StatusColorConverter}}"
+                                                       FontSize="12"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
+                <!-- 右側：已選燈位 -->
+                <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="16" Margin="8,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="已選燈位" Style="{StaticResource HeaderStyle}"/>
+
+                        <ListBox Grid.Row="1" ItemsSource="{Binding SelectedSlots}" BorderThickness="0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding SlotNumber}" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding LampTypeName}" Foreground="#666" FontSize="12"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="8,0">
+                                            <Run Text="$"/>
+                                            <Run Text="{Binding Price, StringFormat=N0, Mode=OneWay}"/>
+                                        </TextBlock>
+                                        <Button Grid.Column="2" Content="✕" Padding="4,2"
+                                                Command="{Binding DataContext.RemoveSlotCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="0,16,0,0" Margin="0,16,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="總計:" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" FontSize="24" FontWeight="Bold" Foreground="#D32F2F">
+                                    <Run Text="$"/>
+                                    <Run Text="{Binding TotalAmount, StringFormat=N0, Mode=OneWay}"/>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+
+                        <StackPanel Grid.Row="3" Margin="0,16,0,0">
+                            <Button Content="清空" Command="{Binding ClearSelectedSlotsCommand}" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="下一步：客戶資料" Command="{Binding GoToCustomerStepCommand}" Style="{StaticResource PrimaryButton}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Step 2: 客戶選擇 -->
+            <Border Background="White" CornerRadius="8" Padding="24"
+                    Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibilityConverter}, ConverterParameter=2}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="客戶資料" Style="{StaticResource HeaderStyle}"/>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 搜尋客戶 -->
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="搜尋客戶" FontWeight="Bold" FontSize="16" Margin="0,0,0,8"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Width="200" Text="{Binding SearchPhone, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="輸入電話號碼"/>
+                                <Button Content="搜尋" Command="{Binding SearchCustomersCommand}" Margin="8,0,0,0"/>
+                            </StackPanel>
+
+                            <ListBox ItemsSource="{Binding SearchResults}"
+                                     SelectedItem="{Binding SelectedCustomer}"
+                                     Margin="0,16,0,0" Height="200">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="4">
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" Width="100"/>
+                                            <TextBlock Text="{Binding Phone}" Margin="8,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <Button Content="建立新客戶" Command="{Binding ShowCreateCustomerCommand}"
+                                    Style="{StaticResource SecondaryButton}" Margin="0,8,0,0"/>
+                        </StackPanel>
+
+                        <!-- 新增客戶 / 已選客戶 -->
+                        <Border Grid.Column="1" Background="#F9F9F9" CornerRadius="8" Padding="16">
+                            <Grid>
+                                <!-- 建立新客戶 -->
+                                <StackPanel Visibility="{Binding IsCreatingNewCustomer, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="建立新客戶" FontWeight="Bold" FontSize="16" Margin="0,0,0,16"/>
+
+                                    <TextBlock Text="姓名 *" Style="{StaticResource LabelStyle}"/>
+                                    <TextBox Text="{Binding NewCustomerName, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Text="電話 *" Style="{StaticResource LabelStyle}"/>
+                                    <TextBox Text="{Binding NewCustomerPhone, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Text="地址" Style="{StaticResource LabelStyle}"/>
+                                    <TextBox Text="{Binding NewCustomerAddress, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <Button Content="建立客戶" Command="{Binding CreateCustomerCommand}"
+                                            Style="{StaticResource PrimaryButton}" Margin="0,16,0,0"/>
+                                </StackPanel>
+
+                                <!-- 已選客戶資訊 -->
+                                <StackPanel Visibility="{Binding SelectedCustomer, Converter={StaticResource NullToVisibilityConverter}}">
+                                    <TextBlock Text="已選擇客戶" FontWeight="Bold" FontSize="16" Margin="0,0,0,16"/>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Text="姓名:" Grid.Row="0" Grid.Column="0" Style="{StaticResource LabelStyle}"/>
+                                        <TextBlock Text="{Binding SelectedCustomer.Name}" Grid.Row="0" Grid.Column="1"
+                                                   FontWeight="Bold" FontSize="18" VerticalAlignment="Center"/>
+
+                                        <TextBlock Text="電話:" Grid.Row="1" Grid.Column="0" Style="{StaticResource LabelStyle}"/>
+                                        <TextBlock Text="{Binding SelectedCustomer.Phone}" Grid.Row="1" Grid.Column="1"
+                                                   FontSize="16" VerticalAlignment="Center"/>
+
+                                        <TextBlock Text="歷史訂單:" Grid.Row="2" Grid.Column="0" Style="{StaticResource LabelStyle}"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" FontSize="16" VerticalAlignment="Center">
+                                            <Run Text="{Binding SelectedCustomer.TotalOrders, Mode=OneWay}"/>
+                                            <Run Text=" 筆"/>
+                                        </TextBlock>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Content="上一步" Command="{Binding BackToSlotStepCommand}" Style="{StaticResource SecondaryButton}"/>
+                        <Button Content="下一步：確認訂單" Command="{Binding GoToOrderStepCommand}" Style="{StaticResource PrimaryButton}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Step 3: 訂單確認 -->
+            <Border Background="White" CornerRadius="8" Padding="24"
+                    Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibilityConverter}, ConverterParameter=3}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="確認訂單" Style="{StaticResource HeaderStyle}"/>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 訂單資訊輸入 -->
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="點燈資訊" FontWeight="Bold" FontSize="16" Margin="0,0,0,16"/>
+
+                            <TextBlock Text="點燈者姓名 *" Style="{StaticResource LabelStyle}"/>
+                            <TextBox Text="{Binding LightingName, UpdateSourceTrigger=PropertyChanged}" Width="300" HorizontalAlignment="Left"/>
+
+                            <TextBlock Text="祈福內容" Style="{StaticResource LabelStyle}" Margin="0,16,0,0"/>
+                            <TextBox Text="{Binding BlessingContent, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="300" Height="80" TextWrapping="Wrap" AcceptsReturn="True" HorizontalAlignment="Left"/>
+
+                            <TextBlock Text="備註" Style="{StaticResource LabelStyle}" Margin="0,16,0,0"/>
+                            <TextBox Text="{Binding OrderNotes, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="300" Height="60" TextWrapping="Wrap" AcceptsReturn="True" HorizontalAlignment="Left"/>
+                        </StackPanel>
+
+                        <!-- 訂單摘要 -->
+                        <Border Grid.Column="1" Background="#F9F9F9" CornerRadius="8" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="訂單摘要" FontWeight="Bold" FontSize="16" Margin="0,0,0,16"/>
+
+                                <TextBlock Text="客戶資訊" FontWeight="Bold" Margin="0,0,0,8"/>
+                                <TextBlock>
+                                    <Run Text="姓名: "/>
+                                    <Run Text="{Binding SelectedCustomer.Name, Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock>
+                                    <Run Text="電話: "/>
+                                    <Run Text="{Binding SelectedCustomer.Phone, Mode=OneWay}"/>
+                                </TextBlock>
+
+                                <TextBlock Text="燈位明細" FontWeight="Bold" Margin="0,16,0,8"/>
+                                <ItemsControl ItemsSource="{Binding SelectedSlots}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock>
+                                                    <Run Text="{Binding LampTypeName, Mode=OneWay}"/>
+                                                    <Run Text=" - "/>
+                                                    <Run Text="{Binding SlotNumber, Mode=OneWay}"/>
+                                                </TextBlock>
+                                                <TextBlock Grid.Column="1">
+                                                    <Run Text="$"/>
+                                                    <Run Text="{Binding Price, StringFormat=N0, Mode=OneWay}"/>
+                                                </TextBlock>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Border BorderBrush="#CCC" BorderThickness="0,1,0,0" Margin="0,16,0,0" Padding="0,16,0,0">
+                                    <Grid>
+                                        <TextBlock Text="總計:" FontSize="18" FontWeight="Bold"/>
+                                        <TextBlock HorizontalAlignment="Right" FontSize="24" FontWeight="Bold" Foreground="#D32F2F">
+                                            <Run Text="$"/>
+                                            <Run Text="{Binding TotalAmount, StringFormat=N0, Mode=OneWay}"/>
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Content="上一步" Command="{Binding BackToCustomerStepCommand}" Style="{StaticResource SecondaryButton}"/>
+                        <Button Content="建立訂單" Command="{Binding CreateOrderCommand}" Style="{StaticResource PrimaryButton}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Step 4: 付款 -->
+            <Border Background="White" CornerRadius="8" Padding="24"
+                    Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibilityConverter}, ConverterParameter=4}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="付款" Style="{StaticResource HeaderStyle}"/>
+
+                    <Grid Grid.Row="1" HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="250"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="訂單編號:" Grid.Row="0" Grid.Column="0" Style="{StaticResource LabelStyle}" FontSize="16"/>
+                        <TextBlock Text="{Binding CurrentOrder.OrderNumber}" Grid.Row="0" Grid.Column="1"
+                                   FontWeight="Bold" FontSize="18" VerticalAlignment="Center"/>
+
+                        <TextBlock Text="應付金額:" Grid.Row="1" Grid.Column="0" Style="{StaticResource LabelStyle}" FontSize="16"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" FontWeight="Bold" FontSize="28" Foreground="#D32F2F" VerticalAlignment="Center">
+                            <Run Text="$"/>
+                            <Run Text="{Binding CurrentOrder.TotalAmount, StringFormat=N0, Mode=OneWay}"/>
+                        </TextBlock>
+
+                        <TextBlock Text="付款方式:" Grid.Row="2" Grid.Column="0" Style="{StaticResource LabelStyle}" FontSize="16"/>
+                        <ComboBox Grid.Row="2" Grid.Column="1" SelectedValue="{Binding PaymentMethod}" SelectedValuePath="Tag">
+                            <ComboBoxItem Content="現金" Tag="CASH"/>
+                            <ComboBoxItem Content="信用卡" Tag="CARD"/>
+                            <ComboBoxItem Content="LINE Pay" Tag="LINEPAY"/>
+                        </ComboBox>
+
+                        <TextBlock Text="實收金額:" Grid.Row="3" Grid.Column="0" Style="{StaticResource LabelStyle}" FontSize="16"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding AmountReceived, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="20" FontWeight="Bold"/>
+
+                        <TextBlock Text="找零:" Grid.Row="4" Grid.Column="0" Style="{StaticResource LabelStyle}" FontSize="16"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" FontWeight="Bold" FontSize="24" Foreground="#4CAF50" VerticalAlignment="Center">
+                            <Run Text="$"/>
+                            <Run Text="{Binding ChangeAmount, StringFormat=N0, Mode=OneWay}"/>
+                        </TextBlock>
+
+                        <TextBlock Text="備註:" Grid.Row="5" Grid.Column="0" Style="{StaticResource LabelStyle}" FontSize="16"/>
+                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PaymentNotes, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="60" TextWrapping="Wrap"/>
+                    </Grid>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,0">
+                        <Button Content="取消訂單" Command="{Binding CancelOrderCommand}" Style="{StaticResource DangerButton}"/>
+                        <Button Content="確認收款" Command="{Binding ConfirmPaymentCommand}" Style="{StaticResource PrimaryButton}"
+                                FontSize="18" Padding="32,12"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Step 5: 收據 -->
+            <Border Background="White" CornerRadius="8" Padding="24"
+                    Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibilityConverter}, ConverterParameter=5}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="交易完成" Style="{StaticResource HeaderStyle}" Foreground="#4CAF50"/>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <Border Background="#F5F5F5" CornerRadius="8" Padding="24" MaxWidth="500" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding Receipt.FormattedContent}"
+                                       FontFamily="Consolas" FontSize="14"
+                                       TextWrapping="Wrap" LineHeight="20"/>
+                        </Border>
+                    </ScrollViewer>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,0">
+                        <Button Content="列印收據" Command="{Binding PrintReceiptCommand}" Style="{StaticResource PrimaryButton}"/>
+                        <Button Content="開始新交易" Command="{Binding StartNewTransactionCommand}"
+                                Style="{StaticResource PrimaryButton}" Background="#4CAF50"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 底部狀態列 -->
+        <Border Grid.Row="3" Background="#333" Padding="16,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 錯誤/成功訊息 -->
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#FF5252"
+                               Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}"/>
+                    <TextBlock Text="{Binding SuccessMessage}" Foreground="#69F0AE"
+                               Visibility="{Binding SuccessMessage, Converter={StaticResource NullToVisibilityConverter}}"/>
+                </StackPanel>
+
+                <!-- 載入指示器 -->
+                <TextBlock Grid.Column="1" Text="處理中..." Foreground="#FFC107"
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

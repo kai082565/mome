@@ -1,5 +1,5 @@
+using System.Data;
 using Dapper;
-using Microsoft.Data.SqlClient;
 
 namespace TempleLamp.Api.Repositories;
 
@@ -8,8 +8,13 @@ namespace TempleLamp.Api.Repositories;
 /// </summary>
 public interface IAuditRepository
 {
-    Task LogAsync(AuditLogData data, SqlTransaction? transaction = null);
-    Task LogAsync(string action, string entityType, int entityId, string workstationId, string? details = null, SqlTransaction? transaction = null);
+    // ===== 查詢（自建連線） =====
+    Task LogAsync(AuditLogData data);
+    Task LogAsync(string action, string entityType, int entityId, string workstationId, string? details = null);
+
+    // ===== 交易內操作（接收外部 Connection + Transaction） =====
+    Task LogAsync(AuditLogData data, IDbConnection connection, IDbTransaction transaction);
+    Task LogAsync(string action, string entityType, int entityId, string workstationId, string? details, IDbConnection connection, IDbTransaction transaction);
 }
 
 /// <summary>
@@ -34,33 +39,28 @@ public class AuditRepository : IAuditRepository
     private readonly IDbConnectionFactory _connectionFactory;
     private readonly ILogger<AuditRepository> _logger;
 
+    private const string InsertSql = @"
+        INSERT INTO AuditLogs (Action, EntityType, EntityId, WorkstationId, OldValue, NewValue, Details, CreatedAt)
+        VALUES (@Action, @EntityType, @EntityId, @WorkstationId, @OldValue, @NewValue, @Details, GETDATE())";
+
     public AuditRepository(IDbConnectionFactory connectionFactory, ILogger<AuditRepository> logger)
     {
         _connectionFactory = connectionFactory;
         _logger = logger;
     }
 
-    public async Task LogAsync(AuditLogData data, SqlTransaction? transaction = null)
-    {
-        const string sql = @"
-            INSERT INTO AuditLogs (Action, EntityType, EntityId, WorkstationId, OldValue, NewValue, Details, CreatedAt)
-            VALUES (@Action, @EntityType, @EntityId, @WorkstationId, @OldValue, @NewValue, @Details, GETDATE())";
+    #region 自建連線
 
-        if (transaction != null)
-        {
-            await transaction.Connection!.ExecuteAsync(sql, data, transaction);
-        }
-        else
-        {
-            using var connection = _connectionFactory.CreateConnection();
-            await connection.ExecuteAsync(sql, data);
-        }
+    public async Task LogAsync(AuditLogData data)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.ExecuteAsync(InsertSql, data);
 
         _logger.LogDebug("稽核紀錄: Action={Action}, EntityType={EntityType}, EntityId={EntityId}, Workstation={Workstation}",
             data.Action, data.EntityType, data.EntityId, data.WorkstationId);
     }
 
-    public async Task LogAsync(string action, string entityType, int entityId, string workstationId, string? details = null, SqlTransaction? transaction = null)
+    public async Task LogAsync(string action, string entityType, int entityId, string workstationId, string? details = null)
     {
         var data = new AuditLogData
         {
@@ -71,6 +71,34 @@ public class AuditRepository : IAuditRepository
             Details = details
         };
 
-        await LogAsync(data, transaction);
+        await LogAsync(data);
     }
+
+    #endregion
+
+    #region 交易內操作（接收外部 Connection + Transaction）
+
+    public async Task LogAsync(AuditLogData data, IDbConnection connection, IDbTransaction transaction)
+    {
+        await connection.ExecuteAsync(InsertSql, data, transaction);
+
+        _logger.LogDebug("稽核紀錄(交易內): Action={Action}, EntityType={EntityType}, EntityId={EntityId}, Workstation={Workstation}",
+            data.Action, data.EntityType, data.EntityId, data.WorkstationId);
+    }
+
+    public async Task LogAsync(string action, string entityType, int entityId, string workstationId, string? details, IDbConnection connection, IDbTransaction transaction)
+    {
+        var data = new AuditLogData
+        {
+            Action = action,
+            EntityType = entityType,
+            EntityId = entityId,
+            WorkstationId = workstationId,
+            Details = details
+        };
+
+        await LogAsync(data, connection, transaction);
+    }
+
+    #endregion
 }
