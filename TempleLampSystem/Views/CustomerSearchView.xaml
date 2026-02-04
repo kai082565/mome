@@ -16,131 +16,185 @@
         </Grid.RowDefinitions>
 
         <!-- 搜尋列 -->
-        <Grid Grid.Row="0" Margin="0,0,0,10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+        <Border Grid.Row="0"
+                Background="White"
+                CornerRadius="8"
+                Padding="15"
+                Margin="0,5,0,15">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <TextBlock Text="電話號碼："
-                       VerticalAlignment="Center"
-                       Margin="0,0,10,0"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🔍" FontSize="18" Margin="0,0,10,0"/>
+                    <TextBlock Text="電話搜尋"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Margin="0,0,15,0"/>
+                </StackPanel>
 
-            <TextBox Grid.Column="1"
-                     Text="{Binding SearchPhone, UpdateSourceTrigger=PropertyChanged}"
-                     VerticalContentAlignment="Center"
-                     Padding="5"
-                     FontSize="14">
-                <TextBox.InputBindings>
-                    <KeyBinding Key="Enter" Command="{Binding SearchCommand}"/>
-                </TextBox.InputBindings>
-            </TextBox>
+                <TextBox Grid.Column="1"
+                         Text="{Binding SearchPhone, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalContentAlignment="Center"
+                         FontSize="15">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding SearchCommand}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
 
-            <Button Grid.Column="2"
-                    Content="搜尋"
-                    Command="{Binding SearchCommand}"
-                    Padding="20,5"
-                    Margin="10,0,0,0"/>
-        </Grid>
+                <Button Grid.Column="2"
+                        Content="🔎 搜尋"
+                        Command="{Binding SearchCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Padding="25,10"
+                        Margin="10,0,0,0"/>
+            </Grid>
+        </Border>
 
         <!-- 客戶列表 -->
         <ListView Grid.Row="1"
                   ItemsSource="{Binding Customers}"
                   SelectedItem="{Binding SelectedCustomer}"
                   SelectionMode="Single"
-                  BorderThickness="1"
-                  BorderBrush="#DDD">
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border BorderBrush="#DDD"
-                            BorderThickness="0,0,0,1"
-                            Padding="10"
-                            Margin="0,0,0,5">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                            <!-- 客戶基本資訊 -->
-                            <StackPanel Grid.Row="0" Orientation="Horizontal">
-                                <TextBlock Text="{Binding Name}"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           Margin="0,0,15,0"/>
-                                <TextBlock Text="{Binding DisplayPhone}"
-                                           Foreground="Gray"
-                                           VerticalAlignment="Center"/>
-                                <Border Background="#4CAF50"
-                                        CornerRadius="10"
-                                        Padding="8,2"
-                                        Margin="10,0,0,0"
-                                        Visibility="{Binding ActiveOrderCount, Converter={StaticResource BoolToVisibility}}">
-                                    <TextBlock Text="{Binding ActiveOrderCount, StringFormat='{}{0} 個有效點燈'}"
-                                               Foreground="White"
-                                               FontSize="11"/>
-                                </Border>
+                        <!-- 客戶基本資訊 -->
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="👤" FontSize="16" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="17"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="24,3,0,0">
+                                    <TextBlock Text="📞" FontSize="12" Margin="0,0,5,0"/>
+                                    <TextBlock Text="{Binding DisplayPhone}"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               FontSize="13"/>
+                                </StackPanel>
                             </StackPanel>
 
-                            <!-- 地址 -->
-                            <TextBlock Grid.Row="1"
-                                       Text="{Binding Address}"
-                                       Foreground="Gray"
-                                       FontSize="12"
-                                       Margin="0,5,0,0"/>
-
-                            <!-- 點燈紀錄 -->
-                            <ItemsControl Grid.Row="2"
-                                          ItemsSource="{Binding Orders}"
-                                          Margin="0,10,0,0">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#F5F5F5"
-                                                CornerRadius="5"
-                                                Padding="10,5"
-                                                Margin="0,2">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-
-                                                <TextBlock Grid.Column="0"
-                                                           Text="{Binding Year, StringFormat='{}{0}年'}"
-                                                           FontWeight="SemiBold"
-                                                           Margin="0,0,10,0"/>
-
-                                                <TextBlock Grid.Column="1"
-                                                           Text="{Binding LampName}"/>
-
-                                                <TextBlock Grid.Column="2"
-                                                           Text="{Binding Price, StringFormat='${0:N0}'}"
-                                                           Margin="0,0,15,0"/>
-
-                                                <TextBlock Grid.Column="3"
-                                                           Text="{Binding StatusText}"
-                                                           Foreground="{Binding EndDate, Converter={StaticResource StatusToColor}}"
-                                                           FontWeight="SemiBold"/>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                            <Border Grid.Column="1"
+                                    Background="{StaticResource SuccessBrush}"
+                                    CornerRadius="12"
+                                    Padding="12,4"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding ActiveOrderCount, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock Text="{Binding ActiveOrderCount, StringFormat='🪔 {0} 盞'}"
+                                           Foreground="White"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"/>
+                            </Border>
                         </Grid>
-                    </Border>
+
+                        <!-- 地址 -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="24,8,0,0">
+                            <TextBlock Text="📍" FontSize="12" Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding Address}"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       FontSize="12"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <!-- 點燈紀錄 -->
+                        <ItemsControl Grid.Row="2"
+                                      ItemsSource="{Binding Orders}"
+                                      Margin="0,12,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#FFF8DC"
+                                            BorderBrush="{StaticResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="12,8"
+                                            Margin="0,3">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Background="{StaticResource SecondaryBrush}"
+                                                    CornerRadius="4"
+                                                    Padding="8,2"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Year, StringFormat='{}{0}年'}"
+                                                           FontWeight="Bold"
+                                                           FontSize="12"
+                                                           Foreground="White"/>
+                                            </Border>
+
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding LampName}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="12,0,0,0"/>
+
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Price, StringFormat='NT$ {0:N0}'}"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,15,0"/>
+
+                                            <Border Grid.Column="3"
+                                                    CornerRadius="4"
+                                                    Padding="8,2"
+                                                    VerticalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#E8F5E9"/>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding StatusText}"
+                                                           Foreground="{Binding EndDate, Converter={StaticResource StatusToColor}}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="12"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
 
         <!-- 狀態列 -->
-        <TextBlock Grid.Row="2"
-                   Text="{Binding StatusMessage}"
-                   Foreground="Gray"
-                   Margin="0,10,0,0"/>
+        <Border Grid.Row="2"
+                Background="White"
+                CornerRadius="6"
+                Padding="10,8"
+                Margin="0,10,0,0">
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="12"/>
+        </Border>
     </Grid>
 </UserControl>

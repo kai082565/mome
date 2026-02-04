@@ -75,10 +75,23 @@ public partial class LampOrderViewModel : ViewModelBase
 
     public async Task SetCustomerAsync(CustomerDisplayModel? customer)
     {
+        // 如果是同一個客戶（點燈後刷新），保留燈種選擇
+        bool isSameCustomer = customer != null && SelectedCustomer?.Id == customer.Id;
+
         SelectedCustomer = customer;
-        SelectedLamp = null;
-        CanOrder = false;
-        CannotOrderReason = null;
+
+        if (isSameCustomer)
+        {
+            // 同一客戶，只重新檢查是否還能點同一燈種
+            await CheckCanOrderAsync();
+        }
+        else
+        {
+            // 不同客戶才重置
+            SelectedLamp = null;
+            CanOrder = false;
+            CannotOrderReason = null;
+        }
 
         StatusMessage = customer == null ? "請先選擇客戶" : $"已選擇客戶：{customer.Name}";
     }

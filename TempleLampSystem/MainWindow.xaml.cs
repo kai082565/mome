@@ -61,14 +61,14 @@ public partial class MainWindow : Window
     {
         Dispatcher.Invoke(() =>
         {
-            OnlineIndicator.Fill = e.IsOnline
+            OnlineIndicatorBorder.Background = e.IsOnline
                 ? new SolidColorBrush(Colors.LimeGreen)
                 : new SolidColorBrush(Colors.Orange);
 
-            SyncStatusText.Text = e.Message ?? (e.IsOnline ? "已連線" : "離線模式");
+            SyncStatusText.Text = e.Message ?? (e.IsOnline ? "☁️ 已連線" : "📴 離線模式");
 
             PendingSyncText.Text = e.PendingCount > 0
-                ? $"待同步：{e.PendingCount} 筆"
+                ? $"📤 待同步：{e.PendingCount} 筆"
                 : "";
         });
     }

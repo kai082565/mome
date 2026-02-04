@@ -9,6 +9,7 @@ namespace TempleLampSystem.ViewModels;
 public partial class CustomerSearchViewModel : ViewModelBase
 {
     private readonly ICustomerRepository _customerRepository;
+    private bool _isRefreshing = false;
 
     public CustomerSearchViewModel(ICustomerRepository customerRepository)
     {
@@ -90,7 +91,11 @@ public partial class CustomerSearchViewModel : ViewModelBase
 
     partial void OnSelectedCustomerChanged(CustomerDisplayModel? value)
     {
-        CustomerSelected?.Invoke(this, value);
+        // 刷新客戶資料時不觸發事件，避免清除右側的選擇狀態
+        if (!_isRefreshing)
+        {
+            CustomerSelected?.Invoke(this, value);
+        }
     }
 
     public async Task RefreshCustomerOrdersAsync(Guid customerId)
@@ -115,13 +120,22 @@ public partial class CustomerSearchViewModel : ViewModelBase
                 })
                 .ToList();
 
-            var index = Customers.IndexOf(existing);
-            Customers.RemoveAt(index);
-            Customers.Insert(index, existing);
-
-            if (SelectedCustomer?.Id == customerId)
+            // 刷新時暫時禁用事件，避免清除右側的客戶選擇
+            _isRefreshing = true;
+            try
             {
-                SelectedCustomer = existing;
+                var index = Customers.IndexOf(existing);
+                Customers.RemoveAt(index);
+                Customers.Insert(index, existing);
+
+                if (SelectedCustomer?.Id == customerId)
+                {
+                    SelectedCustomer = existing;
+                }
+            }
+            finally
+            {
+                _isRefreshing = false;
             }
         }
     }
