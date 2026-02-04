@@ -59,7 +59,11 @@ public partial class LampOrderViewModel : ViewModelBase
     public ObservableCollection<Lamp> Lamps { get; }
     public ObservableCollection<LampOrderDisplayModel> ExpiringOrders { get; }
 
+    // 多選客戶支援
+    public ObservableCollection<CustomerDisplayModel> SelectedCustomers { get; } = new();
+
     public event EventHandler<Guid>? OrderCreated;
+    public event EventHandler<IEnumerable<Guid>>? OrdersCreated;
 
     public async Task InitializeAsync()
     {
@@ -96,9 +100,87 @@ public partial class LampOrderViewModel : ViewModelBase
         StatusMessage = customer == null ? "請先選擇客戶" : $"已選擇客戶：{customer.Name}";
     }
 
+    public void SetSelectedCustomers(IList<CustomerDisplayModel> customers)
+    {
+        SelectedCustomers.Clear();
+        foreach (var customer in customers)
+        {
+            SelectedCustomers.Add(customer);
+        }
+
+        // 更新狀態訊息
+        if (SelectedCustomers.Count == 0)
+        {
+            StatusMessage = "請先選擇客戶";
+        }
+        else if (SelectedCustomers.Count == 1)
+        {
+            SelectedCustomer = SelectedCustomers[0];
+            StatusMessage = $"已選擇客戶：{SelectedCustomers[0].Name}";
+        }
+        else
+        {
+            SelectedCustomer = SelectedCustomers[0]; // 設定第一個為主要選擇
+            StatusMessage = $"已選擇 {SelectedCustomers.Count} 位客戶";
+        }
+
+        // 重新檢查是否可以點燈
+        _ = CheckCanOrderForMultipleAsync();
+    }
+
+    private async Task CheckCanOrderForMultipleAsync()
+    {
+        if (SelectedCustomers.Count == 0 || SelectedLamp == null)
+        {
+            CanOrder = false;
+            CannotOrderReason = null;
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            // 檢查所有選中的客戶是否都可以點這個燈
+            var cannotOrderCustomers = new List<string>();
+
+            foreach (var customer in SelectedCustomers)
+            {
+                var canOrder = await _lampOrderService.CanOrderLampAsync(customer.Id, SelectedLamp.Id);
+                if (!canOrder)
+                {
+                    var reason = await _lampOrderService.GetCannotOrderReasonAsync(customer.Id, SelectedLamp.Id);
+                    cannotOrderCustomers.Add($"{customer.Name}：{reason}");
+                }
+            }
+
+            if (cannotOrderCustomers.Count == 0)
+            {
+                CanOrder = true;
+                CannotOrderReason = null;
+            }
+            else
+            {
+                CanOrder = false;
+                CannotOrderReason = string.Join("\n", cannotOrderCustomers);
+            }
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
     partial void OnSelectedLampChanged(Lamp? value)
     {
-        _ = CheckCanOrderAsync();
+        // 如果有多選客戶，檢查多選；否則檢查單選
+        if (SelectedCustomers.Count > 0)
+        {
+            _ = CheckCanOrderForMultipleAsync();
+        }
+        else
+        {
+            _ = CheckCanOrderAsync();
+        }
     }
 
     private async Task CheckCanOrderAsync()
@@ -128,7 +210,12 @@ public partial class LampOrderViewModel : ViewModelBase
     [RelayCommand]
     private async Task CreateOrderAsync()
     {
-        if (SelectedCustomer == null)
+        // 判斷是單選還是多選
+        var customersToOrder = SelectedCustomers.Count > 0
+            ? SelectedCustomers.ToList()
+            : (SelectedCustomer != null ? new List<CustomerDisplayModel> { SelectedCustomer } : new List<CustomerDisplayModel>());
+
+        if (customersToOrder.Count == 0)
         {
             MessageBox.Show("請先選擇客戶", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
@@ -147,43 +234,77 @@ public partial class LampOrderViewModel : ViewModelBase
         }
 
         IsBusy = true;
-        StatusMessage = "建立點燈紀錄中...";
+        StatusMessage = $"正在為 {customersToOrder.Count} 位客戶建立點燈紀錄...";
 
         try
         {
-            var order = await _lampOrderService.CreateLampOrderAsync(SelectedCustomer.Id, SelectedLamp.Id, Price);
-            _lastCreatedOrder = order;
+            var createdOrders = new List<(CustomerDisplayModel Customer, LampOrder Order)>();
+            var failedCustomers = new List<string>();
 
-            try
+            foreach (var customer in customersToOrder)
             {
-                await _supabaseService.UpsertLampOrderAsync(order);
-            }
-            catch { }
+                try
+                {
+                    var order = await _lampOrderService.CreateLampOrderAsync(customer.Id, SelectedLamp.Id, Price);
+                    createdOrders.Add((customer, order));
 
-            var result = MessageBox.Show(
-                $"點燈成功！\n\n" +
-                $"客戶：{SelectedCustomer.Name}\n" +
+                    try
+                    {
+                        await _supabaseService.UpsertLampOrderAsync(order);
+                    }
+                    catch { }
+                }
+                catch (Exception ex)
+                {
+                    failedCustomers.Add($"{customer.Name}：{ex.Message}");
+                }
+            }
+
+            // 記錄最後一筆訂單（用於列印）
+            if (createdOrders.Count > 0)
+            {
+                _lastCreatedOrder = createdOrders.Last().Order;
+            }
+
+            // 顯示結果
+            var successNames = string.Join("、", createdOrders.Select(x => x.Customer.Name));
+            var message = $"點燈成功！\n\n" +
+                $"客戶：{successNames}\n" +
                 $"燈種：{SelectedLamp.LampName}\n" +
-                $"期間：{order.StartDate:yyyy/MM/dd} ~ {order.EndDate:yyyy/MM/dd}\n" +
-                $"金額：${order.Price}\n\n" +
-                $"是否列印單據？",
-                "點燈成功",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Information);
+                $"金額：每人 ${Price:N0}\n" +
+                $"共 {createdOrders.Count} 位客戶";
+
+            if (failedCustomers.Count > 0)
+            {
+                message += $"\n\n⚠️ 以下客戶點燈失敗：\n{string.Join("\n", failedCustomers)}";
+            }
+
+            message += "\n\n是否列印單據？";
+
+            var result = MessageBox.Show(message, "點燈完成", MessageBoxButton.YesNo, MessageBoxImage.Information);
 
             if (result == MessageBoxResult.Yes)
             {
                 await PrintLastOrderAsync();
             }
 
-            StatusMessage = "點燈成功！";
-            OrderCreated?.Invoke(this, SelectedCustomer.Id);
-            await CheckCanOrderAsync();
-        }
-        catch (InvalidOperationException ex)
-        {
-            MessageBox.Show(ex.Message, "無法點燈", MessageBoxButton.OK, MessageBoxImage.Warning);
-            StatusMessage = ex.Message;
+            StatusMessage = $"已完成 {createdOrders.Count} 位客戶點燈";
+
+            // 通知更新
+            foreach (var (customer, _) in createdOrders)
+            {
+                OrderCreated?.Invoke(this, customer.Id);
+            }
+
+            // 重新檢查點燈狀態
+            if (SelectedCustomers.Count > 0)
+            {
+                await CheckCanOrderForMultipleAsync();
+            }
+            else
+            {
+                await CheckCanOrderAsync();
+            }
         }
         catch (Exception ex)
         {

@@ -46,21 +46,35 @@ public static class DbInitializer
         var now = DateTime.Now;
         var currentYear = now.Year;
 
-        // 測試客戶資料
+        // 測試客戶資料（包含同一電話多位家庭成員的情況）
         var customers = new List<Customer>
         {
-            new() { Id = Guid.NewGuid(), Name = "王大明", Phone = "02-2345-6789", Mobile = "0912-345-678", Address = "台北市中正區忠孝東路一段100號", Note = "老客戶", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "李美玲", Phone = "02-8765-4321", Mobile = "0923-456-789", Address = "台北市大安區信義路三段50號", Note = "", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "張志豪", Phone = "03-1234-5678", Mobile = "0934-567-890", Address = "桃園市中壢區中山路200號", Note = "每年都來點燈", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "陳淑芬", Phone = "04-2233-4455", Mobile = "0945-678-901", Address = "台中市西區台灣大道二段300號", Note = "", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "林建國", Phone = "02-5566-7788", Mobile = "0956-789-012", Address = "新北市板橋區文化路一段150號", Note = "VIP客戶", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "黃雅琪", Phone = "07-9988-7766", Mobile = "0967-890-123", Address = "高雄市前鎮區中山二路500號", Note = "", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "吳宗翰", Phone = "06-5544-3322", Mobile = "0978-901-234", Address = "台南市東區東門路二段80號", Note = "", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "劉怡君", Phone = "02-1122-3344", Mobile = "0989-012-345", Address = "台北市松山區民生東路五段60號", Note = "介紹很多朋友", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "許文龍", Phone = "03-6677-8899", Mobile = "0911-223-344", Address = "新竹市東區光復路一段250號", Note = "", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "蔡佳慧", Phone = "04-7788-9900", Mobile = "0922-334-455", Address = "台中市北區學士路400號", Note = "", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "楊明哲", Phone = "02-3344-5566", Mobile = "0933-445-566", Address = "新北市新店區北新路三段70號", Note = "", UpdatedAt = now },
-            new() { Id = Guid.NewGuid(), Name = "周美華", Phone = "05-2233-1100", Mobile = "0944-556-677", Address = "嘉義市西區中山路100號", Note = "每年固定點光明燈", UpdatedAt = now },
+            // 陳家 - 同一支家用電話 07-7654-3210
+            new() { Id = Guid.NewGuid(), Name = "陳文雄", Phone = "07-7654-3210", Mobile = "0912-111-222", Address = "高雄市鳳山區鳳屏路100號", Note = "一家之主", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "陳李美惠", Phone = "07-7654-3210", Mobile = "0923-222-333", Address = "高雄市鳳山區鳳屏路100號", Note = "陳文雄之妻", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "陳志明", Phone = "07-7654-3210", Mobile = "0934-333-444", Address = "高雄市鳳山區鳳屏路100號", Note = "陳文雄長子", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "陳雅婷", Phone = "07-7654-3210", Mobile = "", Address = "高雄市鳳山區鳳屏路100號", Note = "陳文雄長女", UpdatedAt = now },
+
+            // 林家 - 同一支家用電話 07-7891-2345
+            new() { Id = Guid.NewGuid(), Name = "林國榮", Phone = "07-7891-2345", Mobile = "0945-444-555", Address = "高雄市鳳山區中山西路50號", Note = "老客戶", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "林王秀蘭", Phone = "07-7891-2345", Mobile = "", Address = "高雄市鳳山區中山西路50號", Note = "林國榮之妻", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "林佳蓉", Phone = "07-7891-2345", Mobile = "0956-555-666", Address = "高雄市鳳山區中山西路50號", Note = "林國榮之女", UpdatedAt = now },
+
+            // 王家 - 同一支家用電話 07-7456-7890
+            new() { Id = Guid.NewGuid(), Name = "王建宏", Phone = "07-7456-7890", Mobile = "0967-666-777", Address = "高雄市前鎮區中華五路200號", Note = "", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "王張淑娟", Phone = "07-7456-7890", Mobile = "0978-777-888", Address = "高雄市前鎮區中華五路200號", Note = "王建宏之妻", UpdatedAt = now },
+
+            // 黃家 - 同一支家用電話 07-7223-4567
+            new() { Id = Guid.NewGuid(), Name = "黃進發", Phone = "07-7223-4567", Mobile = "", Address = "高雄市苓雅區四維三路80號", Note = "每年都來", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "黃陳玉珠", Phone = "07-7223-4567", Mobile = "0989-888-999", Address = "高雄市苓雅區四維三路80號", Note = "黃進發之妻", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "黃俊傑", Phone = "07-7223-4567", Mobile = "0911-999-000", Address = "高雄市苓雅區四維三路80號", Note = "黃進發長子", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "黃美玲", Phone = "07-7223-4567", Mobile = "", Address = "高雄市苓雅區四維三路80號", Note = "黃進發長女", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "黃志豪", Phone = "07-7223-4567", Mobile = "0922-000-111", Address = "高雄市苓雅區四維三路80號", Note = "黃進發次子", UpdatedAt = now },
+
+            // 個人客戶（只有手機）
+            new() { Id = Guid.NewGuid(), Name = "張雅琪", Phone = "", Mobile = "0933-111-222", Address = "高雄市鳳山區光復路一段60號", Note = "", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "李宗翰", Phone = "", Mobile = "0944-222-333", Address = "高雄市三民區建工路500號", Note = "", UpdatedAt = now },
+            new() { Id = Guid.NewGuid(), Name = "吳怡君", Phone = "07-7334-5678", Mobile = "0955-333-444", Address = "高雄市左營區博愛二路100號", Note = "介紹很多朋友", UpdatedAt = now },
         };
 
         context.Customers.AddRange(customers);

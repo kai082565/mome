@@ -48,7 +48,7 @@
 
                 <!-- 宮廟名稱 -->
                 <TextBlock Grid.Column="2"
-                           Text="○○宮"
+                           Text="鳳屏宮"
                            FontSize="20"
                            FontWeight="SemiBold"
                            Foreground="#FFD700"

@@ -17,13 +17,10 @@
 
         <!-- 搜尋列 -->
         <Border Grid.Row="0"
-                Background="White"
-                CornerRadius="8"
+                Background="#FFF8F0"
+                CornerRadius="10"
                 Padding="15"
                 Margin="0,5,0,15">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
-            </Border.Effect>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -58,11 +55,13 @@
             </Grid>
         </Border>
 
-        <!-- 客戶列表 -->
+        <!-- 客戶列表（按住 Ctrl 可多選）-->
         <ListView Grid.Row="1"
+                  x:Name="CustomerListView"
                   ItemsSource="{Binding Customers}"
                   SelectedItem="{Binding SelectedCustomer}"
-                  SelectionMode="Single"
+                  SelectionMode="Extended"
+                  SelectionChanged="CustomerListView_SelectionChanged"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
             <ListView.ItemTemplate>

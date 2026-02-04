@@ -25,16 +25,15 @@ public partial class CustomerSearchViewModel : ViewModelBase
 
     public ObservableCollection<CustomerDisplayModel> Customers { get; }
 
+    // 多選客戶列表
+    public ObservableCollection<CustomerDisplayModel> SelectedCustomers { get; } = new();
+
     public event EventHandler<CustomerDisplayModel?>? CustomerSelected;
+    public event EventHandler<IList<CustomerDisplayModel>>? CustomersSelectionChanged;
 
     [RelayCommand]
     private async Task SearchAsync()
     {
-        if (string.IsNullOrWhiteSpace(SearchPhone))
-        {
-            StatusMessage = "請輸入電話號碼";
-            return;
-        }
 
         IsBusy = true;
         StatusMessage = "搜尋中...";
@@ -96,6 +95,19 @@ public partial class CustomerSearchViewModel : ViewModelBase
         {
             CustomerSelected?.Invoke(this, value);
         }
+    }
+
+    public void UpdateSelectedCustomers(System.Collections.IList selectedItems)
+    {
+        SelectedCustomers.Clear();
+        foreach (var item in selectedItems)
+        {
+            if (item is CustomerDisplayModel customer)
+            {
+                SelectedCustomers.Add(customer);
+            }
+        }
+        CustomersSelectionChanged?.Invoke(this, SelectedCustomers.ToList());
     }
 
     public async Task RefreshCustomerOrdersAsync(Guid customerId)

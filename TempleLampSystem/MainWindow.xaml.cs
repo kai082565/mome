@@ -27,6 +27,7 @@ public partial class MainWindow : Window
         LampOrderView.DataContext = _lampOrderViewModel;
 
         _customerSearchViewModel.CustomerSelected += OnCustomerSelected;
+        _customerSearchViewModel.CustomersSelectionChanged += OnCustomersSelectionChanged;
         _lampOrderViewModel.OrderCreated += OnOrderCreated;
 
         // 訂閱同步狀態
@@ -75,7 +76,17 @@ public partial class MainWindow : Window
 
     private async void OnCustomerSelected(object? sender, CustomerDisplayModel? customer)
     {
-        await _lampOrderViewModel.SetCustomerAsync(customer);
+        // 單選時的處理（保持向後相容）
+        if (_customerSearchViewModel.SelectedCustomers.Count <= 1)
+        {
+            await _lampOrderViewModel.SetCustomerAsync(customer);
+        }
+    }
+
+    private void OnCustomersSelectionChanged(object? sender, IList<CustomerDisplayModel> customers)
+    {
+        // 多選時的處理
+        _lampOrderViewModel.SetSelectedCustomers(customers);
     }
 
     private async void OnOrderCreated(object? sender, Guid customerId)

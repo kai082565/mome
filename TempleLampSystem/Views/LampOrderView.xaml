@@ -26,7 +26,8 @@
                     Background="White"
                     CornerRadius="8"
                     Padding="15"
-                    Margin="0,5,0,15">
+                    Margin="0,5,0,15"
+                    MaxHeight="200">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
                 </Border.Effect>
@@ -36,41 +37,49 @@
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
                         <TextBlock Text="👆" FontSize="28" HorizontalAlignment="Center" Opacity="0.5"/>
-                        <TextBlock Text="請從左側選擇客戶"
+                        <TextBlock Text="請從左側選擇客戶（按住 Ctrl 可多選）"
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    FontSize="14"
                                    HorizontalAlignment="Center"
                                    Margin="0,8,0,0"/>
                     </StackPanel>
 
-                    <!-- 已選擇客戶時 -->
-                    <StackPanel Visibility="{Binding SelectedCustomer, Converter={StaticResource NotNullToVisibility}}">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Background="{StaticResource SecondaryBrush}"
-                                    CornerRadius="20"
-                                    Width="40" Height="40"
-                                    Margin="0,0,12,0">
-                                <TextBlock Text="👤"
-                                           FontSize="20"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </Border>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock FontSize="18"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                           Text="{Binding SelectedCustomer.Name}"/>
-                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
-                                           FontSize="12"
-                                           Margin="0,3,0,0">
-                                    <Run Text="📞"/>
-                                    <Run Text="{Binding SelectedCustomer.Phone, Mode=OneWay}"/>
-                                    <Run Text=" 📱"/>
-                                    <Run Text="{Binding SelectedCustomer.Mobile, Mode=OneWay}"/>
-                                </TextBlock>
-                            </StackPanel>
-                        </StackPanel>
-                    </StackPanel>
+                    <!-- 已選擇客戶時 - 顯示多選客戶列表 -->
+                    <ScrollViewer Visibility="{Binding SelectedCustomer, Converter={StaticResource NotNullToVisibility}}"
+                                  VerticalScrollBarVisibility="Auto"
+                                  MaxHeight="160">
+                        <ItemsControl ItemsSource="{Binding SelectedCustomers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#FFF8F0"
+                                            CornerRadius="6"
+                                            Padding="10,8"
+                                            Margin="0,0,0,5">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="👤" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                                           Text="{Binding Name}"/>
+                                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
+                                                           FontSize="11">
+                                                    <Run Text="📞"/>
+                                                    <Run Text="{Binding DisplayPhone, Mode=OneWay}"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </Grid>
             </Border>
 
