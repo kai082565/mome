@@ -22,6 +22,10 @@ public interface ISupabaseService
     Task<LampOrder> UpsertLampOrderAsync(LampOrder order);
     Task DeleteLampOrderAsync(Guid id);
 
+    // 雲端查詢
+    bool IsConfigured { get; }
+    Task<bool> HasActiveOrderAsync(Guid customerId, int lampId);
+
     // 同步
     Task<SyncResult> SyncToCloudAsync();
     Task<SyncResult> SyncFromCloudAsync();

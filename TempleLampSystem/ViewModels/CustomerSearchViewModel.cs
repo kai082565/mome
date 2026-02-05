@@ -3,6 +3,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TempleLampSystem.Models;
+using TempleLampSystem.Services;
 using TempleLampSystem.Services.Repositories;
 using TempleLampSystem.Views;
 
@@ -11,11 +12,13 @@ namespace TempleLampSystem.ViewModels;
 public partial class CustomerSearchViewModel : ViewModelBase
 {
     private readonly ICustomerRepository _customerRepository;
+    private readonly ISupabaseService _supabaseService;
     private bool _isRefreshing = false;
 
-    public CustomerSearchViewModel(ICustomerRepository customerRepository)
+    public CustomerSearchViewModel(ICustomerRepository customerRepository, ISupabaseService supabaseService)
     {
         _customerRepository = customerRepository;
+        _supabaseService = supabaseService;
         Customers = new ObservableCollection<CustomerDisplayModel>();
     }
 
@@ -97,6 +100,11 @@ public partial class CustomerSearchViewModel : ViewModelBase
             {
                 await _customerRepository.AddAsync(window.NewCustomer);
                 StatusMessage = $"已新增客戶：{window.NewCustomer.Name}";
+
+                // 同步到雲端
+                try { await _supabaseService.UpsertCustomerAsync(window.NewCustomer); }
+                catch { }
+
                 await SearchAsync();
             }
             catch (Exception ex)

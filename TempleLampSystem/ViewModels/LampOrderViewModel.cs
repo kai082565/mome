@@ -316,9 +316,18 @@ public partial class LampOrderViewModel : ViewModelBase
 
                     try
                     {
+                        // 先確保客戶和燈種已上傳，再上傳訂單
+                        var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
+                        if (fullCustomer != null)
+                            await _supabaseService.UpsertCustomerAsync(fullCustomer);
+                        await _supabaseService.UpsertLampAsync(SelectedLamp);
                         await _supabaseService.UpsertLampOrderAsync(order);
                     }
-                    catch { }
+                    catch (Exception syncEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"雲端同步失敗：{syncEx.Message}");
+                        StatusMessage = $"點燈成功，但雲端同步失敗：{syncEx.Message}";
+                    }
                 }
                 catch (Exception ex)
                 {

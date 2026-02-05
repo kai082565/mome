@@ -37,6 +37,8 @@ public class SupabaseService : ISupabaseService
         }
     }
 
+    public bool IsConfigured => _isConfigured;
+
     public async Task<bool> TestConnectionAsync()
     {
         if (!_isConfigured || _client == null)
@@ -160,6 +162,21 @@ public class SupabaseService : ISupabaseService
         await _client.From<SupabaseLampOrder>().Where(o => o.Id == id.ToString()).Delete();
     }
 
+    public async Task<bool> HasActiveOrderAsync(Guid customerId, int lampId)
+    {
+        if (!_isConfigured || _client == null)
+            return false;
+
+        var today = DateTime.UtcNow.Date.ToString("yyyy-MM-dd");
+        var response = await _client
+            .From<SupabaseLampOrder>()
+            .Where(o => o.CustomerId == customerId.ToString() && o.LampId == lampId)
+            .Filter("EndDate", Supabase.Postgrest.Constants.Operator.GreaterThanOrEqual, today)
+            .Get();
+
+        return response.Models.Count > 0;
+    }
+
     #endregion
 
     #region Sync
@@ -249,6 +266,12 @@ public class SupabaseService : ISupabaseService
                     existing.Mobile = customer.Mobile;
                     existing.Address = customer.Address;
                     existing.Note = customer.Note;
+                    existing.Village = customer.Village;
+                    existing.PostalCode = customer.PostalCode;
+                    existing.BirthYear = customer.BirthYear;
+                    existing.BirthMonth = customer.BirthMonth;
+                    existing.BirthDay = customer.BirthDay;
+                    existing.BirthHour = customer.BirthHour;
                     existing.UpdatedAt = customer.UpdatedAt;
                     result.CustomersDownloaded++;
                 }
@@ -316,6 +339,24 @@ public class SupabaseCustomer : BaseModel
     [Column("Note")]
     public string? Note { get; set; }
 
+    [Column("Village")]
+    public string? Village { get; set; }
+
+    [Column("PostalCode")]
+    public string? PostalCode { get; set; }
+
+    [Column("BirthYear")]
+    public int? BirthYear { get; set; }
+
+    [Column("BirthMonth")]
+    public int? BirthMonth { get; set; }
+
+    [Column("BirthDay")]
+    public int? BirthDay { get; set; }
+
+    [Column("BirthHour")]
+    public string? BirthHour { get; set; }
+
     [Column("UpdatedAt")]
     public DateTime UpdatedAt { get; set; }
 
@@ -327,6 +368,12 @@ public class SupabaseCustomer : BaseModel
         Mobile = Mobile,
         Address = Address,
         Note = Note,
+        Village = Village,
+        PostalCode = PostalCode,
+        BirthYear = BirthYear,
+        BirthMonth = BirthMonth,
+        BirthDay = BirthDay,
+        BirthHour = BirthHour,
         UpdatedAt = UpdatedAt
     };
 
@@ -338,6 +385,12 @@ public class SupabaseCustomer : BaseModel
         Mobile = c.Mobile,
         Address = c.Address,
         Note = c.Note,
+        Village = c.Village,
+        PostalCode = c.PostalCode,
+        BirthYear = c.BirthYear,
+        BirthMonth = c.BirthMonth,
+        BirthDay = c.BirthDay,
+        BirthHour = c.BirthHour,
         UpdatedAt = c.UpdatedAt
     };
 }

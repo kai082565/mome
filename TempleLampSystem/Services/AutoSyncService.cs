@@ -67,6 +67,7 @@ public class AutoSyncService : IAutoSyncService
         {
             using var scope = _serviceProvider.CreateScope();
             var syncQueueService = scope.ServiceProvider.GetRequiredService<ISyncQueueService>();
+            var supabaseService = scope.ServiceProvider.GetRequiredService<ISupabaseService>();
 
             var isOnline = await syncQueueService.IsOnlineAsync();
             var pendingCount = await syncQueueService.GetPendingCountAsync();
@@ -82,33 +83,40 @@ public class AutoSyncService : IAutoSyncService
                 });
             }
 
-            if (isOnline && pendingCount > 0)
+            if (isOnline)
             {
+                // 先處理待上傳的佇列
+                if (pendingCount > 0)
+                {
+                    SyncStatusChanged?.Invoke(this, new SyncStatusEventArgs
+                    {
+                        IsOnline = true,
+                        PendingCount = pendingCount,
+                        Message = $"正在上傳 {pendingCount} 筆資料..."
+                    });
+
+                    var result = await syncQueueService.ProcessQueueAsync();
+                    pendingCount = result.FailedCount;
+                }
+
+                // 從雲端拉取最新資料到本地
                 SyncStatusChanged?.Invoke(this, new SyncStatusEventArgs
                 {
                     IsOnline = true,
                     PendingCount = pendingCount,
-                    Message = $"正在同步 {pendingCount} 筆資料..."
+                    Message = "正在同步雲端資料..."
                 });
 
-                var result = await syncQueueService.ProcessQueueAsync();
+                var syncResult = await supabaseService.SyncFromCloudAsync();
 
+                var totalDownloaded = syncResult.CustomersDownloaded + syncResult.OrdersDownloaded;
                 SyncStatusChanged?.Invoke(this, new SyncStatusEventArgs
                 {
                     IsOnline = true,
-                    PendingCount = result.FailedCount,
-                    Message = result.SuccessCount > 0
-                        ? $"已同步 {result.SuccessCount} 筆資料"
-                        : "同步完成"
-                });
-            }
-            else if (isOnline && pendingCount == 0)
-            {
-                SyncStatusChanged?.Invoke(this, new SyncStatusEventArgs
-                {
-                    IsOnline = true,
-                    PendingCount = 0,
-                    Message = "已連線"
+                    PendingCount = pendingCount,
+                    Message = totalDownloaded > 0
+                        ? $"已同步 {totalDownloaded} 筆雲端資料"
+                        : "已連線（資料已同步）"
                 });
             }
         }

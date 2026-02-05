@@ -9,18 +9,18 @@ public class LampOrderService : ILampOrderService
     private readonly AppDbContext _context;
     private readonly ICustomerRepository _customerRepository;
     private readonly ILampOrderRepository _lampOrderRepository;
-    private readonly ISyncQueueService? _syncQueueService;
+    private readonly ISupabaseService _supabaseService;
 
     public LampOrderService(
         AppDbContext context,
         ICustomerRepository customerRepository,
         ILampOrderRepository lampOrderRepository,
-        ISyncQueueService? syncQueueService = null)
+        ISupabaseService supabaseService)
     {
         _context = context;
         _customerRepository = customerRepository;
         _lampOrderRepository = lampOrderRepository;
-        _syncQueueService = syncQueueService;
+        _supabaseService = supabaseService;
     }
 
     public async Task<bool> CanOrderLampAsync(Guid customerId, int lampId)
@@ -35,16 +35,38 @@ public class LampOrderService : ILampOrderService
         if (customer == null)
             return "找不到該客戶";
 
-        var today = DateTime.UtcNow.Date;
-        var hasActiveOrder = await _context.LampOrders
-            .AnyAsync(o => o.CustomerId == customerId &&
-                          o.LampId == lampId &&
-                          o.EndDate >= today);
+        // 優先查雲端（即時跨電腦同步），失敗才查本地
+        bool hasActiveOrder;
+        try
+        {
+            if (_supabaseService.IsConfigured)
+            {
+                hasActiveOrder = await _supabaseService.HasActiveOrderAsync(customerId, lampId);
+            }
+            else
+            {
+                hasActiveOrder = await CheckLocalActiveOrderAsync(customerId, lampId);
+            }
+        }
+        catch
+        {
+            // 雲端查詢失敗，改查本地
+            hasActiveOrder = await CheckLocalActiveOrderAsync(customerId, lampId);
+        }
 
         if (hasActiveOrder)
             return "該客戶已有未過期的此燈種點燈紀錄";
 
         return null;
+    }
+
+    private async Task<bool> CheckLocalActiveOrderAsync(Guid customerId, int lampId)
+    {
+        var today = DateTime.UtcNow.Date;
+        return await _context.LampOrders
+            .AnyAsync(o => o.CustomerId == customerId &&
+                          o.LampId == lampId &&
+                          o.EndDate >= today);
     }
 
     public async Task<LampOrder> CreateLampOrderAsync(Guid customerId, int lampId, decimal price)
@@ -67,19 +89,8 @@ public class LampOrderService : ILampOrderService
             UpdatedAt = DateTime.UtcNow
         };
 
+        // 寫入本地
         await _lampOrderRepository.AddAsync(order);
-
-        if (_syncQueueService != null)
-        {
-            try
-            {
-                await _syncQueueService.EnqueueAsync(order, SyncOperation.Insert);
-            }
-            catch
-            {
-                // 同步佇列失敗不影響本地操作
-            }
-        }
 
         return order;
     }
