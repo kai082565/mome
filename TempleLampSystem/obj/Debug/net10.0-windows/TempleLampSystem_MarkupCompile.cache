@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET10_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NET10_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 C:\Users\USER\Desktop\點燈\TempleLampSystem\App.xaml
-4-1401174664
+51099588951
 
-47-1575550388
+48907529401
 2431829596435
-MainWindow.xaml;Views\AddCustomerWindow.xaml;Views\CustomerSearchView.xaml;Views\LampOrderView.xaml;
+MainWindow.xaml;Views\AddCustomerWindow.xaml;Views\CustomerDetailWindow.xaml;Views\CustomerSearchView.xaml;Views\LampOrderView.xaml;
 
 False
 

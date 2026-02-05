@@ -48,11 +48,6 @@ public partial class LampOrderViewModel : ViewModelBase
     [ObservableProperty]
     private string? _cannotOrderReason;
 
-    [ObservableProperty]
-    private bool _isSyncing;
-
-    [ObservableProperty]
-    private string? _syncStatus;
 
     private LampOrder? _lastCreatedOrder;
     private bool _isRemovingCustomer;
@@ -347,7 +342,7 @@ public partial class LampOrderViewModel : ViewModelBase
 
             if (failedCustomers.Count > 0)
             {
-                message += $"\n\n⚠️ 以下客戶點燈失敗：\n{string.Join("\n", failedCustomers)}";
+                message += $"\n\n以下客戶點燈失敗：\n{string.Join("\n", failedCustomers)}";
             }
 
             message += "\n\n是否列印單據？";
@@ -444,77 +439,6 @@ public partial class LampOrderViewModel : ViewModelBase
         _printService.PreviewReceipt(receipt);
     }
 
-    [RelayCommand]
-    private async Task SyncToCloudAsync()
-    {
-        IsSyncing = true;
-        SyncStatus = "正在上傳至雲端...";
-
-        try
-        {
-            var result = await _supabaseService.SyncToCloudAsync();
-
-            if (result.Success)
-            {
-                SyncStatus = $"上傳完成：{result.CustomersUploaded} 位客戶，{result.OrdersUploaded} 筆點燈紀錄";
-                MessageBox.Show(
-                    $"同步完成！\n\n上傳 {result.CustomersUploaded} 位客戶\n上傳 {result.OrdersUploaded} 筆點燈紀錄",
-                    "同步成功",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
-            else
-            {
-                SyncStatus = $"同步失敗：{result.ErrorMessage}";
-                MessageBox.Show($"同步失敗：{result.ErrorMessage}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            SyncStatus = $"同步失敗：{ex.Message}";
-            MessageBox.Show($"同步失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsSyncing = false;
-        }
-    }
-
-    [RelayCommand]
-    private async Task SyncFromCloudAsync()
-    {
-        IsSyncing = true;
-        SyncStatus = "正在從雲端下載...";
-
-        try
-        {
-            var result = await _supabaseService.SyncFromCloudAsync();
-
-            if (result.Success)
-            {
-                SyncStatus = $"下載完成：{result.CustomersDownloaded} 位客戶，{result.OrdersDownloaded} 筆點燈紀錄";
-                MessageBox.Show(
-                    $"同步完成！\n\n下載 {result.CustomersDownloaded} 位客戶\n下載 {result.OrdersDownloaded} 筆點燈紀錄",
-                    "同步成功",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-            }
-            else
-            {
-                SyncStatus = $"同步失敗：{result.ErrorMessage}";
-                MessageBox.Show($"同步失敗：{result.ErrorMessage}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            SyncStatus = $"同步失敗：{ex.Message}";
-            MessageBox.Show($"同步失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsSyncing = false;
-        }
-    }
 
     public async Task LoadExpiringOrdersAsync()
     {

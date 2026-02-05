@@ -66,7 +66,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- 左側：客戶搜尋 -->
-            <GroupBox Grid.Column="0" Header="📋 客戶搜尋" Margin="5">
+            <GroupBox Grid.Column="0" Header="客戶搜尋" Margin="5">
                 <views:CustomerSearchView x:Name="CustomerSearchView"/>
             </GroupBox>
 
@@ -77,7 +77,7 @@
                           Background="Transparent"/>
 
             <!-- 右側：點燈操作 -->
-            <GroupBox Grid.Column="2" Header="🪔 點燈操作" Margin="5">
+            <GroupBox Grid.Column="2" Header="點燈操作" Margin="5">
                 <views:LampOrderView x:Name="LampOrderView"/>
             </GroupBox>
         </Grid>
@@ -103,7 +103,7 @@
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="🕐 " FontSize="14"/>
+                    <TextBlock Text="時間：" FontSize="13"/>
                     <TextBlock x:Name="CurrentTimeText" Text="" FontWeight="SemiBold"/>
                 </StackPanel>
             </StatusBarItem>

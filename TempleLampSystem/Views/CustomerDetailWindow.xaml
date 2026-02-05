@@ -1,0 +1,167 @@
+<Window x:Class="TempleLampSystem.Views.CustomerDetailWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:TempleLampSystem.Converters"
+        Title="客戶資料"
+        Width="700"
+        Height="700"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}"
+        FontFamily="{StaticResource PrimaryFont}">
+
+    <Window.Resources>
+        <converters:OrderStatusToColorConverter x:Key="StatusToColor"/>
+    </Window.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0">
+        <StackPanel Margin="30">
+
+            <!-- 標題 -->
+            <TextBlock x:Name="TitleText"
+                       FontSize="22" FontWeight="Bold"
+                       Foreground="{StaticResource SecondaryBrush}"
+                       Margin="0,0,0,20"/>
+
+            <!-- 基本資料區塊 -->
+            <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Row 0: 姓名 -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="姓名" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NameText" FontSize="16"
+                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+
+                    <!-- Row 1: 電話 / 手機 -->
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="電話" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PhoneText" FontSize="15"
+                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="手機" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="1" Grid.Column="3" x:Name="MobileText" FontSize="15"
+                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+
+                    <!-- Row 2: 郵遞區號 / 村里 -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="郵遞區號" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" x:Name="PostalCodeText" FontSize="15"
+                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="村/里" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="2" Grid.Column="3" x:Name="VillageText" FontSize="15"
+                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+
+                    <!-- Row 3: 地址 -->
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="地址" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" x:Name="AddressText" FontSize="15"
+                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                    <!-- Row 4: 出生 / 生辰 / 生肖 -->
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="出生" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="4" Grid.Column="1" x:Name="BirthDateText" FontSize="15"
+                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="4" Grid.Column="2" Text="生辰" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <StackPanel Grid.Row="4" Grid.Column="3" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock x:Name="BirthHourText" FontSize="15"
+                                   Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="ZodiacText" FontSize="15" FontWeight="Bold"
+                                   Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                    </StackPanel>
+
+                    <!-- Row 5: 備註 -->
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="備註" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Top" Margin="0,0,0,0"/>
+                    <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3" x:Name="NoteText" FontSize="14"
+                               Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                </Grid>
+            </Border>
+
+            <!-- 點燈紀錄區塊 -->
+            <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="點燈紀錄" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{StaticResource SecondaryBrush}" Margin="0,0,0,12"/>
+
+                    <TextBlock x:Name="NoOrdersText" Text="尚無點燈紀錄"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="14" HorizontalAlignment="Center" Margin="0,10,0,10"
+                               Visibility="Collapsed"/>
+
+                    <!-- 表頭 -->
+                    <Grid x:Name="OrderHeaderGrid" Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="年度" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+                        <TextBlock Grid.Column="1" Text="燈種" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+                        <TextBlock Grid.Column="2" Text="起始日" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+                        <TextBlock Grid.Column="3" Text="到期日" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+                        <TextBlock Grid.Column="4" Text="金額" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+                        <TextBlock Grid.Column="5" Text="狀態" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+                    </Grid>
+
+                    <ItemsControl x:Name="OrdersItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#FFFAF0" CornerRadius="4" Padding="6,8" Margin="0,0,0,4">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="80"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Year, StringFormat='{}{0}年'}" FontSize="13" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding LampName}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding StartDate, StringFormat=yyyy/MM/dd}" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding EndDate, StringFormat=yyyy/MM/dd}" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="4" Text="{Binding Price, StringFormat='${0:N0}'}" FontSize="13" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="5" Text="{Binding StatusText}" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="{Binding EndDate, Converter={StaticResource StatusToColor}}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- 關閉按鈕 -->
+            <Button Content="關閉" HorizontalAlignment="Right"
+                    Padding="30,10" FontSize="15"
+                    Click="CloseButton_Click"/>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

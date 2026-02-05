@@ -20,7 +20,6 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- 已選客戶資訊 -->
@@ -38,7 +37,7 @@
                     <StackPanel Visibility="{Binding SelectedCustomer, Converter={StaticResource NullToVisibility}}"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
-                        <TextBlock Text="👆" FontSize="28" HorizontalAlignment="Center" Opacity="0.5"/>
+                        <TextBlock Text="▲" FontSize="28" HorizontalAlignment="Center" Opacity="0.5"/>
                         <TextBlock Text="請從左側選擇客戶（按住 Ctrl 可多選）"
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    FontSize="14"
@@ -64,7 +63,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <TextBlock Text="👤" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="■" FontSize="14" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <TextBlock FontSize="14"
@@ -73,7 +72,7 @@
                                                            Text="{Binding Name}"/>
                                                 <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
                                                            FontSize="11">
-                                                    <Run Text="📞"/>
+                                                    <Run Text="Tel:"/>
                                                     <Run Text="{Binding DisplayPhone, Mode=OneWay}"/>
                                                 </TextBlock>
                                             </StackPanel>
@@ -110,7 +109,7 @@
                     <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="🪔 新增點燈"
+                    <TextBlock Text="新增點燈"
                                FontSize="16"
                                FontWeight="SemiBold"
                                Foreground="{StaticResource SecondaryBrush}"
@@ -169,7 +168,7 @@
                                 Margin="0,5,0,10"
                                 Visibility="{Binding CannotOrderReason, Converter={StaticResource NotNullToVisibility}}">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⚠️" FontSize="16" Margin="0,0,10,0"/>
+                                <TextBlock Text="!" FontSize="16" FontWeight="Bold" Foreground="#C62828" Margin="0,0,10,0"/>
                                 <TextBlock Text="{Binding CannotOrderReason}"
                                            Foreground="#C62828"
                                            TextWrapping="Wrap"
@@ -187,7 +186,7 @@
                                 Margin="0,5,0,10"
                                 Visibility="{Binding CanOrder, Converter={StaticResource BoolToVisibility}}">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="✅" FontSize="16" Margin="0,0,10,0"/>
+                                <TextBlock Text="V" FontSize="16" FontWeight="Bold" Foreground="#2E7D32" Margin="0,0,10,0"/>
                                 <TextBlock Text="可以點燈"
                                            Foreground="#2E7D32"
                                            FontWeight="SemiBold"
@@ -197,7 +196,7 @@
 
                         <!-- 點燈按鈕 -->
                         <Button Grid.Row="3" Grid.ColumnSpan="2"
-                                Content="🪔 確認點燈"
+                                Content="確認點燈"
                                 Command="{Binding CreateOrderCommand}"
                                 IsEnabled="{Binding CanOrder}"
                                 Style="{StaticResource SuccessButton}"
@@ -209,11 +208,11 @@
                         <StackPanel Grid.Row="4" Grid.ColumnSpan="2"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Center">
-                            <Button Content="👁️ 預覽"
+                            <Button Content="預覽"
                                     Command="{Binding PreviewReceiptCommand}"
                                     Padding="15,8"
                                     Margin="0,0,8,0"/>
-                            <Button Content="🖨️ 列印/PDF"
+                            <Button Content="列印/PDF"
                                     Command="{Binding PrintLastOrderCommand}"
                                     Padding="15,8"/>
                         </StackPanel>
@@ -238,7 +237,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="⏰ 即將到期提醒（30天內）"
+                    <TextBlock Text="即將到期提醒（30天內）"
                                FontSize="14"
                                FontWeight="SemiBold"
                                Foreground="{StaticResource WarningBrush}"
@@ -284,42 +283,8 @@
                 </Grid>
             </Border>
 
-            <!-- 雲端同步 -->
-            <Border Grid.Row="3"
-                    Background="White"
-                    CornerRadius="8"
-                    Padding="15"
-                    Margin="0,0,0,10">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
-                </Border.Effect>
-                <StackPanel>
-                    <TextBlock Text="☁️ 雲端同步"
-                               FontSize="14"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               Margin="0,0,0,12"/>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button Content="⬆️ 上傳"
-                                Command="{Binding SyncToCloudCommand}"
-                                Padding="20,10"
-                                Margin="0,0,10,0"/>
-                        <Button Content="⬇️ 下載"
-                                Command="{Binding SyncFromCloudCommand}"
-                                Padding="20,10"/>
-                    </StackPanel>
-
-                    <TextBlock Text="{Binding SyncStatus}"
-                               HorizontalAlignment="Center"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="12"
-                               Margin="0,10,0,0"/>
-                </StackPanel>
-            </Border>
-
             <!-- 狀態列 -->
-            <TextBlock Grid.Row="4"
+            <TextBlock Grid.Row="3"
                        Text="{Binding StatusMessage}"
                        Foreground="{StaticResource TextSecondaryBrush}"
                        FontSize="12"

@@ -7,7 +7,7 @@ namespace TempleLampSystem.Views;
 public partial class AddCustomerWindow : Window
 {
     private static readonly string[] ZodiacAnimals = ["鼠", "牛", "虎", "兔", "龍", "蛇", "馬", "羊", "猴", "雞", "狗", "豬"];
-    private static readonly string[] BirthHours = ["子時", "丑時", "寅時", "卯時", "辰時", "巳時", "午時", "未時", "申時", "酉時", "戌時", "亥時"];
+    private static readonly string[] BirthHours = ["吉時", "子時", "丑時", "寅時", "卯時", "辰時", "巳時", "午時", "未時", "申時", "酉時", "戌時", "亥時"];
 
     public Customer? NewCustomer { get; private set; }
 
@@ -62,6 +62,33 @@ public partial class AddCustomerWindow : Window
         }
     }
 
+    private void JiYearCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        var isChecked = JiYearCheckBox.IsChecked == true;
+        BirthYearTextBox.IsEnabled = !isChecked;
+        if (isChecked)
+        {
+            BirthYearTextBox.Text = string.Empty;
+            ZodiacText.Text = string.Empty;
+        }
+    }
+
+    private void JiMonthCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        var isChecked = JiMonthCheckBox.IsChecked == true;
+        BirthMonthTextBox.IsEnabled = !isChecked;
+        if (isChecked)
+            BirthMonthTextBox.Text = string.Empty;
+    }
+
+    private void JiDayCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        var isChecked = JiDayCheckBox.IsChecked == true;
+        BirthDayTextBox.IsEnabled = !isChecked;
+        if (isChecked)
+            BirthDayTextBox.Text = string.Empty;
+    }
+
     private void ConfirmButton_Click(object sender, RoutedEventArgs e)
     {
         var name = NameTextBox.Text.Trim();
@@ -84,13 +111,20 @@ public partial class AddCustomerWindow : Window
             BirthHour = BirthHourComboBox.SelectedItem as string
         };
 
-        if (int.TryParse(BirthYearTextBox.Text.Trim(), out var birthYear))
+        // 吉年/吉月/吉日 以 0 儲存，正常數值則存實際值
+        if (JiYearCheckBox.IsChecked == true)
+            NewCustomer.BirthYear = 0;
+        else if (int.TryParse(BirthYearTextBox.Text.Trim(), out var birthYear))
             NewCustomer.BirthYear = birthYear;
 
-        if (int.TryParse(BirthMonthTextBox.Text.Trim(), out var birthMonth))
+        if (JiMonthCheckBox.IsChecked == true)
+            NewCustomer.BirthMonth = 0;
+        else if (int.TryParse(BirthMonthTextBox.Text.Trim(), out var birthMonth))
             NewCustomer.BirthMonth = birthMonth;
 
-        if (int.TryParse(BirthDayTextBox.Text.Trim(), out var birthDay))
+        if (JiDayCheckBox.IsChecked == true)
+            NewCustomer.BirthDay = 0;
+        else if (int.TryParse(BirthDayTextBox.Text.Trim(), out var birthDay))
             NewCustomer.BirthDay = birthDay;
 
         DialogResult = true;

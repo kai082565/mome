@@ -89,15 +89,24 @@
                            Foreground="{StaticResource TextSecondaryBrush}"/>
                 <TextBox x:Name="BirthYearTextBox" Width="75" Padding="8,8" FontSize="16"
                          TextChanged="BirthYearTextBox_TextChanged"/>
-                <TextBlock Text="年" VerticalAlignment="Center" Margin="5,0,10,0"
+                <CheckBox x:Name="JiYearCheckBox" Content="吉" VerticalAlignment="Center"
+                          Margin="4,0,0,0" FontSize="14"
+                          Checked="JiYearCheckBox_Changed" Unchecked="JiYearCheckBox_Changed"/>
+                <TextBlock Text="年" VerticalAlignment="Center" Margin="4,0,8,0"
                            Foreground="{StaticResource TextSecondaryBrush}"/>
                 <TextBox x:Name="BirthMonthTextBox" Width="60" Padding="8,8" FontSize="16"
                          TextChanged="BirthMonthTextBox_TextChanged"/>
-                <TextBlock Text="月" VerticalAlignment="Center" Margin="5,0,10,0"
+                <CheckBox x:Name="JiMonthCheckBox" Content="吉" VerticalAlignment="Center"
+                          Margin="4,0,0,0" FontSize="14"
+                          Checked="JiMonthCheckBox_Changed" Unchecked="JiMonthCheckBox_Changed"/>
+                <TextBlock Text="月" VerticalAlignment="Center" Margin="4,0,8,0"
                            Foreground="{StaticResource TextSecondaryBrush}"/>
                 <TextBox x:Name="BirthDayTextBox" Width="60" Padding="8,8" FontSize="16"
                          TextChanged="BirthDayTextBox_TextChanged"/>
-                <TextBlock Text="日" VerticalAlignment="Center" Margin="5,0,0,0"
+                <CheckBox x:Name="JiDayCheckBox" Content="吉" VerticalAlignment="Center"
+                          Margin="4,0,0,0" FontSize="14"
+                          Checked="JiDayCheckBox_Changed" Unchecked="JiDayCheckBox_Changed"/>
+                <TextBlock Text="日" VerticalAlignment="Center" Margin="4,0,0,0"
                            Foreground="{StaticResource TextSecondaryBrush}"/>
             </StackPanel>
         </Grid>
