@@ -20,7 +20,19 @@ public class AutoSyncService : IAutoSyncService
         {
             Interval = TimeSpan.FromSeconds(30)
         };
-        _timer.Tick += async (s, e) => await CheckAndSyncAsync();
+        _timer.Tick += OnTimerTick;
+    }
+
+    private async void OnTimerTick(object? sender, EventArgs e)
+    {
+        try
+        {
+            await CheckAndSyncAsync();
+        }
+        catch
+        {
+            // 防止 Timer 例外導致閃退
+        }
     }
 
     public void Start()
@@ -28,7 +40,19 @@ public class AutoSyncService : IAutoSyncService
         if (_isRunning) return;
         _isRunning = true;
         _timer.Start();
-        _ = CheckAndSyncAsync();
+        _ = SafeCheckAndSyncAsync();
+    }
+
+    private async Task SafeCheckAndSyncAsync()
+    {
+        try
+        {
+            await CheckAndSyncAsync();
+        }
+        catch
+        {
+            // 防止啟動時的同步錯誤導致閃退
+        }
     }
 
     public void Stop()

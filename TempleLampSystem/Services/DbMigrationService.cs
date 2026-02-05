@@ -34,6 +34,36 @@ public static class DbMigrationService
                 ""Resolution"" INTEGER,
                 ""ResolvedAt"" TEXT
             );
+        ",
+        ["1.2.0"] = @"
+            ALTER TABLE ""Customers"" ADD COLUMN ""Village"" TEXT;
+            ALTER TABLE ""Customers"" ADD COLUMN ""PostalCode"" TEXT;
+            ALTER TABLE ""Customers"" ADD COLUMN ""BirthYear"" INTEGER;
+            ALTER TABLE ""Customers"" ADD COLUMN ""BirthMonth"" INTEGER;
+            ALTER TABLE ""Customers"" ADD COLUMN ""BirthDay"" INTEGER;
+            ALTER TABLE ""Customers"" ADD COLUMN ""BirthHour"" TEXT;
+        ",
+        ["1.3.0"] = @"
+            DELETE FROM ""LampOrders"" WHERE ""LampId"" IN (SELECT ""Id"" FROM ""Lamps"" WHERE ""LampCode"" IN ('CAISHEN','WENCHANG','YUANGUANG','YAOSHIPFO'));
+            DELETE FROM ""Lamps"" WHERE ""LampCode"" IN ('CAISHEN','WENCHANG','YUANGUANG','YAOSHIPFO');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('TAISUI', '太歲燈');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('PINGAN', '平安燈');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('GUANGMING', '光明燈');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('YOUXIANG', '油香');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('YOUXIANG_WU', '油香(無)');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('YOUXIANG_JN', '油香急難救');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('YOUXIANG_FD', '油香福德祠');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('FACAI', '發財燈');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('SHENGPING', '聖平');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('SHENGGUANG', '聖光');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('SHENGYOU', '聖油');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('KAOSHANG', '犒賞會');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('FUYOU', '福油');
+            INSERT OR IGNORE INTO ""Lamps"" (""LampCode"", ""LampName"") VALUES ('HEJIA_PINGAN', '闔家平安燈');
+        ",
+        ["1.3.1"] = @"
+            DELETE FROM ""LampOrders"" WHERE ""LampId"" IN (SELECT ""Id"" FROM ""Lamps"" WHERE ""LampCode"" IN ('CAISHEN','WENCHANG','YUANGUANG','YAOSHIPFO'));
+            DELETE FROM ""Lamps"" WHERE ""LampCode"" IN ('CAISHEN','WENCHANG','YUANGUANG','YAOSHIPFO');
         "
     };
 

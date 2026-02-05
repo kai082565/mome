@@ -55,6 +55,7 @@ public partial class LampOrderViewModel : ViewModelBase
     private string? _syncStatus;
 
     private LampOrder? _lastCreatedOrder;
+    private bool _isRemovingCustomer;
 
     public ObservableCollection<Lamp> Lamps { get; }
     public ObservableCollection<LampOrderDisplayModel> ExpiringOrders { get; }
@@ -64,17 +65,60 @@ public partial class LampOrderViewModel : ViewModelBase
 
     public event EventHandler<Guid>? OrderCreated;
     public event EventHandler<IEnumerable<Guid>>? OrdersCreated;
+    public event EventHandler<CustomerDisplayModel>? CustomerRemoved;
 
     public async Task InitializeAsync()
     {
-        var lamps = await _lampRepository.GetAllOrderedAsync();
-        Lamps.Clear();
-        foreach (var lamp in lamps)
+        try
         {
-            Lamps.Add(lamp);
-        }
+            var lamps = await _lampRepository.GetAllOrderedAsync();
+            Lamps.Clear();
+            foreach (var lamp in lamps)
+            {
+                Lamps.Add(lamp);
+            }
 
-        await LoadExpiringOrdersAsync();
+            await LoadExpiringOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"初始化失敗：{ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveSelectedCustomer(CustomerDisplayModel customer)
+    {
+        _isRemovingCustomer = true;
+        try
+        {
+            SelectedCustomers.Remove(customer);
+
+            if (SelectedCustomers.Count == 0)
+            {
+                SelectedCustomer = null;
+                CanOrder = false;
+                CannotOrderReason = null;
+                StatusMessage = "請先選擇客戶";
+            }
+            else
+            {
+                SelectedCustomer = SelectedCustomers[0];
+                StatusMessage = SelectedCustomers.Count == 1
+                    ? $"已選擇客戶：{SelectedCustomers[0].Name}"
+                    : $"已選擇 {SelectedCustomers.Count} 位客戶";
+
+                // 重新檢查是否可以點燈
+                _ = SafeCheckCanOrderForMultipleAsync();
+            }
+
+            // 通知 MainWindow 同步取消左側的選取
+            CustomerRemoved?.Invoke(this, customer);
+        }
+        finally
+        {
+            _isRemovingCustomer = false;
+        }
     }
 
     public async Task SetCustomerAsync(CustomerDisplayModel? customer)
@@ -102,6 +146,9 @@ public partial class LampOrderViewModel : ViewModelBase
 
     public void SetSelectedCustomers(IList<CustomerDisplayModel> customers)
     {
+        // 如果正在從右側移除客戶，不要重複處理
+        if (_isRemovingCustomer) return;
+
         SelectedCustomers.Clear();
         foreach (var customer in customers)
         {
@@ -125,7 +172,31 @@ public partial class LampOrderViewModel : ViewModelBase
         }
 
         // 重新檢查是否可以點燈
-        _ = CheckCanOrderForMultipleAsync();
+        _ = SafeCheckCanOrderForMultipleAsync();
+    }
+
+    private async Task SafeCheckCanOrderForMultipleAsync()
+    {
+        try
+        {
+            await CheckCanOrderForMultipleAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"檢查點燈狀態失敗：{ex.Message}";
+        }
+    }
+
+    private async Task SafeCheckCanOrderAsync()
+    {
+        try
+        {
+            await CheckCanOrderAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"檢查點燈狀態失敗：{ex.Message}";
+        }
     }
 
     private async Task CheckCanOrderForMultipleAsync()
@@ -175,11 +246,11 @@ public partial class LampOrderViewModel : ViewModelBase
         // 如果有多選客戶，檢查多選；否則檢查單選
         if (SelectedCustomers.Count > 0)
         {
-            _ = CheckCanOrderForMultipleAsync();
+            _ = SafeCheckCanOrderForMultipleAsync();
         }
         else
         {
-            _ = CheckCanOrderAsync();
+            _ = SafeCheckCanOrderAsync();
         }
     }
 

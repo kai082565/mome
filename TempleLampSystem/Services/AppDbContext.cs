@@ -44,6 +44,13 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Mobile).HasMaxLength(20);
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.Note).HasMaxLength(1000);
+            entity.Property(e => e.Village).HasMaxLength(50);
+            entity.Property(e => e.PostalCode).HasMaxLength(10);
+            entity.Property(e => e.BirthYear);
+            entity.Property(e => e.BirthMonth);
+            entity.Property(e => e.BirthDay);
+            entity.Property(e => e.BirthHour).HasMaxLength(10);
+            entity.Ignore(e => e.Zodiac);
             entity.Property(e => e.UpdatedAt).IsRequired();
         });
 

@@ -35,16 +35,14 @@ public class LampOrderService : ILampOrderService
         if (customer == null)
             return "找不到該客戶";
 
-        var relatedCustomerIds = await GetRelatedCustomerIdsAsync(customer);
-
         var today = DateTime.UtcNow.Date;
         var hasActiveOrder = await _context.LampOrders
-            .AnyAsync(o => relatedCustomerIds.Contains(o.CustomerId) &&
+            .AnyAsync(o => o.CustomerId == customerId &&
                           o.LampId == lampId &&
                           o.EndDate >= today);
 
         if (hasActiveOrder)
-            return "該客戶（或同電話客戶）已有未過期的此燈種點燈紀錄";
+            return "該客戶已有未過期的此燈種點燈紀錄";
 
         return null;
     }

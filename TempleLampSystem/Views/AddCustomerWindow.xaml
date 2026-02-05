@@ -1,0 +1,149 @@
+<Window x:Class="TempleLampSystem.Views.AddCustomerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="新增客戶"
+        Width="750"
+        Height="750"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}"
+        FontFamily="{StaticResource PrimaryFont}">
+
+    <Grid Margin="35" TextBlock.FontSize="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 姓名 -->
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="姓名 *" VerticalAlignment="Center" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBox Grid.Column="1" x:Name="NameTextBox" FontSize="16"/>
+        </Grid>
+
+        <!-- 電話 / 手機 -->
+        <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="70"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="電話" VerticalAlignment="Center" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBox Grid.Column="1" x:Name="PhoneTextBox" FontSize="16"/>
+            <TextBlock Grid.Column="2" Text="手機" VerticalAlignment="Center" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,0,0"/>
+            <TextBox Grid.Column="3" x:Name="MobileTextBox" FontSize="16"/>
+        </Grid>
+
+        <!-- 郵遞區號 / 村里 -->
+        <Grid Grid.Row="2" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="70"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="郵遞區號" VerticalAlignment="Center" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBox Grid.Column="1" x:Name="PostalCodeTextBox" FontSize="16"/>
+            <TextBlock Grid.Column="2" Text="村/里" VerticalAlignment="Center" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,0,0"/>
+            <TextBox Grid.Column="3" x:Name="VillageTextBox" FontSize="16"/>
+        </Grid>
+
+        <!-- 地址 -->
+        <Grid Grid.Row="3" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="地址" VerticalAlignment="Center" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBox Grid.Column="1" x:Name="AddressTextBox" FontSize="16"/>
+        </Grid>
+
+        <!-- 出生日期 -->
+        <Grid Grid.Row="4" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="出生" VerticalAlignment="Center" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="民國" VerticalAlignment="Center" Margin="5,0,5,0"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBox x:Name="BirthYearTextBox" Width="75" Padding="8,8" FontSize="16"
+                         TextChanged="BirthYearTextBox_TextChanged"/>
+                <TextBlock Text="年" VerticalAlignment="Center" Margin="5,0,10,0"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBox x:Name="BirthMonthTextBox" Width="60" Padding="8,8" FontSize="16"
+                         TextChanged="BirthMonthTextBox_TextChanged"/>
+                <TextBlock Text="月" VerticalAlignment="Center" Margin="5,0,10,0"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBox x:Name="BirthDayTextBox" Width="60" Padding="8,8" FontSize="16"
+                         TextChanged="BirthDayTextBox_TextChanged"/>
+                <TextBlock Text="日" VerticalAlignment="Center" Margin="5,0,0,0"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- 生辰 / 生肖 -->
+        <Grid Grid.Row="5" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="生辰" VerticalAlignment="Center" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <ComboBox Grid.Column="1" x:Name="BirthHourComboBox" Width="100" FontSize="16"/>
+            <TextBlock Grid.Column="2" Text="生肖:" VerticalAlignment="Center" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" Margin="25,0,10,0"/>
+            <Border Grid.Column="3" Background="#FFF0E0" CornerRadius="8" Padding="16,8"
+                    MinWidth="50" MinHeight="36">
+                <TextBlock x:Name="ZodiacText" VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           FontSize="22"
+                           Foreground="{StaticResource AccentBrush}" FontWeight="Bold"/>
+            </Border>
+        </Grid>
+
+        <!-- 備註 -->
+        <Grid Grid.Row="6" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="備註" VerticalAlignment="Top" FontWeight="SemiBold" Margin="0,12,0,0"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBox Grid.Column="1" x:Name="NoteTextBox"
+                     AcceptsReturn="True" TextWrapping="Wrap" FontSize="16"
+                     Height="100" VerticalScrollBarVisibility="Auto"/>
+        </Grid>
+
+        <!-- 按鈕 -->
+        <StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="✔ 確認新增" Style="{StaticResource SuccessButton}"
+                    Padding="35,14" FontSize="17" Click="ConfirmButton_Click"/>
+            <Button Content="✖ 取消" Padding="35,14" FontSize="17" Margin="12,0,0,0"
+                    Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

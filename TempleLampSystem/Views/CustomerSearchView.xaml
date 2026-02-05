@@ -46,12 +46,18 @@
                     </TextBox.InputBindings>
                 </TextBox>
 
-                <Button Grid.Column="2"
-                        Content="🔎 搜尋"
-                        Command="{Binding SearchCommand}"
-                        Style="{StaticResource PrimaryButton}"
-                        Padding="25,10"
-                        Margin="10,0,0,0"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="🔎 搜尋"
+                            Command="{Binding SearchCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            Padding="25,10"
+                            Margin="10,0,0,0"/>
+                    <Button Content="➕ 新增客戶"
+                            Command="{Binding AddCustomerCommand}"
+                            Style="{StaticResource SuccessButton}"
+                            Padding="25,10"
+                            Margin="5,0,0,0"/>
+                </StackPanel>
             </Grid>
         </Border>
 

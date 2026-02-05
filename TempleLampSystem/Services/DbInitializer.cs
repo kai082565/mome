@@ -23,13 +23,20 @@ public static class DbInitializer
 
         var lamps = new List<Lamp>
         {
-            new() { LampCode = "TAISUI",    LampName = "太歲燈" },
-            new() { LampCode = "GUANGMING", LampName = "光明燈" },
-            new() { LampCode = "PINGAN",    LampName = "平安燈" },
-            new() { LampCode = "CAISHEN",   LampName = "財神燈" },
-            new() { LampCode = "WENCHANG",  LampName = "文昌燈" },
-            new() { LampCode = "YUANGUANG", LampName = "元辰燈" },
-            new() { LampCode = "YAOSHIPFO", LampName = "藥師燈" },
+            new() { LampCode = "TAISUI",       LampName = "太歲燈" },
+            new() { LampCode = "PINGAN",       LampName = "平安燈" },
+            new() { LampCode = "GUANGMING",    LampName = "光明燈" },
+            new() { LampCode = "YOUXIANG",     LampName = "油香" },
+            new() { LampCode = "YOUXIANG_WU",  LampName = "油香(無)" },
+            new() { LampCode = "YOUXIANG_JN",  LampName = "油香急難救" },
+            new() { LampCode = "YOUXIANG_FD",  LampName = "油香福德祠" },
+            new() { LampCode = "FACAI",        LampName = "發財燈" },
+            new() { LampCode = "SHENGPING",    LampName = "聖平" },
+            new() { LampCode = "SHENGGUANG",   LampName = "聖光" },
+            new() { LampCode = "SHENGYOU",     LampName = "聖油" },
+            new() { LampCode = "KAOSHANG",     LampName = "犒賞會" },
+            new() { LampCode = "FUYOU",        LampName = "福油" },
+            new() { LampCode = "HEJIA_PINGAN", LampName = "闔家平安燈" },
         };
 
         context.Lamps.AddRange(lamps);
@@ -88,12 +95,19 @@ public static class DbInitializer
         var priceMap = new Dictionary<string, decimal>
         {
             { "太歲燈", 1200 },
-            { "光明燈", 600 },
             { "平安燈", 500 },
-            { "財神燈", 800 },
-            { "文昌燈", 600 },
-            { "元辰燈", 1000 },
-            { "藥師燈", 800 },
+            { "光明燈", 600 },
+            { "油香", 300 },
+            { "油香(無)", 0 },
+            { "油香急難救", 300 },
+            { "油香福德祠", 300 },
+            { "發財燈", 800 },
+            { "聖平", 500 },
+            { "聖光", 600 },
+            { "聖油", 300 },
+            { "犒賞會", 500 },
+            { "福油", 300 },
+            { "闔家平安燈", 1000 },
         };
 
         foreach (var customer in customers)

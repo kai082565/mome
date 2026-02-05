@@ -346,3 +346,5 @@ C:\Users\Administrator\Desktop\mome\TempleLampSystem\obj\Debug\net10.0-windows\r
 C:\Users\Administrator\Desktop\mome\TempleLampSystem\obj\Debug\net10.0-windows\TempleLampSystem.pdb
 C:\Users\Administrator\Desktop\mome\TempleLampSystem\obj\Debug\net10.0-windows\TempleLampSystem.genruntimeconfig.cache
 C:\Users\Administrator\Desktop\mome\TempleLampSystem\obj\Debug\net10.0-windows\ref\TempleLampSystem.dll
+C:\Users\USER\Desktop\點燈\TempleLampSystem\obj\Debug\net10.0-windows\Views\AddCustomerWindow.baml
+C:\Users\USER\Desktop\點燈\TempleLampSystem\obj\Debug\net10.0-windows\Views\AddCustomerWindow.g.cs

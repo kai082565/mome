@@ -1,8 +1,10 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TempleLampSystem.Models;
 using TempleLampSystem.Services.Repositories;
+using TempleLampSystem.Views;
 
 namespace TempleLampSystem.ViewModels;
 
@@ -78,6 +80,29 @@ public partial class CustomerSearchViewModel : ViewModelBase
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task AddCustomerAsync()
+    {
+        var window = new AddCustomerWindow
+        {
+            Owner = Application.Current.MainWindow
+        };
+
+        if (window.ShowDialog() == true && window.NewCustomer != null)
+        {
+            try
+            {
+                await _customerRepository.AddAsync(window.NewCustomer);
+                StatusMessage = $"已新增客戶：{window.NewCustomer.Name}";
+                await SearchAsync();
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"新增客戶失敗：{ex.Message}";
+            }
         }
     }
 

@@ -17,55 +17,53 @@ public class PrintService : IPrintService
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
-    public async Task<bool> PrintReceiptAsync(Receipt receipt)
+    public Task<bool> PrintReceiptAsync(Receipt receipt)
     {
-        return await Task.Run(() =>
+        try
         {
-            try
-            {
-                var printDialog = new PrintDialog();
+            var printDialog = new PrintDialog();
 
-                if (printDialog.ShowDialog() == true)
-                {
-                    var document = CreateFlowDocument(receipt);
-                    var paginator = ((IDocumentPaginatorSource)document).DocumentPaginator;
-                    printDialog.PrintDocument(paginator, $"點燈單據 - {receipt.CustomerName}");
-                    return true;
-                }
-
-                return false;
-            }
-            catch (Exception ex)
+            if (printDialog.ShowDialog() == true)
             {
-                MessageBox.Show($"列印失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
+                var document = CreateFlowDocument(receipt);
+                var paginator = ((IDocumentPaginatorSource)document).DocumentPaginator;
+                printDialog.PrintDocument(paginator, $"點燈單據 - {receipt.CustomerName}");
+                return Task.FromResult(true);
             }
-        });
+
+            return Task.FromResult(false);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"列印失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+            return Task.FromResult(false);
+        }
     }
 
     public async Task<string> SaveReceiptAsPdfAsync(Receipt receipt, string? filePath = null)
     {
-        return await Task.Run(() =>
+        if (string.IsNullOrEmpty(filePath))
         {
-            if (string.IsNullOrEmpty(filePath))
+            var saveDialog = new Microsoft.Win32.SaveFileDialog
             {
-                var saveDialog = new Microsoft.Win32.SaveFileDialog
-                {
-                    Filter = "PDF 檔案|*.pdf",
-                    FileName = $"點燈單據_{receipt.CustomerName}_{receipt.Year}年{receipt.LampName}.pdf"
-                };
+                Filter = "PDF 檔案|*.pdf",
+                FileName = $"點燈單據_{receipt.CustomerName}_{receipt.Year}年{receipt.LampName}.pdf"
+            };
 
-                if (saveDialog.ShowDialog() != true)
-                    return string.Empty;
+            if (saveDialog.ShowDialog() != true)
+                return string.Empty;
 
-                filePath = saveDialog.FileName;
-            }
+            filePath = saveDialog.FileName;
+        }
 
+        var finalPath = filePath;
+        await Task.Run(() =>
+        {
             var document = CreatePdfDocument(receipt);
-            document.GeneratePdf(filePath);
-
-            return filePath;
+            document.GeneratePdf(finalPath);
         });
+
+        return finalPath;
     }
 
     public void PreviewReceipt(Receipt receipt)

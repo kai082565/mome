@@ -29,6 +29,7 @@ public partial class MainWindow : Window
         _customerSearchViewModel.CustomerSelected += OnCustomerSelected;
         _customerSearchViewModel.CustomersSelectionChanged += OnCustomersSelectionChanged;
         _lampOrderViewModel.OrderCreated += OnOrderCreated;
+        _lampOrderViewModel.CustomerRemoved += OnCustomerRemoved;
 
         // 訂閱同步狀態
         _autoSyncService.SyncStatusChanged += OnSyncStatusChanged;
@@ -47,9 +48,16 @@ public partial class MainWindow : Window
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        await _lampOrderViewModel.InitializeAsync();
-        _autoSyncService.Start();
-        CurrentTimeText.Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+        try
+        {
+            await _lampOrderViewModel.InitializeAsync();
+            _autoSyncService.Start();
+            CurrentTimeText.Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"初始化失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -76,10 +84,17 @@ public partial class MainWindow : Window
 
     private async void OnCustomerSelected(object? sender, CustomerDisplayModel? customer)
     {
-        // 單選時的處理（保持向後相容）
-        if (_customerSearchViewModel.SelectedCustomers.Count <= 1)
+        try
         {
-            await _lampOrderViewModel.SetCustomerAsync(customer);
+            // 單選時的處理（保持向後相容）
+            if (_customerSearchViewModel.SelectedCustomers.Count <= 1)
+            {
+                await _lampOrderViewModel.SetCustomerAsync(customer);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"選擇客戶時發生錯誤：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -91,6 +106,18 @@ public partial class MainWindow : Window
 
     private async void OnOrderCreated(object? sender, Guid customerId)
     {
-        await _customerSearchViewModel.RefreshCustomerOrdersAsync(customerId);
+        try
+        {
+            await _customerSearchViewModel.RefreshCustomerOrdersAsync(customerId);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"刷新客戶資料時發生錯誤：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void OnCustomerRemoved(object? sender, CustomerDisplayModel customer)
+    {
+        CustomerSearchView.DeselectCustomer(customer.Id);
     }
 }
