@@ -138,6 +138,16 @@ public class PrintService : IPrintService
         document.Blocks.Add(CreateInfoLine("年    度", $"{receipt.Year} 年"));
         document.Blocks.Add(CreateInfoLine("起始日期", receipt.StartDate.ToString("yyyy/MM/dd")));
         document.Blocks.Add(CreateInfoLine("結束日期", receipt.EndDate.ToString("yyyy/MM/dd")));
+
+        // 農曆期間
+        var lunarPeriod = new Paragraph(new Run(receipt.LunarPeriod))
+        {
+            Margin = new Thickness(0, 5, 0, 2),
+            TextAlignment = TextAlignment.Center,
+            FontWeight = FontWeights.Bold
+        };
+        document.Blocks.Add(lunarPeriod);
+
         document.Blocks.Add(CreateInfoLine("功德金額", $"NT$ {receipt.Price:N0}"));
 
         document.Blocks.Add(CreateSeparator());
@@ -233,6 +243,11 @@ public class PrintService : IPrintService
                     column.Item().Text($"年    度：{receipt.Year} 年");
                     column.Item().Text($"起始日期：{receipt.StartDate:yyyy/MM/dd}");
                     column.Item().Text($"結束日期：{receipt.EndDate:yyyy/MM/dd}");
+
+                    // 農曆期間
+                    column.Item().PaddingVertical(5).AlignCenter()
+                        .Text(receipt.LunarPeriod).Bold();
+
                     column.Item().Text($"功德金額：NT$ {receipt.Price:N0}").Bold();
 
                     column.Item().PaddingVertical(10).LineHorizontal(1).LineColor(QuestColors.Grey.Medium);

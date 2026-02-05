@@ -6,7 +6,12 @@
         Height="800"
         Width="1280"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{StaticResource BackgroundBrush}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.BitmapScalingMode="HighQuality">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -15,50 +20,80 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 頂部標題區 -->
+        <!-- 頂部標題區 - 廟宇殿堂風格 -->
         <Border Grid.Row="0"
-                Background="{StaticResource SecondaryBrush}"
-                Padding="20,15">
+                Background="{StaticResource HeaderGradient}"
+                BorderBrush="{StaticResource GoldDarkBrush}"
+                BorderThickness="0,0,0,2">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <!-- 系統標題 -->
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="☯"
-                               FontSize="32"
-                               Foreground="#FFD700"
-                               VerticalAlignment="Center"
-                               Margin="0,0,15,0"/>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="點燈管理系統"
-                                   FontSize="24"
-                                   FontWeight="Bold"
-                                   Foreground="White"
-                                   FontFamily="{StaticResource PrimaryFont}"/>
-                        <TextBlock Text="Temple Lamp Management System"
-                                   FontSize="11"
-                                   Foreground="#D4A574"
-                                   FontFamily="{StaticResource PrimaryFont}"/>
-                    </StackPanel>
-                </StackPanel>
+                <!-- 頂部金飾線 -->
+                <Border Height="4" Background="{StaticResource GoldGradient}"/>
 
-                <!-- 宮廟名稱 -->
-                <TextBlock Grid.Column="2"
-                           Text="鳳屏宮"
-                           FontSize="20"
-                           FontWeight="SemiBold"
-                           Foreground="#FFD700"
-                           VerticalAlignment="Center"
-                           FontFamily="{StaticResource PrimaryFont}"/>
+                <!-- 主標題區 -->
+                <Border Grid.Row="1" Padding="25,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 左側系統標題 -->
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="#3A0808" CornerRadius="25" Padding="8" Margin="0,0,15,0"
+                                    BorderBrush="{StaticResource GoldBrush}" BorderThickness="2">
+                                <TextBlock Text="&#x2726;"
+                                           FontSize="26"
+                                           Foreground="#FFD700"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="點燈管理系統"
+                                           FontSize="26"
+                                           FontWeight="Bold"
+                                           Foreground="#FFD700"
+                                           FontFamily="{StaticResource PrimaryFont}"/>
+                                <TextBlock Text="Temple Lamp Management System"
+                                           FontSize="11"
+                                           Foreground="#C9A96E"
+                                           FontFamily="{StaticResource PrimaryFont}"
+                                           Margin="2,2,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- 中間裝飾 -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.4">
+                            <TextBlock Text="&#x2500;&#x2500;&#x2500; &#x2726; &#x2500;&#x2500;&#x2500;" Foreground="#DAA520" FontSize="16"/>
+                        </StackPanel>
+
+                        <!-- 右側宮廟名稱 -->
+                        <Border Grid.Column="2" VerticalAlignment="Center"
+                                BorderBrush="{StaticResource GoldBrush}" BorderThickness="2"
+                                CornerRadius="6" Padding="18,6"
+                                Background="#3A0808">
+                            <TextBlock Text="鳳屏宮"
+                                       FontSize="24"
+                                       FontWeight="Bold"
+                                       Foreground="#FFD700"
+                                       FontFamily="{StaticResource PrimaryFont}"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- 底部金飾線 -->
+                <Border Grid.Row="2" Height="3" Background="{StaticResource GoldGradient}"/>
             </Grid>
         </Border>
 
         <!-- 主內容區 -->
-        <Grid Grid.Row="1" Margin="15">
+        <Grid Grid.Row="1" Margin="15,18,15,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="8"/>
@@ -83,30 +118,43 @@
         </Grid>
 
         <!-- 底部狀態列 -->
-        <StatusBar Grid.Row="2">
-            <StatusBarItem>
-                <StackPanel Orientation="Horizontal">
-                    <Border x:Name="OnlineIndicatorBorder"
-                            Width="12" Height="12"
-                            CornerRadius="6"
-                            Background="Gray"
-                            Margin="0,0,8,0"/>
-                    <Ellipse x:Name="OnlineIndicator"
-                             Width="0" Height="0"
-                             Visibility="Collapsed"/>
-                    <TextBlock x:Name="SyncStatusText" Text="檢查連線中..." FontWeight="SemiBold"/>
-                </StackPanel>
-            </StatusBarItem>
-            <Separator Background="#D4A574"/>
-            <StatusBarItem>
-                <TextBlock x:Name="PendingSyncText" Text=""/>
-            </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Right">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="時間：" FontSize="13"/>
-                    <TextBlock x:Name="CurrentTimeText" Text="" FontWeight="SemiBold"/>
-                </StackPanel>
-            </StatusBarItem>
-        </StatusBar>
+        <Border Grid.Row="2"
+                Background="{StaticResource HeaderGradient}"
+                BorderBrush="{StaticResource GoldDarkBrush}"
+                BorderThickness="0,2,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <!-- 金飾線 -->
+                <Border Height="2" Background="{StaticResource GoldGradient}"/>
+                <StatusBar Grid.Row="1" Background="Transparent">
+                    <StatusBarItem>
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="OnlineIndicatorBorder"
+                                    Width="12" Height="12"
+                                    CornerRadius="6"
+                                    Background="Gray"
+                                    Margin="0,0,8,0"/>
+                            <Ellipse x:Name="OnlineIndicator"
+                                     Width="0" Height="0"
+                                     Visibility="Collapsed"/>
+                            <TextBlock x:Name="SyncStatusText" Text="檢查連線中..." FontWeight="SemiBold" Foreground="#E8D5B5"/>
+                        </StackPanel>
+                    </StatusBarItem>
+                    <Separator Background="#8B6914"/>
+                    <StatusBarItem>
+                        <TextBlock x:Name="PendingSyncText" Text="" Foreground="#E8D5B5"/>
+                    </StatusBarItem>
+                    <StatusBarItem HorizontalAlignment="Right">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#x2726; " FontSize="12" Foreground="#DAA520" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="CurrentTimeText" Text="" FontWeight="SemiBold" Foreground="#FFD700"/>
+                        </StackPanel>
+                    </StatusBarItem>
+                </StatusBar>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

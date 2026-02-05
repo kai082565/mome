@@ -8,7 +8,12 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{StaticResource BackgroundBrush}"
-        FontFamily="{StaticResource PrimaryFont}">
+        FontFamily="{StaticResource PrimaryFont}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.BitmapScalingMode="HighQuality">
 
     <Window.Resources>
         <converters:OrderStatusToColorConverter x:Key="StatusToColor"/>

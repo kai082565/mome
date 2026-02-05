@@ -1,3 +1,5 @@
+using TempleLampSystem.Helpers;
+
 namespace TempleLampSystem.Models;
 
 /// <summary>
@@ -25,6 +27,11 @@ public class Receipt
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public decimal Price { get; set; }
+
+    // 農曆日期（自動從西曆轉換）
+    public string LunarStartDate => LunarCalendarHelper.ToLunarDateString(StartDate);
+    public string LunarEndDate => LunarCalendarHelper.ToLunarDateString(EndDate);
+    public string LunarPeriod => LunarCalendarHelper.GetLunarPeriodString(StartDate, EndDate);
 
     // 備註
     public string? Note { get; set; }

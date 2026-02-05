@@ -350,3 +350,7 @@ C:\Users\USER\Desktop\點燈\TempleLampSystem\obj\Debug\net10.0-windows\Views\Ad
 C:\Users\USER\Desktop\點燈\TempleLampSystem\obj\Debug\net10.0-windows\Views\AddCustomerWindow.g.cs
 C:\Users\USER\Desktop\點燈\TempleLampSystem\obj\Debug\net10.0-windows\Views\CustomerDetailWindow.g.cs
 C:\Users\USER\Desktop\點燈\TempleLampSystem\obj\Debug\net10.0-windows\Views\CustomerDetailWindow.baml
+C:\Users\Administrator\Desktop\mome\TempleLampSystem\obj\Debug\net10.0-windows\Views\AddCustomerWindow.baml
+C:\Users\Administrator\Desktop\mome\TempleLampSystem\obj\Debug\net10.0-windows\Views\AddCustomerWindow.g.cs
+C:\Users\Administrator\Desktop\mome\TempleLampSystem\obj\Debug\net10.0-windows\Views\CustomerDetailWindow.g.cs
+C:\Users\Administrator\Desktop\mome\TempleLampSystem\obj\Debug\net10.0-windows\Views\CustomerDetailWindow.baml

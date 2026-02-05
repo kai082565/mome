@@ -7,7 +7,12 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{StaticResource BackgroundBrush}"
-        FontFamily="{StaticResource PrimaryFont}">
+        FontFamily="{StaticResource PrimaryFont}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.BitmapScalingMode="HighQuality">
 
     <Grid Margin="35" TextBlock.FontSize="16">
         <Grid.RowDefinitions>

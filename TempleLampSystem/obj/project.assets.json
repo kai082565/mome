@@ -2861,26 +2861,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\USER\\.nuget\\packages\\": {}
+    "C:\\Users\\Administrator\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\USER\\Desktop\\點燈\\TempleLampSystem\\TempleLampSystem.csproj",
+      "projectUniqueName": "C:\\Users\\Administrator\\Desktop\\mome\\TempleLampSystem\\TempleLampSystem.csproj",
       "projectName": "TempleLampSystem",
-      "projectPath": "C:\\Users\\USER\\Desktop\\點燈\\TempleLampSystem\\TempleLampSystem.csproj",
-      "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\USER\\Desktop\\點燈\\TempleLampSystem\\obj\\",
+      "projectPath": "C:\\Users\\Administrator\\Desktop\\mome\\TempleLampSystem\\TempleLampSystem.csproj",
+      "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Administrator\\Desktop\\mome\\TempleLampSystem\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0-windows"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {

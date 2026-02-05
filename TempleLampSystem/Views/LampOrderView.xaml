@@ -24,38 +24,53 @@
 
             <!-- 已選客戶資訊 -->
             <Border Grid.Row="0"
-                    Background="White"
-                    CornerRadius="8"
+                    CornerRadius="10"
                     Padding="15"
-                    Margin="0,5,0,15"
-                    MaxHeight="350">
+                    Margin="0,8,0,15"
+                    MaxHeight="350"
+                    BorderBrush="{StaticResource GoldDarkBrush}"
+                    BorderThickness="1.5">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FFFCF5" Offset="0"/>
+                        <GradientStop Color="#FFF8ED" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.12" Direction="270"/>
                 </Border.Effect>
                 <Grid>
                     <!-- 未選擇客戶時 -->
                     <StackPanel Visibility="{Binding SelectedCustomer, Converter={StaticResource NullToVisibility}}"
                                 HorizontalAlignment="Center"
-                                VerticalAlignment="Center">
-                        <TextBlock Text="▲" FontSize="28" HorizontalAlignment="Center" Opacity="0.5"/>
+                                VerticalAlignment="Center"
+                                Margin="0,15">
+                        <TextBlock Text="&#x2726;" FontSize="32" HorizontalAlignment="Center" Foreground="{StaticResource GoldBrush}" Opacity="0.5"/>
                         <TextBlock Text="請從左側選擇客戶（按住 Ctrl 可多選）"
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    FontSize="14"
                                    HorizontalAlignment="Center"
-                                   Margin="0,8,0,0"/>
+                                   Margin="0,10,0,0"/>
                     </StackPanel>
 
-                    <!-- 已選擇客戶時 - 顯示多選客戶列表 -->
+                    <!-- 已選擇客戶時 -->
                     <ScrollViewer Visibility="{Binding SelectedCustomer, Converter={StaticResource NotNullToVisibility}}"
                                   VerticalScrollBarVisibility="Auto"
                                   MaxHeight="310">
                         <ItemsControl ItemsSource="{Binding SelectedCustomers}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#FFF8F0"
-                                            CornerRadius="6"
-                                            Padding="10,8"
-                                            Margin="0,0,0,5">
+                                    <Border CornerRadius="8"
+                                            Padding="12,10"
+                                            Margin="0,0,0,6"
+                                            BorderBrush="{StaticResource GoldDarkBrush}"
+                                            BorderThickness="1">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                <GradientStop Color="#FFF8ED" Offset="0"/>
+                                                <GradientStop Color="#FFF0D6" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Border.Background>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
@@ -63,30 +78,38 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <TextBlock Text="■" FontSize="14" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                            <Border Width="4" CornerRadius="2" Margin="0,0,10,0"
+                                                    VerticalAlignment="Stretch">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                        <GradientStop Color="#DAA520" Offset="0"/>
+                                                        <GradientStop Color="#B8860B" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                            </Border>
 
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock FontSize="14"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                                <TextBlock FontSize="15"
+                                                           FontWeight="Bold"
+                                                           Foreground="{StaticResource SecondaryBrush}"
                                                            Text="{Binding Name}"/>
-                                                <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
-                                                           FontSize="11">
-                                                    <Run Text="Tel:"/>
-                                                    <Run Text="{Binding DisplayPhone, Mode=OneWay}"/>
-                                                </TextBlock>
+                                                <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                    <TextBlock Text="&#x260E;" FontSize="11" Foreground="{StaticResource GoldDarkBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"
+                                                               Text="{Binding DisplayPhone, Mode=OneWay}"/>
+                                                </StackPanel>
                                             </StackPanel>
 
                                             <Button Grid.Column="2"
-                                                    Content="✕"
-                                                    FontSize="12"
+                                                    Content="&#x2715;"
+                                                    FontSize="13"
                                                     FontWeight="Bold"
-                                                    Foreground="#999"
+                                                    Foreground="#B8956A"
                                                     Background="Transparent"
                                                     BorderThickness="0"
                                                     Cursor="Hand"
                                                     VerticalAlignment="Center"
-                                                    Padding="6,2"
+                                                    Padding="8,4"
                                                     ToolTip="移除此客戶"
                                                     Command="{Binding DataContext.RemoveSelectedCustomerCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"/>
@@ -101,19 +124,29 @@
 
             <!-- 點燈表單 -->
             <Border Grid.Row="1"
-                    Background="White"
-                    CornerRadius="8"
-                    Padding="15"
-                    Margin="0,0,0,15">
+                    CornerRadius="10"
+                    Padding="18"
+                    Margin="0,0,0,15"
+                    BorderBrush="{StaticResource GoldDarkBrush}"
+                    BorderThickness="1.5">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FFFCF5" Offset="0"/>
+                        <GradientStop Color="#FFF8ED" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.12" Direction="270"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="新增點燈"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource SecondaryBrush}"
-                               Margin="0,0,0,15"/>
+                    <!-- 區塊標題 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                        <TextBlock Text="&#x2726;" FontSize="14" Foreground="{StaticResource GoldDarkBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="新增點燈"
+                                   FontSize="17"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource SecondaryBrush}"/>
+                    </StackPanel>
 
                     <Grid>
                         <Grid.RowDefinitions>
@@ -132,89 +165,106 @@
                         <TextBlock Grid.Row="0"
                                    Text="燈種"
                                    VerticalAlignment="Center"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                   FontWeight="Bold"
+                                   FontSize="14"
+                                   Foreground="{StaticResource SecondaryBrush}"/>
                         <ComboBox Grid.Row="0" Grid.Column="1"
                                   ItemsSource="{Binding Lamps}"
                                   SelectedItem="{Binding SelectedLamp}"
                                   DisplayMemberPath="LampName"
                                   FontSize="16"
                                   Padding="12,10"
-                                  Margin="0,0,0,10"/>
+                                  Margin="0,0,0,12"/>
 
                         <!-- 金額 -->
                         <TextBlock Grid.Row="1"
                                    Text="金額"
                                    VerticalAlignment="Center"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextSecondaryBrush}"/>
-                        <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,0,10">
+                                   FontWeight="Bold"
+                                   FontSize="14"
+                                   Foreground="{StaticResource SecondaryBrush}"/>
+                        <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,0,12">
                             <TextBox Text="{Binding Price, UpdateSourceTrigger=PropertyChanged}"
-                                     Padding="10,8,40,8"/>
+                                     Padding="12,10,40,10"
+                                     FontSize="16"/>
                             <TextBlock Text="元"
                                        HorizontalAlignment="Right"
                                        VerticalAlignment="Center"
                                        Margin="0,0,15,0"
-                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource GoldDarkBrush}"/>
                         </Grid>
 
                         <!-- 狀態提示 - 不可點燈 -->
                         <Border Grid.Row="2" Grid.ColumnSpan="2"
-                                Background="#FFEBEE"
-                                BorderBrush="#FFCDD2"
-                                BorderThickness="1"
-                                CornerRadius="6"
-                                Padding="12"
+                                CornerRadius="8"
+                                Padding="14"
                                 Margin="0,5,0,10"
+                                BorderBrush="#E57373"
+                                BorderThickness="1.5"
                                 Visibility="{Binding CannotOrderReason, Converter={StaticResource NotNullToVisibility}}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#FFF0F0" Offset="0"/>
+                                    <GradientStop Color="#FFE8E8" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="!" FontSize="16" FontWeight="Bold" Foreground="#C62828" Margin="0,0,10,0"/>
+                                <TextBlock Text="&#x2716;" FontSize="15" FontWeight="Bold" Foreground="#C62828" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding CannotOrderReason}"
                                            Foreground="#C62828"
                                            TextWrapping="Wrap"
+                                           FontWeight="SemiBold"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
                         <!-- 狀態提示 - 可點燈 -->
                         <Border Grid.Row="2" Grid.ColumnSpan="2"
-                                Background="#E8F5E9"
-                                BorderBrush="#C8E6C9"
-                                BorderThickness="1"
-                                CornerRadius="6"
-                                Padding="12"
+                                CornerRadius="8"
+                                Padding="14"
                                 Margin="0,5,0,10"
+                                BorderBrush="#81C784"
+                                BorderThickness="1.5"
                                 Visibility="{Binding CanOrder, Converter={StaticResource BoolToVisibility}}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#F0FFF0" Offset="0"/>
+                                    <GradientStop Color="#E8F5E9" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="V" FontSize="16" FontWeight="Bold" Foreground="#2E7D32" Margin="0,0,10,0"/>
+                                <TextBlock Text="&#x2714;" FontSize="15" FontWeight="Bold" Foreground="#2E7D32" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="可以點燈"
                                            Foreground="#2E7D32"
-                                           FontWeight="SemiBold"
+                                           FontWeight="Bold"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
                         <!-- 點燈按鈕 -->
                         <Button Grid.Row="3" Grid.ColumnSpan="2"
-                                Content="確認點燈"
+                                Content="&#x2726;  確認點燈  &#x2726;"
                                 Command="{Binding CreateOrderCommand}"
                                 IsEnabled="{Binding CanOrder}"
-                                Style="{StaticResource SuccessButton}"
-                                Padding="20,12"
-                                FontSize="15"
-                                Margin="0,5,0,10"/>
+                                Style="{StaticResource PrimaryButton}"
+                                Padding="20,14"
+                                FontSize="16"
+                                Margin="0,5,0,12"/>
 
                         <!-- 列印按鈕 -->
                         <StackPanel Grid.Row="4" Grid.ColumnSpan="2"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Center">
-                            <Button Content="預覽"
+                            <Button Content="預覽單據"
                                     Command="{Binding PreviewReceiptCommand}"
-                                    Padding="15,8"
+                                    Style="{StaticResource GoldButton}"
+                                    Padding="20,10"
                                     Margin="0,0,8,0"/>
-                            <Button Content="列印/PDF"
+                            <Button Content="列印 / PDF"
                                     Command="{Binding PrintLastOrderCommand}"
-                                    Padding="15,8"/>
+                                    Style="{StaticResource GoldButton}"
+                                    Padding="20,10"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -222,13 +272,20 @@
 
             <!-- 即將到期提醒 -->
             <Border Grid.Row="2"
-                    Background="White"
-                    CornerRadius="8"
+                    CornerRadius="10"
                     Padding="15"
                     Margin="0,0,0,15"
-                    MaxHeight="200">
+                    MaxHeight="200"
+                    BorderBrush="#E65100"
+                    BorderThickness="1.5">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FFFCF5" Offset="0"/>
+                        <GradientStop Color="#FFF8ED" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.12" Direction="270"/>
                 </Border.Effect>
                 <Grid>
                     <Grid.RowDefinitions>
@@ -237,30 +294,39 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="即將到期提醒（30天內）"
-                               FontSize="14"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource WarningBrush}"
-                               Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="&#x26A0;" FontSize="15" Foreground="#E65100" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="即將到期提醒（30天內）"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="#E65100"/>
+                    </StackPanel>
 
                     <!-- 表頭 -->
-                    <Grid Grid.Row="1" Margin="0,0,0,4">
+                    <Grid Grid.Row="1" Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="70"/>
                             <ColumnDefinition Width="70"/>
                             <ColumnDefinition Width="90"/>
                             <ColumnDefinition Width="50"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="客戶" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
-                        <TextBlock Grid.Column="1" Text="燈種" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
-                        <TextBlock Grid.Column="2" Text="到期日" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
-                        <TextBlock Grid.Column="3" Text="剩餘" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"/>
+                        <TextBlock Grid.Column="0" Text="客戶" FontWeight="Bold" Foreground="{StaticResource SecondaryBrush}" FontSize="12"/>
+                        <TextBlock Grid.Column="1" Text="燈種" FontWeight="Bold" Foreground="{StaticResource SecondaryBrush}" FontSize="12"/>
+                        <TextBlock Grid.Column="2" Text="到期日" FontWeight="Bold" Foreground="{StaticResource SecondaryBrush}" FontSize="12"/>
+                        <TextBlock Grid.Column="3" Text="剩餘" FontWeight="Bold" Foreground="{StaticResource SecondaryBrush}" FontSize="12"/>
                     </Grid>
 
                     <ItemsControl Grid.Row="2" ItemsSource="{Binding ExpiringOrders}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#FFFAF0" CornerRadius="4" Padding="4,6" Margin="0,0,0,3">
+                                <Border CornerRadius="6" Padding="6,8" Margin="0,0,0,4"
+                                        BorderBrush="#FFE0B2" BorderThickness="1">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#FFFAF0" Offset="0"/>
+                                            <GradientStop Color="#FFF3E0" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="70"/>
@@ -268,13 +334,13 @@
                                             <ColumnDefinition Width="90"/>
                                             <ColumnDefinition Width="50"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{Binding CustomerName}" FontSize="12" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="0" Text="{Binding CustomerName}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                         <TextBlock Grid.Column="1" Text="{Binding LampName}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBlock Grid.Column="2" Text="{Binding EndDate, StringFormat=yyyy/MM/dd}" FontSize="12" VerticalAlignment="Center"/>
                                         <TextBlock Grid.Column="3"
                                                    Text="{Binding DaysLeft, StringFormat='{}{0}天'}"
                                                    Foreground="{Binding EndDate, Converter={StaticResource StatusToColor}}"
-                                                   FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                                                   FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -284,11 +350,24 @@
             </Border>
 
             <!-- 狀態列 -->
-            <TextBlock Grid.Row="3"
-                       Text="{Binding StatusMessage}"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       FontSize="12"
-                       Margin="5,5,0,0"/>
+            <Border Grid.Row="3"
+                    CornerRadius="8"
+                    Padding="14,8"
+                    BorderBrush="{StaticResource GoldDarkBrush}"
+                    BorderThickness="1">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#FFF8ED" Offset="0"/>
+                        <GradientStop Color="#FFF0D6" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#x2726;" FontSize="11" Foreground="{StaticResource GoldDarkBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="12"/>
+                </StackPanel>
+            </Border>
         </Grid>
     </ScrollViewer>
 </UserControl>
