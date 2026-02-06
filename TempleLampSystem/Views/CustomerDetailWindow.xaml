@@ -103,6 +103,43 @@
                 </Grid>
             </Border>
 
+            <!-- 同戶家人區塊 -->
+            <Border x:Name="FamilyBorder" Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15"
+                    Visibility="Collapsed">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="同戶家人" FontSize="16" FontWeight="SemiBold"
+                               Foreground="#E65100" Margin="0,0,0,12"/>
+
+                    <ItemsControl x:Name="FamilyItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#FFF8E1" CornerRadius="4" Padding="10,8" Margin="0,0,0,6"
+                                        Cursor="Hand" MouseLeftButtonDown="FamilyMember_Click">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="15" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding OrderSummary}" FontSize="13"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"
+                                                   Margin="15,0,0,0"/>
+                                        <TextBlock Grid.Column="2" Text="[點擊查看]" FontSize="12"
+                                                   Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"
+                                                   TextDecorations="Underline"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
             <!-- 點燈紀錄區塊 -->
             <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15">
                 <Border.Effect>

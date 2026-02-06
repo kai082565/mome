@@ -99,24 +99,43 @@ public class AutoSyncService : IAutoSyncService
                     pendingCount = result.FailedCount;
                 }
 
+                // 自動上傳本地資料到雲端（Upsert 會自動判斷新增或更新）
+                SyncStatusChanged?.Invoke(this, new SyncStatusEventArgs
+                {
+                    IsOnline = true,
+                    PendingCount = pendingCount,
+                    Message = "正在上傳本地資料..."
+                });
+
+                var uploadResult = await supabaseService.SyncToCloudAsync();
+                var totalUploaded = uploadResult.CustomersUploaded + uploadResult.OrdersUploaded;
+
                 // 從雲端拉取最新資料到本地
                 SyncStatusChanged?.Invoke(this, new SyncStatusEventArgs
                 {
                     IsOnline = true,
                     PendingCount = pendingCount,
-                    Message = "正在同步雲端資料..."
+                    Message = "正在下載雲端資料..."
                 });
 
                 var syncResult = await supabaseService.SyncFromCloudAsync();
-
                 var totalDownloaded = syncResult.CustomersDownloaded + syncResult.OrdersDownloaded;
+
+                // 顯示同步結果
+                var message = "已連線（資料已同步）";
+                if (totalUploaded > 0 || totalDownloaded > 0)
+                {
+                    var parts = new List<string>();
+                    if (totalUploaded > 0) parts.Add($"上傳 {totalUploaded} 筆");
+                    if (totalDownloaded > 0) parts.Add($"下載 {totalDownloaded} 筆");
+                    message = $"已同步：{string.Join("、", parts)}";
+                }
+
                 SyncStatusChanged?.Invoke(this, new SyncStatusEventArgs
                 {
                     IsOnline = true,
                     PendingCount = pendingCount,
-                    Message = totalDownloaded > 0
-                        ? $"已同步 {totalDownloaded} 筆雲端資料"
-                        : "已連線（資料已同步）"
+                    Message = message
                 });
             }
         }

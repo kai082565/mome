@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using TempleLampSystem.Models;
+using TempleLampSystem.Services;
 using TempleLampSystem.Services.Repositories;
 using TempleLampSystem.ViewModels;
 
@@ -31,6 +32,20 @@ public partial class CustomerSearchView : UserControl
 
             try
             {
+                // 先從雲端同步最新資料
+                try
+                {
+                    var supabaseService = App.Services.GetRequiredService<ISupabaseService>();
+                    if (supabaseService.IsConfigured)
+                    {
+                        await supabaseService.SyncFromCloudAsync();
+                    }
+                }
+                catch
+                {
+                    // 同步失敗時使用本地資料
+                }
+
                 var repository = App.Services.GetRequiredService<ICustomerRepository>();
                 var customer = await repository.GetWithOrdersAsync(displayModel.Id);
                 if (customer == null) return;

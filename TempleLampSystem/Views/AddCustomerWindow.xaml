@@ -23,6 +23,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -48,14 +49,27 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="電話" VerticalAlignment="Center" FontWeight="SemiBold"
                        Foreground="{StaticResource TextPrimaryBrush}"/>
-            <TextBox Grid.Column="1" x:Name="PhoneTextBox" FontSize="16"/>
+            <TextBox Grid.Column="1" x:Name="PhoneTextBox" FontSize="16"
+                     LostFocus="PhoneTextBox_LostFocus"/>
             <TextBlock Grid.Column="2" Text="手機" VerticalAlignment="Center" FontWeight="SemiBold"
                        Foreground="{StaticResource TextPrimaryBrush}" Margin="8,0,0,0"/>
-            <TextBox Grid.Column="3" x:Name="MobileTextBox" FontSize="16"/>
+            <TextBox Grid.Column="3" x:Name="MobileTextBox" FontSize="16"
+                     LostFocus="MobileTextBox_LostFocus"/>
         </Grid>
 
+        <!-- 同戶家人提示 (動態顯示) -->
+        <Border x:Name="FamilyHintBorder" Grid.Row="2"
+                Background="#FFF8E1" BorderBrush="#FFB74D" BorderThickness="1"
+                CornerRadius="6" Padding="12,8" Margin="0,0,0,12"
+                Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock x:Name="FamilyHintText" FontSize="14"
+                           Foreground="#E65100" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
         <!-- 郵遞區號 / 村里 -->
-        <Grid Grid.Row="2" Margin="0,0,0,12">
+        <Grid Grid.Row="3" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="90"/>
                 <ColumnDefinition Width="120"/>
@@ -71,7 +85,7 @@
         </Grid>
 
         <!-- 地址 -->
-        <Grid Grid.Row="3" Margin="0,0,0,12">
+        <Grid Grid.Row="4" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="90"/>
                 <ColumnDefinition Width="*"/>
@@ -82,7 +96,7 @@
         </Grid>
 
         <!-- 出生日期 -->
-        <Grid Grid.Row="4" Margin="0,0,0,12">
+        <Grid Grid.Row="5" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="90"/>
                 <ColumnDefinition Width="*"/>
@@ -117,7 +131,7 @@
         </Grid>
 
         <!-- 生辰 / 生肖 -->
-        <Grid Grid.Row="5" Margin="0,0,0,12">
+        <Grid Grid.Row="6" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="90"/>
                 <ColumnDefinition Width="Auto"/>
@@ -140,7 +154,7 @@
         </Grid>
 
         <!-- 備註 -->
-        <Grid Grid.Row="6" Margin="0,0,0,10">
+        <Grid Grid.Row="7" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="90"/>
                 <ColumnDefinition Width="*"/>
@@ -153,7 +167,7 @@
         </Grid>
 
         <!-- 按鈕 -->
-        <StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+        <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
             <Button Content="✔ 確認新增" Style="{StaticResource SuccessButton}"
                     Padding="35,14" FontSize="17" Click="ConfirmButton_Click"/>
             <Button Content="✖ 取消" Padding="35,14" FontSize="17" Margin="12,0,0,0"

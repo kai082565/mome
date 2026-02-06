@@ -66,6 +66,21 @@ public partial class LampOrderViewModel : ViewModelBase
     {
         try
         {
+            StatusMessage = "正在從雲端同步資料...";
+
+            // 先從雲端同步最新資料
+            try
+            {
+                if (_supabaseService.IsConfigured)
+                {
+                    await _supabaseService.SyncFromCloudAsync();
+                }
+            }
+            catch (Exception syncEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"雲端同步失敗：{syncEx.Message}");
+            }
+
             var lamps = await _lampRepository.GetAllOrderedAsync();
             Lamps.Clear();
             foreach (var lamp in lamps)
@@ -74,6 +89,7 @@ public partial class LampOrderViewModel : ViewModelBase
             }
 
             await LoadExpiringOrdersAsync();
+            StatusMessage = "準備就緒";
         }
         catch (Exception ex)
         {
@@ -311,20 +327,37 @@ public partial class LampOrderViewModel : ViewModelBase
             {
                 try
                 {
-                    var order = await _lampOrderService.CreateLampOrderAsync(customer.Id, SelectedLamp.Id, Price);
-                    createdOrders.Add((customer, order));
+                    // 點燈前再次即時查詢雲端，防止兩台電腦同時點燈
+                    if (_supabaseService.IsConfigured)
+                    {
+                        var alreadyOrdered = await _supabaseService.HasActiveOrderAsync(customer.Id, SelectedLamp.Id);
+                        if (alreadyOrdered)
+                        {
+                            failedCustomers.Add($"{customer.Name}：該客戶已有未過期的此燈種點燈紀錄（其他電腦剛點過）");
+                            continue;
+                        }
+                    }
 
+                    var order = await _lampOrderService.CreateLampOrderAsync(customer.Id, SelectedLamp.Id, Price);
+
+                    // 先上傳到雲端，確保成功後才算完成
                     try
                     {
-                        // 先確保客戶和燈種已上傳，再上傳訂單
-                        var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
-                        if (fullCustomer != null)
-                            await _supabaseService.UpsertCustomerAsync(fullCustomer);
-                        await _supabaseService.UpsertLampAsync(SelectedLamp);
-                        await _supabaseService.UpsertLampOrderAsync(order);
+                        if (_supabaseService.IsConfigured)
+                        {
+                            // 先確保客戶和燈種已上傳，再上傳訂單
+                            var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
+                            if (fullCustomer != null)
+                                await _supabaseService.UpsertCustomerAsync(fullCustomer);
+                            await _supabaseService.UpsertLampAsync(SelectedLamp);
+                            await _supabaseService.UpsertLampOrderAsync(order);
+                        }
+                        createdOrders.Add((customer, order));
                     }
                     catch (Exception syncEx)
                     {
+                        // 雲端同步失敗，但本地已建立，仍算成功（離線模式）
+                        createdOrders.Add((customer, order));
                         System.Diagnostics.Debug.WriteLine($"雲端同步失敗：{syncEx.Message}");
                         StatusMessage = $"點燈成功，但雲端同步失敗：{syncEx.Message}";
                     }
@@ -453,6 +486,19 @@ public partial class LampOrderViewModel : ViewModelBase
     {
         try
         {
+            // 先從雲端同步最新點燈紀錄
+            try
+            {
+                if (_supabaseService.IsConfigured)
+                {
+                    await _supabaseService.SyncFromCloudAsync();
+                }
+            }
+            catch
+            {
+                // 同步失敗時使用本地資料
+            }
+
             var orders = await _lampOrderService.GetExpiringOrdersAsync(30);
 
             ExpiringOrders.Clear();

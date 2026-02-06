@@ -167,14 +167,26 @@ public class SupabaseService : ISupabaseService
         if (!_isConfigured || _client == null)
             return false;
 
-        var today = DateTime.UtcNow.Date.ToString("yyyy-MM-dd");
-        var response = await _client
-            .From<SupabaseLampOrder>()
-            .Where(o => o.CustomerId == customerId.ToString() && o.LampId == lampId)
-            .Filter("EndDate", Supabase.Postgrest.Constants.Operator.GreaterThanOrEqual, today)
-            .Get();
+        try
+        {
+            var today = DateTime.UtcNow.Date;
+            var customerIdStr = customerId.ToString();
 
-        return response.Models.Count > 0;
+            // 查詢該客戶該燈種的所有訂單
+            var response = await _client
+                .From<SupabaseLampOrder>()
+                .Where(o => o.CustomerId == customerIdStr && o.LampId == lampId)
+                .Get();
+
+            // 在本地過濾未過期的訂單
+            return response.Models.Any(o => o.EndDate >= today);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"HasActiveOrderAsync 錯誤：{ex.Message}");
+            // 查詢失敗時回傳 false，讓本地驗證接手
+            return false;
+        }
     }
 
     #endregion

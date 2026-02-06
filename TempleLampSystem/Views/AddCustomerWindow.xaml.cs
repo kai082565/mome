@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using TempleLampSystem.Models;
+using TempleLampSystem.Services.Repositories;
 
 namespace TempleLampSystem.Views;
 
@@ -9,12 +11,16 @@ public partial class AddCustomerWindow : Window
     private static readonly string[] ZodiacAnimals = ["鼠", "牛", "虎", "兔", "龍", "蛇", "馬", "羊", "猴", "雞", "狗", "豬"];
     private static readonly string[] BirthHours = ["吉時", "子時", "丑時", "寅時", "卯時", "辰時", "巳時", "午時", "未時", "申時", "酉時", "戌時", "亥時"];
 
+    private readonly ICustomerRepository _customerRepository;
+    private List<Customer> _foundFamilyMembers = new();
+
     public Customer? NewCustomer { get; private set; }
 
     public AddCustomerWindow()
     {
         InitializeComponent();
         BirthHourComboBox.ItemsSource = BirthHours;
+        _customerRepository = App.Services.GetRequiredService<ICustomerRepository>();
     }
 
     private void BirthYearTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -28,6 +34,49 @@ public partial class AddCustomerWindow : Window
         else
         {
             ZodiacText.Text = string.Empty;
+        }
+    }
+
+    private async void PhoneTextBox_LostFocus(object sender, RoutedEventArgs e)
+    {
+        await CheckFamilyMembersAsync();
+    }
+
+    private async void MobileTextBox_LostFocus(object sender, RoutedEventArgs e)
+    {
+        await CheckFamilyMembersAsync();
+    }
+
+    private async Task CheckFamilyMembersAsync()
+    {
+        var phone = NullIfEmpty(PhoneTextBox.Text);
+        var mobile = NullIfEmpty(MobileTextBox.Text);
+
+        if (phone == null && mobile == null)
+        {
+            FamilyHintBorder.Visibility = Visibility.Collapsed;
+            _foundFamilyMembers.Clear();
+            return;
+        }
+
+        try
+        {
+            _foundFamilyMembers = await _customerRepository.FindByPhoneOrMobileAsync(phone, mobile);
+
+            if (_foundFamilyMembers.Count > 0)
+            {
+                var names = string.Join("、", _foundFamilyMembers.Select(c => c.Name));
+                FamilyHintText.Text = $"此號碼已有 {_foundFamilyMembers.Count} 位客戶使用：{names}\n新增後將自動關聯為同戶家人";
+                FamilyHintBorder.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                FamilyHintBorder.Visibility = Visibility.Collapsed;
+            }
+        }
+        catch
+        {
+            FamilyHintBorder.Visibility = Visibility.Collapsed;
         }
     }
 

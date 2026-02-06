@@ -38,7 +38,7 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
             .FirstOrDefaultAsync(c => c.Id == customerId);
     }
 
-    public async Task<List<Customer>> SearchByPhoneWithOrdersAsync(string phone)
+    public async Task<List<Customer>> SearchByPhoneWithOrdersAsync(string searchText)
     {
         // 載入所有客戶
         var allCustomers = await _dbSet
@@ -47,31 +47,34 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
             .ToListAsync();
 
         // 如果沒有搜尋條件，返回所有客戶
-        if (string.IsNullOrWhiteSpace(phone))
+        if (string.IsNullOrWhiteSpace(searchText))
         {
             return allCustomers.OrderBy(c => c.Name).ToList();
         }
 
-        // 移除搜尋字串中的所有非數字字符
-        var digitsOnly = new string(phone.Where(char.IsDigit).ToArray());
+        var keyword = searchText.Trim();
 
-        if (string.IsNullOrEmpty(digitsOnly))
-        {
-            return allCustomers.OrderBy(c => c.Name).ToList();
-        }
+        // 移除搜尋字串中的所有非數字字符（用於電話比對）
+        var digitsOnly = new string(keyword.Where(char.IsDigit).ToArray());
 
-        // 在記憶體中過濾 - 同時支援原始格式和純數字格式
+        // 在記憶體中過濾 - 支援姓名、電話、手機搜尋
         var results = new List<Customer>();
         foreach (var c in allCustomers)
         {
-            // 檢查原始電話號碼（帶-）
+            // 檢查姓名
+            bool nameMatch = c.Name.Contains(keyword);
+
+            // 檢查電話號碼（帶-或純數字）
             bool phoneMatch = !string.IsNullOrEmpty(c.Phone) &&
-                (c.Phone.Contains(phone) || c.Phone.Replace("-", "").Contains(digitsOnly));
+                (c.Phone.Contains(keyword) ||
+                 (!string.IsNullOrEmpty(digitsOnly) && c.Phone.Replace("-", "").Contains(digitsOnly)));
 
+            // 檢查手機號碼（帶-或純數字）
             bool mobileMatch = !string.IsNullOrEmpty(c.Mobile) &&
-                (c.Mobile.Contains(phone) || c.Mobile.Replace("-", "").Contains(digitsOnly));
+                (c.Mobile.Contains(keyword) ||
+                 (!string.IsNullOrEmpty(digitsOnly) && c.Mobile.Replace("-", "").Contains(digitsOnly)));
 
-            if (phoneMatch || mobileMatch)
+            if (nameMatch || phoneMatch || mobileMatch)
             {
                 results.Add(c);
             }
@@ -84,5 +87,43 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
     {
         entity.UpdatedAt = DateTime.UtcNow;
         await base.UpdateAsync(entity);
+    }
+
+    public async Task<List<Customer>> GetFamilyMembersAsync(Guid customerId)
+    {
+        var customer = await _dbSet.FindAsync(customerId);
+        if (customer == null)
+            return new List<Customer>();
+
+        var hasPhone = !string.IsNullOrWhiteSpace(customer.Phone);
+        var hasMobile = !string.IsNullOrWhiteSpace(customer.Mobile);
+
+        if (!hasPhone && !hasMobile)
+            return new List<Customer>();
+
+        return await _dbSet
+            .Include(c => c.LampOrders)
+                .ThenInclude(o => o.Lamp)
+            .Where(c => c.Id != customerId &&
+                ((hasPhone && c.Phone == customer.Phone) ||
+                 (hasMobile && c.Mobile == customer.Mobile)))
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+    }
+
+    public async Task<List<Customer>> FindByPhoneOrMobileAsync(string? phone, string? mobile)
+    {
+        var hasPhone = !string.IsNullOrWhiteSpace(phone);
+        var hasMobile = !string.IsNullOrWhiteSpace(mobile);
+
+        if (!hasPhone && !hasMobile)
+            return new List<Customer>();
+
+        return await _dbSet
+            .Where(c =>
+                (hasPhone && c.Phone == phone) ||
+                (hasMobile && c.Mobile == mobile))
+            .OrderBy(c => c.Name)
+            .ToListAsync();
     }
 }

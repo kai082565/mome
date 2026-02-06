@@ -39,12 +39,25 @@ public partial class CustomerSearchViewModel : ViewModelBase
     [RelayCommand]
     private async Task SearchAsync()
     {
-
         IsBusy = true;
-        StatusMessage = "搜尋中...";
+        StatusMessage = "正在從雲端同步資料...";
 
         try
         {
+            // 先從雲端同步最新客戶資料到本地
+            try
+            {
+                if (_supabaseService.IsConfigured)
+                {
+                    await _supabaseService.SyncFromCloudAsync();
+                }
+            }
+            catch (Exception syncEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"雲端同步失敗，使用本地資料：{syncEx.Message}");
+            }
+
+            StatusMessage = "搜尋中...";
             var customers = await _customerRepository.SearchByPhoneWithOrdersAsync(SearchPhone);
 
             Customers.Clear();
@@ -102,8 +115,18 @@ public partial class CustomerSearchViewModel : ViewModelBase
                 StatusMessage = $"已新增客戶：{window.NewCustomer.Name}";
 
                 // 同步到雲端
-                try { await _supabaseService.UpsertCustomerAsync(window.NewCustomer); }
-                catch { }
+                try
+                {
+                    if (_supabaseService.IsConfigured)
+                    {
+                        await _supabaseService.UpsertCustomerAsync(window.NewCustomer);
+                        StatusMessage = $"已新增客戶：{window.NewCustomer.Name}（已同步雲端）";
+                    }
+                }
+                catch (Exception syncEx)
+                {
+                    StatusMessage = $"已新增客戶：{window.NewCustomer.Name}（雲端同步失敗：{syncEx.Message}）";
+                }
 
                 await SearchAsync();
             }

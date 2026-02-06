@@ -1,14 +1,22 @@
 using System.Windows;
+using System.Windows.Input;
+using Microsoft.Extensions.DependencyInjection;
 using TempleLampSystem.Models;
+using TempleLampSystem.Services.Repositories;
 
 namespace TempleLampSystem.Views;
 
 public partial class CustomerDetailWindow : Window
 {
+    private readonly ICustomerRepository _customerRepository;
+    private List<FamilyMemberDisplayModel> _familyMembers = new();
+
     public CustomerDetailWindow(Customer customer)
     {
         InitializeComponent();
+        _customerRepository = App.Services.GetRequiredService<ICustomerRepository>();
         LoadCustomerData(customer);
+        _ = LoadFamilyMembersAsync(customer.Id);
     }
 
     private void LoadCustomerData(Customer customer)
@@ -84,4 +92,60 @@ public partial class CustomerDetailWindow : Window
     {
         Close();
     }
+
+    private async Task LoadFamilyMembersAsync(Guid customerId)
+    {
+        try
+        {
+            var familyMembers = await _customerRepository.GetFamilyMembersAsync(customerId);
+
+            if (familyMembers.Count > 0)
+            {
+                _familyMembers = familyMembers.Select(c => new FamilyMemberDisplayModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    OrderSummary = c.LampOrders.Count > 0
+                        ? $"已點 {c.LampOrders.Count} 種燈"
+                        : "尚無點燈紀錄"
+                }).ToList();
+
+                FamilyItemsControl.ItemsSource = _familyMembers;
+                FamilyBorder.Visibility = Visibility.Visible;
+            }
+        }
+        catch
+        {
+            // 載入家人失敗時不顯示
+        }
+    }
+
+    private async void FamilyMember_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement element && element.DataContext is FamilyMemberDisplayModel member)
+        {
+            try
+            {
+                var customer = await _customerRepository.GetWithOrdersAsync(member.Id);
+                if (customer == null) return;
+
+                var window = new CustomerDetailWindow(customer)
+                {
+                    Owner = this.Owner
+                };
+                window.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"載入客戶資料失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+}
+
+public class FamilyMemberDisplayModel
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string OrderSummary { get; set; } = string.Empty;
 }
