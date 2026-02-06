@@ -64,6 +64,10 @@ public static class DbMigrationService
         ["1.3.1"] = @"
             DELETE FROM ""LampOrders"" WHERE ""LampId"" IN (SELECT ""Id"" FROM ""Lamps"" WHERE ""LampCode"" IN ('CAISHEN','WENCHANG','YUANGUANG','YAOSHIPFO'));
             DELETE FROM ""Lamps"" WHERE ""LampCode"" IN ('CAISHEN','WENCHANG','YUANGUANG','YAOSHIPFO');
+        ",
+        ["1.4.0"] = @"
+            ALTER TABLE ""Lamps"" ADD COLUMN ""Temple"" TEXT;
+            ALTER TABLE ""Lamps"" ADD COLUMN ""Deity"" TEXT;
         "
     };
 

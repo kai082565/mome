@@ -155,6 +155,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="70"/>
@@ -176,14 +178,44 @@
                                   Padding="12,10"
                                   Margin="0,0,0,12"/>
 
-                        <!-- 金額 -->
+                        <!-- 宮廟別 -->
                         <TextBlock Grid.Row="1"
+                                   Text="宮廟別"
+                                   VerticalAlignment="Center"
+                                   FontWeight="Bold"
+                                   FontSize="14"
+                                   Foreground="{StaticResource SecondaryBrush}"/>
+                        <ComboBox Grid.Row="1" Grid.Column="1"
+                                  ItemsSource="{Binding Temples}"
+                                  SelectedItem="{Binding SelectedTemple}"
+                                  FontSize="16"
+                                  Padding="12,10"
+                                  Margin="0,0,0,12"
+                                  IsEditable="True"/>
+
+                        <!-- 神明別 -->
+                        <TextBlock Grid.Row="2"
+                                   Text="神明別"
+                                   VerticalAlignment="Center"
+                                   FontWeight="Bold"
+                                   FontSize="14"
+                                   Foreground="{StaticResource SecondaryBrush}"/>
+                        <ComboBox Grid.Row="2" Grid.Column="1"
+                                  ItemsSource="{Binding Deities}"
+                                  SelectedItem="{Binding SelectedDeity}"
+                                  FontSize="16"
+                                  Padding="12,10"
+                                  Margin="0,0,0,12"
+                                  IsEditable="True"/>
+
+                        <!-- 金額 -->
+                        <TextBlock Grid.Row="3"
                                    Text="金額"
                                    VerticalAlignment="Center"
                                    FontWeight="Bold"
                                    FontSize="14"
                                    Foreground="{StaticResource SecondaryBrush}"/>
-                        <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,0,12">
+                        <Grid Grid.Row="3" Grid.Column="1" Margin="0,0,0,12">
                             <TextBox Text="{Binding Price, UpdateSourceTrigger=PropertyChanged}"
                                      Padding="12,10,40,10"
                                      FontSize="16"/>
@@ -196,7 +228,7 @@
                         </Grid>
 
                         <!-- 狀態提示 - 不可點燈 -->
-                        <Border Grid.Row="2" Grid.ColumnSpan="2"
+                        <Border Grid.Row="4" Grid.ColumnSpan="2"
                                 CornerRadius="8"
                                 Padding="14"
                                 Margin="0,5,0,10"
@@ -220,7 +252,7 @@
                         </Border>
 
                         <!-- 狀態提示 - 可點燈 -->
-                        <Border Grid.Row="2" Grid.ColumnSpan="2"
+                        <Border Grid.Row="4" Grid.ColumnSpan="2"
                                 CornerRadius="8"
                                 Padding="14"
                                 Margin="0,5,0,10"
@@ -243,7 +275,7 @@
                         </Border>
 
                         <!-- 點燈按鈕 -->
-                        <Button Grid.Row="3" Grid.ColumnSpan="2"
+                        <Button Grid.Row="5" Grid.ColumnSpan="2"
                                 Content="&#x2726;  確認點燈  &#x2726;"
                                 Command="{Binding CreateOrderCommand}"
                                 IsEnabled="{Binding CanOrder}"
@@ -253,7 +285,7 @@
                                 Margin="0,5,0,12"/>
 
                         <!-- 列印按鈕 -->
-                        <StackPanel Grid.Row="4" Grid.ColumnSpan="2"
+                        <StackPanel Grid.Row="6" Grid.ColumnSpan="2"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Center">
                             <Button Content="預覽單據"

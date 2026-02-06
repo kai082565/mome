@@ -42,17 +42,11 @@ public partial class AddCustomerWindow : Window
         await CheckFamilyMembersAsync();
     }
 
-    private async void MobileTextBox_LostFocus(object sender, RoutedEventArgs e)
-    {
-        await CheckFamilyMembersAsync();
-    }
-
     private async Task CheckFamilyMembersAsync()
     {
         var phone = NullIfEmpty(PhoneTextBox.Text);
-        var mobile = NullIfEmpty(MobileTextBox.Text);
 
-        if (phone == null && mobile == null)
+        if (phone == null)
         {
             FamilyHintBorder.Visibility = Visibility.Collapsed;
             _foundFamilyMembers.Clear();
@@ -61,7 +55,7 @@ public partial class AddCustomerWindow : Window
 
         try
         {
-            _foundFamilyMembers = await _customerRepository.FindByPhoneOrMobileAsync(phone, mobile);
+            _foundFamilyMembers = await _customerRepository.FindByPhoneOrMobileAsync(phone, phone);
 
             if (_foundFamilyMembers.Count > 0)
             {
@@ -152,7 +146,7 @@ public partial class AddCustomerWindow : Window
         {
             Name = name,
             Phone = NullIfEmpty(PhoneTextBox.Text),
-            Mobile = NullIfEmpty(MobileTextBox.Text),
+            Mobile = NullIfEmpty(PhoneTextBox.Text),  // 電話和手機存同一個值
             Address = NullIfEmpty(AddressTextBox.Text),
             Village = NullIfEmpty(VillageTextBox.Text),
             PostalCode = NullIfEmpty(PostalCodeTextBox.Text),

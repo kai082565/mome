@@ -259,6 +259,8 @@ public class SupabaseService : ISupabaseService
                 {
                     existing.LampCode = lamp.LampCode;
                     existing.LampName = lamp.LampName;
+                    existing.Temple = lamp.Temple;
+                    existing.Deity = lamp.Deity;
                 }
             }
 
@@ -420,18 +422,28 @@ public class SupabaseLamp : BaseModel
     [Column("LampName")]
     public string LampName { get; set; } = string.Empty;
 
+    [Column("Temple")]
+    public string? Temple { get; set; }
+
+    [Column("Deity")]
+    public string? Deity { get; set; }
+
     public Lamp ToLamp() => new()
     {
         Id = Id,
         LampCode = LampCode,
-        LampName = LampName
+        LampName = LampName,
+        Temple = Temple,
+        Deity = Deity
     };
 
     public static SupabaseLamp FromLamp(Lamp l) => new()
     {
         Id = l.Id,
         LampCode = l.LampCode,
-        LampName = l.LampName
+        LampName = l.LampName,
+        Temple = l.Temple,
+        Deity = l.Deity
     };
 }
 

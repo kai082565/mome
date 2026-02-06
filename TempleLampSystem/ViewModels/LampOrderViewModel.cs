@@ -48,12 +48,34 @@ public partial class LampOrderViewModel : ViewModelBase
     [ObservableProperty]
     private string? _cannotOrderReason;
 
+    [ObservableProperty]
+    private string? _selectedTemple;
+
+    [ObservableProperty]
+    private string? _selectedDeity;
 
     private LampOrder? _lastCreatedOrder;
     private bool _isRemovingCustomer;
 
     public ObservableCollection<Lamp> Lamps { get; }
     public ObservableCollection<LampOrderDisplayModel> ExpiringOrders { get; }
+
+    // 宮廟別選項（可自行輸入）
+    public ObservableCollection<string> Temples { get; } = new()
+    {
+        "福德祠",
+        "鳳屏宮",
+        "天后宮"
+    };
+
+    // 神明別選項（可自行輸入）
+    public ObservableCollection<string> Deities { get; } = new()
+    {
+        "土地公",
+        "媽祖",
+        "太歲星君",
+        "觀世音菩薩"
+    };
 
     // 多選客戶支援
     public ObservableCollection<CustomerDisplayModel> SelectedCustomers { get; } = new();
@@ -376,9 +398,15 @@ public partial class LampOrderViewModel : ViewModelBase
 
             // 顯示結果
             var successNames = string.Join("、", createdOrders.Select(x => x.Customer.Name));
+            var lampInfo = SelectedLamp.LampName;
+            if (!string.IsNullOrEmpty(SelectedTemple))
+                lampInfo += $"\n宮廟：{SelectedTemple}";
+            if (!string.IsNullOrEmpty(SelectedDeity))
+                lampInfo += $"\n神明：{SelectedDeity}";
+
             var message = $"點燈成功！\n\n" +
                 $"客戶：{successNames}\n" +
-                $"燈種：{SelectedLamp.LampName}\n" +
+                $"燈種：{lampInfo}\n" +
                 $"金額：每人 ${Price:N0}\n" +
                 $"共 {createdOrders.Count} 位客戶";
 
