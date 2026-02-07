@@ -23,6 +23,7 @@ public partial class CustomerDetailWindow : Window
     {
         TitleText.Text = $"{customer.Name} 的資料";
 
+        CustomerCodeText.Text = customer.CustomerCode ?? "-";
         NameText.Text = customer.Name;
         PhoneText.Text = customer.Phone ?? "-";
         MobileText.Text = customer.Mobile ?? "-";

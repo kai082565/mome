@@ -74,7 +74,11 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
                 (c.Mobile.Contains(keyword) ||
                  (!string.IsNullOrEmpty(digitsOnly) && c.Mobile.Replace("-", "").Contains(digitsOnly)));
 
-            if (nameMatch || phoneMatch || mobileMatch)
+            // 檢查客戶編號
+            bool codeMatch = !string.IsNullOrEmpty(c.CustomerCode) &&
+                c.CustomerCode.Contains(keyword);
+
+            if (nameMatch || phoneMatch || mobileMatch || codeMatch)
             {
                 results.Add(c);
             }
@@ -125,5 +129,20 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
                 (hasMobile && c.Mobile == mobile))
             .OrderBy(c => c.Name)
             .ToListAsync();
+    }
+
+    public async Task<string> GetNextCustomerCodeAsync()
+    {
+        var allCodes = await _dbSet
+            .Where(c => c.CustomerCode != null && c.CustomerCode != "")
+            .Select(c => c.CustomerCode!)
+            .ToListAsync();
+
+        var maxCode = allCodes
+            .Select(code => int.TryParse(code, out var n) ? n : 0)
+            .DefaultIfEmpty(0)
+            .Max();
+
+        return (maxCode + 1).ToString("D6");
     }
 }

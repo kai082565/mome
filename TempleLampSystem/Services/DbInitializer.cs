@@ -12,6 +12,12 @@ public static class DbInitializer
         // 初始化燈種
         InitializeLamps(context);
 
+        // 確保既有燈種的宮廟別正確（每次啟動都檢查）
+        UpdateLampTemples(context);
+
+        // 確保所有客戶都有編號
+        AssignCustomerCodes(context);
+
         // 初始化測試資料（僅在沒有客戶資料時）
         InitializeTestData(context);
     }
@@ -23,23 +29,102 @@ public static class DbInitializer
 
         var lamps = new List<Lamp>
         {
-            new() { LampCode = "TAISUI",       LampName = "太歲燈" },
+            new() { LampCode = "TAISUI",       LampName = "太歲燈",     Temple = "鳳屏宮", Deity = "神農大帝" },
             new() { LampCode = "PINGAN",       LampName = "平安燈" },
-            new() { LampCode = "GUANGMING",    LampName = "光明燈" },
-            new() { LampCode = "YOUXIANG",     LampName = "油香" },
-            new() { LampCode = "YOUXIANG_WU",  LampName = "油香(無)" },
+            new() { LampCode = "GUANGMING",    LampName = "光明燈",     Temple = "鳳屏宮", Deity = "神農大帝" },
+            new() { LampCode = "YOUXIANG",     LampName = "油香",       Temple = "鳳屏宮", Deity = "神農大帝" },
+            new() { LampCode = "YOUXIANG_WU",  LampName = "油香(無)",   Temple = "鳳屏宮", Deity = "神農大帝" },
             new() { LampCode = "YOUXIANG_JN",  LampName = "油香急難救" },
-            new() { LampCode = "YOUXIANG_FD",  LampName = "油香福德祠" },
-            new() { LampCode = "FACAI",        LampName = "發財燈" },
+            new() { LampCode = "YOUXIANG_FD",  LampName = "油香福德祠", Temple = "福德祠", Deity = "福德正神" },
+            new() { LampCode = "FACAI",        LampName = "發財燈",     Temple = "福德祠", Deity = "福德正神" },
             new() { LampCode = "SHENGPING",    LampName = "聖平" },
-            new() { LampCode = "SHENGGUANG",   LampName = "聖光" },
-            new() { LampCode = "SHENGYOU",     LampName = "聖油" },
+            new() { LampCode = "SHENGGUANG",   LampName = "聖光",       Temple = "聖雲宮", Deity = "保生大帝" },
+            new() { LampCode = "SHENGYOU",     LampName = "聖油",       Temple = "聖雲宮", Deity = "保生大帝" },
             new() { LampCode = "KAOSHANG",     LampName = "犒賞會" },
             new() { LampCode = "FUYOU",        LampName = "福油" },
-            new() { LampCode = "HEJIA_PINGAN", LampName = "闔家平安燈" },
+            new() { LampCode = "HEJIA_PINGAN", LampName = "闔家平安燈", Temple = "鳳屏宮", Deity = "神農大帝" },
         };
 
         context.Lamps.AddRange(lamps);
+        context.SaveChanges();
+    }
+
+    /// <summary>
+    /// 燈種對應宮廟別與神明別的固定對照表
+    /// </summary>
+    private static readonly Dictionary<string, (string Temple, string Deity)> LampTempleDeityMap = new()
+    {
+        { "TAISUI",       ("鳳屏宮", "神農大帝") },   // 太歲燈
+        { "GUANGMING",    ("鳳屏宮", "神農大帝") },   // 光明燈
+        { "YOUXIANG",     ("鳳屏宮", "神農大帝") },   // 油香
+        { "YOUXIANG_WU",  ("鳳屏宮", "神農大帝") },   // 油香(無)
+        { "HEJIA_PINGAN", ("鳳屏宮", "神農大帝") },   // 闔家平安燈
+        { "YOUXIANG_FD",  ("福德祠", "福德正神") },   // 油香福德祠
+        { "FACAI",        ("福德祠", "福德正神") },   // 發財燈
+        { "SHENGGUANG",   ("聖雲宮", "保生大帝") },   // 聖光
+        { "SHENGYOU",     ("聖雲宮", "保生大帝") },   // 聖油
+    };
+
+    /// <summary>
+    /// 更新既有燈種的宮廟別與神明別（每次啟動都執行，確保資料正確）
+    /// </summary>
+    private static void UpdateLampTemples(AppDbContext context)
+    {
+        var lamps = context.Lamps.ToList();
+        var updated = false;
+
+        foreach (var lamp in lamps)
+        {
+            if (LampTempleDeityMap.TryGetValue(lamp.LampCode, out var mapping))
+            {
+                if (lamp.Temple != mapping.Temple)
+                {
+                    lamp.Temple = mapping.Temple;
+                    updated = true;
+                }
+                if (lamp.Deity != mapping.Deity)
+                {
+                    lamp.Deity = mapping.Deity;
+                    updated = true;
+                }
+            }
+        }
+
+        if (updated)
+        {
+            context.SaveChanges();
+        }
+    }
+
+    /// <summary>
+    /// 為缺少編號的客戶自動產生 6 碼流水編號
+    /// </summary>
+    private static void AssignCustomerCodes(AppDbContext context)
+    {
+        var customersWithoutCode = context.Customers
+            .Where(c => c.CustomerCode == null || c.CustomerCode == "")
+            .OrderBy(c => c.UpdatedAt)
+            .ToList();
+
+        if (customersWithoutCode.Count == 0)
+            return;
+
+        // 取得目前最大編號
+        var maxCode = context.Customers
+            .Where(c => c.CustomerCode != null && c.CustomerCode != "")
+            .Select(c => c.CustomerCode)
+            .ToList()
+            .Select(code => int.TryParse(code, out var n) ? n : 0)
+            .DefaultIfEmpty(0)
+            .Max();
+
+        var nextCode = maxCode + 1;
+        foreach (var customer in customersWithoutCode)
+        {
+            customer.CustomerCode = nextCode.ToString("D6");
+            nextCode++;
+        }
+
         context.SaveChanges();
     }
 

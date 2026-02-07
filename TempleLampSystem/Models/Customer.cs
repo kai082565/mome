@@ -10,6 +10,7 @@ public class Customer
     public string? Note { get; set; }
     public string? Village { get; set; }
     public string? PostalCode { get; set; }
+    public string? CustomerCode { get; set; }
     public int? BirthYear { get; set; }
     public int? BirthMonth { get; set; }
     public int? BirthDay { get; set; }

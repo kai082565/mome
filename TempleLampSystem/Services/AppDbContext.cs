@@ -46,6 +46,8 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Note).HasMaxLength(1000);
             entity.Property(e => e.Village).HasMaxLength(50);
             entity.Property(e => e.PostalCode).HasMaxLength(10);
+            entity.Property(e => e.CustomerCode).HasMaxLength(10);
+            entity.HasIndex(e => e.CustomerCode).IsUnique();
             entity.Property(e => e.BirthYear);
             entity.Property(e => e.BirthMonth);
             entity.Property(e => e.BirthDay);
@@ -62,6 +64,8 @@ public class AppDbContext : DbContext
 
             entity.Property(e => e.LampCode).IsRequired().HasMaxLength(50);
             entity.Property(e => e.LampName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Temple).HasMaxLength(50);
+            entity.Property(e => e.Deity).HasMaxLength(50);
 
             entity.HasIndex(e => e.LampCode).IsUnique();
         });

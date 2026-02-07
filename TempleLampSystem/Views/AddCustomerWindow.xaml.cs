@@ -132,7 +132,7 @@ public partial class AddCustomerWindow : Window
             BirthDayTextBox.Text = string.Empty;
     }
 
-    private void ConfirmButton_Click(object sender, RoutedEventArgs e)
+    private async void ConfirmButton_Click(object sender, RoutedEventArgs e)
     {
         var name = NameTextBox.Text.Trim();
         if (string.IsNullOrEmpty(name))
@@ -140,6 +140,17 @@ public partial class AddCustomerWindow : Window
             MessageBox.Show("請輸入姓名！", "欄位驗證", MessageBoxButton.OK, MessageBoxImage.Warning);
             NameTextBox.Focus();
             return;
+        }
+
+        // 取得下一個客戶編號
+        string customerCode;
+        try
+        {
+            customerCode = await _customerRepository.GetNextCustomerCodeAsync();
+        }
+        catch
+        {
+            customerCode = string.Empty;
         }
 
         NewCustomer = new Customer
@@ -151,7 +162,8 @@ public partial class AddCustomerWindow : Window
             Village = NullIfEmpty(VillageTextBox.Text),
             PostalCode = NullIfEmpty(PostalCodeTextBox.Text),
             Note = NullIfEmpty(NoteTextBox.Text),
-            BirthHour = BirthHourComboBox.SelectedItem as string
+            BirthHour = BirthHourComboBox.SelectedItem as string,
+            CustomerCode = customerCode
         };
 
         // 吉年/吉月/吉日 以 0 儲存，正常數值則存實際值

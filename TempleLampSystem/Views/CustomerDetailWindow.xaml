@@ -47,12 +47,17 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Row 0: 姓名 -->
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="姓名" FontWeight="SemiBold"
+                    <!-- Row 0: 編號 / 姓名 -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="編號" FontWeight="SemiBold"
                                Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
-                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NameText" FontSize="16"
+                    <TextBlock Grid.Row="0" Grid.Column="1" x:Name="CustomerCodeText" FontSize="16" FontFamily="Consolas"
+                               Foreground="{StaticResource GoldDarkBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="姓名" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="0" Grid.Column="3" x:Name="NameText" FontSize="16"
                                Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,10"/>
 
                     <!-- Row 1: 電話 / 手機 -->

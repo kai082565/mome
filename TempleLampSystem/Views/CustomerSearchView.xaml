@@ -101,14 +101,22 @@
                         </Border>
 
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="{Binding Name}"
-                                       FontSize="17"
-                                       FontWeight="Bold"
-                                       Foreground="{StaticResource SecondaryBrush}"
-                                       TextDecorations="Underline"
-                                       Cursor="Hand"
-                                       MouseLeftButtonDown="CustomerName_Click"
-                                       ToolTip="點擊查看詳細資料"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding CustomerCode}"
+                                           FontSize="13"
+                                           Foreground="{StaticResource GoldDarkBrush}"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,8,0"
+                                           FontFamily="Consolas"/>
+                                <TextBlock Text="{Binding Name}"
+                                           FontSize="17"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource SecondaryBrush}"
+                                           TextDecorations="Underline"
+                                           Cursor="Hand"
+                                           MouseLeftButtonDown="CustomerName_Click"
+                                           ToolTip="點擊查看詳細資料"/>
+                            </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                                 <TextBlock Text="&#x260E;" FontSize="13" Foreground="{StaticResource GoldDarkBrush}" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding DisplayPhone}"

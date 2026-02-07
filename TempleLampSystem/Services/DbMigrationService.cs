@@ -68,6 +68,35 @@ public static class DbMigrationService
         ["1.4.0"] = @"
             ALTER TABLE ""Lamps"" ADD COLUMN ""Temple"" TEXT;
             ALTER TABLE ""Lamps"" ADD COLUMN ""Deity"" TEXT;
+        ",
+        ["1.5.0"] = @"
+            -- 已被 1.6.0 取代
+        ",
+        ["1.6.0"] = @"
+            UPDATE ""Lamps"" SET ""Temple"" = '鳳屏宮', ""Deity"" = '神農大帝' WHERE ""LampCode"" = 'TAISUI';
+            UPDATE ""Lamps"" SET ""Temple"" = '鳳屏宮', ""Deity"" = '神農大帝' WHERE ""LampCode"" = 'GUANGMING';
+            UPDATE ""Lamps"" SET ""Temple"" = '鳳屏宮', ""Deity"" = '神農大帝' WHERE ""LampCode"" = 'YOUXIANG';
+            UPDATE ""Lamps"" SET ""Temple"" = '鳳屏宮', ""Deity"" = '神農大帝' WHERE ""LampCode"" = 'YOUXIANG_WU';
+            UPDATE ""Lamps"" SET ""Temple"" = '鳳屏宮', ""Deity"" = '神農大帝' WHERE ""LampCode"" = 'HEJIA_PINGAN';
+            UPDATE ""Lamps"" SET ""Temple"" = '福德祠', ""Deity"" = '福德正神' WHERE ""LampCode"" = 'YOUXIANG_FD';
+            UPDATE ""Lamps"" SET ""Temple"" = '福德祠', ""Deity"" = '福德正神' WHERE ""LampCode"" = 'FACAI';
+            UPDATE ""Lamps"" SET ""Temple"" = '聖雲宮', ""Deity"" = '保生大帝' WHERE ""LampCode"" = 'SHENGGUANG';
+            UPDATE ""Lamps"" SET ""Temple"" = '聖雲宮', ""Deity"" = '保生大帝' WHERE ""LampCode"" = 'SHENGYOU';
+        ",
+        ["1.7.0"] = @"
+            UPDATE ""Lamps"" SET ""Temple"" = '鳳屏宮', ""Deity"" = '神農大帝' WHERE ""LampCode"" = 'TAISUI';
+            UPDATE ""Lamps"" SET ""Temple"" = '鳳屏宮', ""Deity"" = '神農大帝' WHERE ""LampCode"" = 'GUANGMING';
+            UPDATE ""Lamps"" SET ""Temple"" = '鳳屏宮', ""Deity"" = '神農大帝' WHERE ""LampCode"" = 'YOUXIANG';
+            UPDATE ""Lamps"" SET ""Temple"" = '鳳屏宮', ""Deity"" = '神農大帝' WHERE ""LampCode"" = 'YOUXIANG_WU';
+            UPDATE ""Lamps"" SET ""Temple"" = '鳳屏宮', ""Deity"" = '神農大帝' WHERE ""LampCode"" = 'HEJIA_PINGAN';
+            UPDATE ""Lamps"" SET ""Temple"" = '福德祠', ""Deity"" = '福德正神' WHERE ""LampCode"" = 'YOUXIANG_FD';
+            UPDATE ""Lamps"" SET ""Temple"" = '福德祠', ""Deity"" = '福德正神' WHERE ""LampCode"" = 'FACAI';
+            UPDATE ""Lamps"" SET ""Temple"" = '聖雲宮', ""Deity"" = '保生大帝' WHERE ""LampCode"" = 'SHENGGUANG';
+            UPDATE ""Lamps"" SET ""Temple"" = '聖雲宮', ""Deity"" = '保生大帝' WHERE ""LampCode"" = 'SHENGYOU';
+        ",
+        ["1.8.0"] = @"
+            ALTER TABLE ""Customers"" ADD COLUMN ""CustomerCode"" TEXT;
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_code ON ""Customers""(""CustomerCode"");
         "
     };
 

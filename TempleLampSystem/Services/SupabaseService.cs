@@ -259,8 +259,7 @@ public class SupabaseService : ISupabaseService
                 {
                     existing.LampCode = lamp.LampCode;
                     existing.LampName = lamp.LampName;
-                    existing.Temple = lamp.Temple;
-                    existing.Deity = lamp.Deity;
+                    // Temple 和 Deity 由本地固定對照表管理，不從雲端覆蓋
                 }
             }
 
@@ -286,6 +285,9 @@ public class SupabaseService : ISupabaseService
                     existing.BirthMonth = customer.BirthMonth;
                     existing.BirthDay = customer.BirthDay;
                     existing.BirthHour = customer.BirthHour;
+                    // CustomerCode 由本地管理，不從雲端覆蓋（若本地已有編號）
+                    if (string.IsNullOrEmpty(existing.CustomerCode))
+                        existing.CustomerCode = customer.CustomerCode;
                     existing.UpdatedAt = customer.UpdatedAt;
                     result.CustomersDownloaded++;
                 }
@@ -371,6 +373,9 @@ public class SupabaseCustomer : BaseModel
     [Column("BirthHour")]
     public string? BirthHour { get; set; }
 
+    [Column("CustomerCode")]
+    public string? CustomerCode { get; set; }
+
     [Column("UpdatedAt")]
     public DateTime UpdatedAt { get; set; }
 
@@ -388,6 +393,7 @@ public class SupabaseCustomer : BaseModel
         BirthMonth = BirthMonth,
         BirthDay = BirthDay,
         BirthHour = BirthHour,
+        CustomerCode = CustomerCode,
         UpdatedAt = UpdatedAt
     };
 
@@ -405,6 +411,7 @@ public class SupabaseCustomer : BaseModel
         BirthMonth = c.BirthMonth,
         BirthDay = c.BirthDay,
         BirthHour = c.BirthHour,
+        CustomerCode = c.CustomerCode,
         UpdatedAt = c.UpdatedAt
     };
 }

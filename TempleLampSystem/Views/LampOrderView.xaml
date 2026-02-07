@@ -89,10 +89,18 @@
                                             </Border>
 
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock FontSize="15"
-                                                           FontWeight="Bold"
-                                                           Foreground="{StaticResource SecondaryBrush}"
-                                                           Text="{Binding Name}"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock FontSize="11"
+                                                               Foreground="{StaticResource GoldDarkBrush}"
+                                                               Text="{Binding CustomerCode}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,8,0"
+                                                               FontFamily="Consolas"/>
+                                                    <TextBlock FontSize="15"
+                                                               FontWeight="Bold"
+                                                               Foreground="{StaticResource SecondaryBrush}"
+                                                               Text="{Binding Name}"/>
+                                                </StackPanel>
                                                 <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                                                     <TextBlock Text="&#x260E;" FontSize="11" Foreground="{StaticResource GoldDarkBrush}" Margin="0,0,4,0" VerticalAlignment="Center"/>
                                                     <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"
@@ -185,13 +193,28 @@
                                    FontWeight="Bold"
                                    FontSize="14"
                                    Foreground="{StaticResource SecondaryBrush}"/>
-                        <ComboBox Grid.Row="1" Grid.Column="1"
-                                  ItemsSource="{Binding Temples}"
-                                  SelectedItem="{Binding SelectedTemple}"
-                                  FontSize="16"
-                                  Padding="12,10"
-                                  Margin="0,0,0,12"
-                                  IsEditable="True"/>
+                        <Border Grid.Row="1" Grid.Column="1"
+                                Background="White"
+                                BorderBrush="#D4B896"
+                                BorderThickness="1.5"
+                                CornerRadius="4"
+                                Padding="12,10"
+                                Margin="3,3,3,12">
+                            <TextBlock Text="{Binding SelectedTemple, TargetNullValue='（選擇燈種後自動帶入）'}"
+                                       FontSize="16"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedTemple}" Value="{x:Null}">
+                                                <Setter Property="Foreground" Value="#999999"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
 
                         <!-- 神明別 -->
                         <TextBlock Grid.Row="2"
@@ -200,13 +223,28 @@
                                    FontWeight="Bold"
                                    FontSize="14"
                                    Foreground="{StaticResource SecondaryBrush}"/>
-                        <ComboBox Grid.Row="2" Grid.Column="1"
-                                  ItemsSource="{Binding Deities}"
-                                  SelectedItem="{Binding SelectedDeity}"
-                                  FontSize="16"
-                                  Padding="12,10"
-                                  Margin="0,0,0,12"
-                                  IsEditable="True"/>
+                        <Border Grid.Row="2" Grid.Column="1"
+                                Background="White"
+                                BorderBrush="#D4B896"
+                                BorderThickness="1.5"
+                                CornerRadius="4"
+                                Padding="12,10"
+                                Margin="3,3,3,12">
+                            <TextBlock Text="{Binding SelectedDeity, TargetNullValue='（選擇燈種後自動帶入）'}"
+                                       FontSize="16"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedDeity}" Value="{x:Null}">
+                                                <Setter Property="Foreground" Value="#999999"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
 
                         <!-- 金額 -->
                         <TextBlock Grid.Row="3"

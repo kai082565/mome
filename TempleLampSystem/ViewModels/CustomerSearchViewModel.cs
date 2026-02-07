@@ -66,6 +66,7 @@ public partial class CustomerSearchViewModel : ViewModelBase
                 var displayModel = new CustomerDisplayModel
                 {
                     Id = customer.Id,
+                    CustomerCode = customer.CustomerCode,
                     Name = customer.Name,
                     Phone = customer.Phone,
                     Mobile = customer.Mobile,

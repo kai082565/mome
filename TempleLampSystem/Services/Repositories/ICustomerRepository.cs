@@ -18,4 +18,9 @@ public interface ICustomerRepository : IRepository<Customer>
     /// 根據電話或手機號碼查詢所有相關客戶（用於新增客戶時檢測）
     /// </summary>
     Task<List<Customer>> FindByPhoneOrMobileAsync(string? phone, string? mobile);
+
+    /// <summary>
+    /// 取得下一個客戶流水編號（6碼，如 000001）
+    /// </summary>
+    Task<string> GetNextCustomerCodeAsync();
 }
