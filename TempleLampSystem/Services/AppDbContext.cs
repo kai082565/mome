@@ -67,6 +67,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Temple).HasMaxLength(50);
             entity.Property(e => e.Deity).HasMaxLength(50);
 
+            entity.Property(e => e.MaxQuota).HasDefaultValue(0);
             entity.HasIndex(e => e.LampCode).IsUnique();
         });
 
@@ -89,6 +90,7 @@ public class AppDbContext : DbContext
                       v => Guid.Parse(v));
 
             entity.Property(e => e.Price).HasPrecision(10, 2);
+            entity.Property(e => e.Note).HasMaxLength(500);
             entity.Property(e => e.StartDate).IsRequired();
             entity.Property(e => e.EndDate).IsRequired();
             entity.Property(e => e.Year).IsRequired();

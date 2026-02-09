@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using TempleLampSystem.Models;
 using TempleLampSystem.Services;
 using TempleLampSystem.Services.Repositories;
+using TempleLampSystem.Views;
 
 namespace TempleLampSystem.ViewModels;
 
@@ -53,6 +54,25 @@ public partial class LampOrderViewModel : ViewModelBase
 
     [ObservableProperty]
     private string? _selectedDeity;
+
+    [ObservableProperty]
+    private string? _quotaInfo;
+
+    [ObservableProperty]
+    private string? _orderNote;
+
+    [ObservableProperty]
+    private bool _showOrderNote;
+
+    // 燈種預設金額對照表
+    private static readonly Dictionary<string, decimal> DefaultPriceMap = new()
+    {
+        { "TAISUI",       300 },   // 太歲燈
+        { "GUANGMING",    300 },   // 光明燈
+        { "FACAI",        300 },   // 發財燈
+        { "SHENGGUANG",   300 },   // 聖光
+        { "HEJIA_PINGAN", 1500 },  // 闔家平安燈
+    };
 
     private LampOrder? _lastCreatedOrder;
     private bool _isRemovingCustomer;
@@ -276,6 +296,24 @@ public partial class LampOrderViewModel : ViewModelBase
 
     partial void OnSelectedLampChanged(Lamp? value)
     {
+        // 自動帶入宮廟別與神明別
+        SelectedTemple = value?.Temple;
+        SelectedDeity = value?.Deity;
+
+        // 自動帶入預設金額
+        if (value != null && DefaultPriceMap.TryGetValue(value.LampCode, out var defaultPrice))
+            Price = defaultPrice;
+        else
+            Price = 600;
+
+        // 闔家平安燈才顯示備註欄
+        ShowOrderNote = value?.LampCode == "HEJIA_PINGAN";
+        if (!ShowOrderNote)
+            OrderNote = null;
+
+        // 更新剩餘名額
+        _ = UpdateQuotaInfoAsync(value);
+
         // 如果有多選客戶，檢查多選；否則檢查單選
         if (SelectedCustomers.Count > 0)
         {
@@ -284,6 +322,36 @@ public partial class LampOrderViewModel : ViewModelBase
         else
         {
             _ = SafeCheckCanOrderAsync();
+        }
+    }
+
+    private async Task UpdateQuotaInfoAsync(Lamp? lamp)
+    {
+        if (lamp == null)
+        {
+            QuotaInfo = null;
+            return;
+        }
+
+        try
+        {
+            var remaining = await _lampOrderService.GetRemainingQuotaAsync(lamp.Id);
+            if (remaining == -1)
+            {
+                QuotaInfo = null; // 不限量，不顯示
+            }
+            else if (remaining == 0)
+            {
+                QuotaInfo = $"今年名額已額滿（限量 {lamp.MaxQuota} 名）";
+            }
+            else
+            {
+                QuotaInfo = $"剩餘名額：{remaining} / {lamp.MaxQuota}";
+            }
+        }
+        catch
+        {
+            QuotaInfo = null;
         }
     }
 
@@ -321,19 +389,19 @@ public partial class LampOrderViewModel : ViewModelBase
 
         if (customersToOrder.Count == 0)
         {
-            MessageBox.Show("請先選擇客戶", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+            StyledMessageBox.Show("請先選擇客戶", "提示");
             return;
         }
 
         if (SelectedLamp == null)
         {
-            MessageBox.Show("請選擇燈種", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+            StyledMessageBox.Show("請選擇燈種", "提示");
             return;
         }
 
         if (!CanOrder)
         {
-            MessageBox.Show(CannotOrderReason ?? "無法點燈", "無法點燈", MessageBoxButton.OK, MessageBoxImage.Warning);
+            StyledMessageBox.Show(CannotOrderReason ?? "無法點燈", "無法點燈");
             return;
         }
 
@@ -360,7 +428,7 @@ public partial class LampOrderViewModel : ViewModelBase
                         }
                     }
 
-                    var order = await _lampOrderService.CreateLampOrderAsync(customer.Id, SelectedLamp.Id, Price);
+                    var order = await _lampOrderService.CreateLampOrderAsync(customer.Id, SelectedLamp.Id, Price, OrderNote);
 
                     // 先上傳到雲端，確保成功後才算完成
                     try
@@ -417,7 +485,7 @@ public partial class LampOrderViewModel : ViewModelBase
 
             message += "\n\n是否列印單據？";
 
-            var result = MessageBox.Show(message, "點燈完成", MessageBoxButton.YesNo, MessageBoxImage.Information);
+            var result = StyledMessageBox.Show(message, "點燈完成", MessageBoxButton.YesNo);
 
             if (result == MessageBoxResult.Yes)
             {
@@ -444,7 +512,7 @@ public partial class LampOrderViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"點燈失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+            StyledMessageBox.Show($"點燈失敗：{ex.Message}", "錯誤");
             StatusMessage = $"點燈失敗：{ex.Message}";
         }
         finally
@@ -458,7 +526,7 @@ public partial class LampOrderViewModel : ViewModelBase
     {
         if (_lastCreatedOrder == null || SelectedCustomer == null || SelectedLamp == null)
         {
-            MessageBox.Show("沒有可列印的單據", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            StyledMessageBox.Show("沒有可列印的單據", "提示");
             return;
         }
 
@@ -467,11 +535,10 @@ public partial class LampOrderViewModel : ViewModelBase
 
         var receipt = Receipt.FromLampOrder(_lastCreatedOrder, customer, SelectedLamp);
 
-        var choice = MessageBox.Show(
+        var choice = StyledMessageBox.Show(
             "請選擇輸出方式：\n\n「是」= 直接列印\n「否」= 儲存為 PDF",
             "列印單據",
-            MessageBoxButton.YesNoCancel,
-            MessageBoxImage.Question);
+            MessageBoxButton.YesNoCancel);
 
         if (choice == MessageBoxResult.Yes)
         {
@@ -482,7 +549,7 @@ public partial class LampOrderViewModel : ViewModelBase
             var path = await _printService.SaveReceiptAsPdfAsync(receipt);
             if (!string.IsNullOrEmpty(path))
             {
-                MessageBox.Show($"PDF 已儲存至：\n{path}", "儲存成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                StyledMessageBox.Show($"PDF 已儲存至：\n{path}", "儲存成功");
             }
         }
     }
@@ -492,7 +559,7 @@ public partial class LampOrderViewModel : ViewModelBase
     {
         if (_lastCreatedOrder == null || SelectedCustomer == null || SelectedLamp == null)
         {
-            MessageBox.Show("沒有可預覽的單據", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            StyledMessageBox.Show("沒有可預覽的單據", "提示");
             return;
         }
 

@@ -1,0 +1,39 @@
+<Window x:Class="TempleLampSystem.Views.StyledMessageBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding Title, RelativeSource={RelativeSource Self}}"
+        SizeToContent="WidthAndHeight"
+        MinWidth="420"
+        MaxWidth="650"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}"
+        FontFamily="{StaticResource PrimaryFont}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        WindowStyle="SingleBorderWindow">
+
+    <Grid Margin="36,30,36,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 訊息內容 -->
+        <TextBlock x:Name="MessageText"
+                   Grid.Row="0"
+                   FontSize="20"
+                   Foreground="{StaticResource TextPrimaryBrush}"
+                   TextWrapping="Wrap"
+                   LineHeight="30"
+                   Margin="0,0,0,28"/>
+
+        <!-- 按鈕列 -->
+        <StackPanel x:Name="ButtonPanel"
+                    Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"/>
+    </Grid>
+</Window>

@@ -10,6 +10,7 @@ public class Lamp
     public string LampName { get; set; } = string.Empty;   // 名稱，如 "太歲燈", "光明燈"
     public string? Temple { get; set; }                    // 宮廟別，如 "鳳屏宮", "天后宮"
     public string? Deity { get; set; }                     // 神明別，如 "太歲星君", "媽祖"
+    public int MaxQuota { get; set; }                      // 年度限量（0 = 不限量）
 
     // 導航屬性
     public ICollection<LampOrder> LampOrders { get; set; } = new List<LampOrder>();

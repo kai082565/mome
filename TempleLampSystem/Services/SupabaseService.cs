@@ -312,6 +312,7 @@ public class SupabaseService : ISupabaseService
                     existing.EndDate = order.EndDate;
                     existing.Year = order.Year;
                     existing.Price = order.Price;
+                    existing.Note = order.Note;
                     existing.UpdatedAt = order.UpdatedAt;
                     result.OrdersDownloaded++;
                 }
@@ -435,13 +436,17 @@ public class SupabaseLamp : BaseModel
     [Column("Deity")]
     public string? Deity { get; set; }
 
+    [Column("MaxQuota")]
+    public int MaxQuota { get; set; }
+
     public Lamp ToLamp() => new()
     {
         Id = Id,
         LampCode = LampCode,
         LampName = LampName,
         Temple = Temple,
-        Deity = Deity
+        Deity = Deity,
+        MaxQuota = MaxQuota
     };
 
     public static SupabaseLamp FromLamp(Lamp l) => new()
@@ -450,7 +455,8 @@ public class SupabaseLamp : BaseModel
         LampCode = l.LampCode,
         LampName = l.LampName,
         Temple = l.Temple,
-        Deity = l.Deity
+        Deity = l.Deity,
+        MaxQuota = l.MaxQuota
     };
 }
 
@@ -479,6 +485,9 @@ public class SupabaseLampOrder : BaseModel
     [Column("Price")]
     public decimal Price { get; set; }
 
+    [Column("Note")]
+    public string? Note { get; set; }
+
     [Column("CreatedAt")]
     public DateTime CreatedAt { get; set; }
 
@@ -494,6 +503,7 @@ public class SupabaseLampOrder : BaseModel
         EndDate = EndDate,
         Year = Year,
         Price = Price,
+        Note = Note,
         CreatedAt = CreatedAt,
         UpdatedAt = UpdatedAt
     };
@@ -507,6 +517,7 @@ public class SupabaseLampOrder : BaseModel
         EndDate = o.EndDate,
         Year = o.Year,
         Price = o.Price,
+        Note = o.Note,
         CreatedAt = o.CreatedAt,
         UpdatedAt = o.UpdatedAt
     };

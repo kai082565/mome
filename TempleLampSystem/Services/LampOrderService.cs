@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TempleLampSystem.Helpers;
 using TempleLampSystem.Models;
 using TempleLampSystem.Services.Repositories;
 
@@ -57,6 +58,11 @@ public class LampOrderService : ILampOrderService
         if (hasActiveOrder)
             return "該客戶已有未過期的此燈種點燈紀錄";
 
+        // 檢查年度限量
+        var remaining = await GetRemainingQuotaAsync(lampId);
+        if (remaining == 0)
+            return "此燈種今年名額已額滿";
+
         return null;
     }
 
@@ -69,22 +75,24 @@ public class LampOrderService : ILampOrderService
                           o.EndDate >= today);
     }
 
-    public async Task<LampOrder> CreateLampOrderAsync(Guid customerId, int lampId, decimal price)
+    public async Task<LampOrder> CreateLampOrderAsync(Guid customerId, int lampId, decimal price, string? note = null)
     {
         var reason = await GetCannotOrderReasonAsync(customerId, lampId);
         if (reason != null)
             throw new InvalidOperationException(reason);
 
         var today = DateTime.UtcNow.Date;
+        var endDate = LunarCalendarHelper.GetLunarYearEndDate(today);
         var order = new LampOrder
         {
             Id = Guid.NewGuid(),
             CustomerId = customerId,
             LampId = lampId,
             StartDate = today,
-            EndDate = today.AddYears(1).AddDays(-1),
+            EndDate = endDate,
             Year = today.Year,
             Price = price,
+            Note = note,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -93,6 +101,19 @@ public class LampOrderService : ILampOrderService
         await _lampOrderRepository.AddAsync(order);
 
         return order;
+    }
+
+    public async Task<int> GetRemainingQuotaAsync(int lampId)
+    {
+        var lamp = await _context.Lamps.FindAsync(lampId);
+        if (lamp == null || lamp.MaxQuota <= 0)
+            return -1; // -1 表示不限量
+
+        var currentYear = DateTime.Now.Year;
+        var usedCount = await _context.LampOrders
+            .CountAsync(o => o.LampId == lampId && o.Year == currentYear);
+
+        return Math.Max(0, lamp.MaxQuota - usedCount);
     }
 
     public async Task<List<LampOrder>> GetExpiringOrdersAsync(int daysBeforeExpiry = 30)

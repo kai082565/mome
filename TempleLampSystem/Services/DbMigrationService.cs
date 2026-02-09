@@ -97,6 +97,12 @@ public static class DbMigrationService
         ["1.8.0"] = @"
             ALTER TABLE ""Customers"" ADD COLUMN ""CustomerCode"" TEXT;
             CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_code ON ""Customers""(""CustomerCode"");
+        ",
+        ["1.9.0"] = @"
+            ALTER TABLE ""Lamps"" ADD COLUMN ""MaxQuota"" INTEGER NOT NULL DEFAULT 0;
+        ",
+        ["1.10.0"] = @"
+            ALTER TABLE ""LampOrders"" ADD COLUMN ""Note"" TEXT;
         "
     };
 

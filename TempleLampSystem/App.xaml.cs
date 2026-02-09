@@ -26,12 +26,12 @@ public partial class App : Application
             serviceCollection.AddAppServices();
             Services = serviceCollection.BuildServiceProvider();
 
-            // 初始化資料庫
+            // 初始化資料庫（先跑遷移加欄位，再跑初始化寫資料）
             using (var scope = Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                DbInitializer.Initialize(context);
                 DbMigrationService.ApplyMigrations(context);
+                DbInitializer.Initialize(context);
             }
 
             // 檢查更新
