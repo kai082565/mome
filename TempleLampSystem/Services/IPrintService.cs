@@ -18,4 +18,14 @@ public interface IPrintService
     /// 預覽單據
     /// </summary>
     void PreviewReceipt(Receipt receipt);
+
+    /// <summary>
+    /// 列印客戶資料信件
+    /// </summary>
+    Task<bool> PrintCustomerLetterAsync(CustomerInfoLetter letter);
+
+    /// <summary>
+    /// 將客戶資料信件儲存為 PDF
+    /// </summary>
+    Task<string> SaveCustomerLetterAsPdfAsync(CustomerInfoLetter letter, string? filePath = null);
 }

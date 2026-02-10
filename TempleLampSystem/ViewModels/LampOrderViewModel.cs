@@ -483,13 +483,24 @@ public partial class LampOrderViewModel : ViewModelBase
                 message += $"\n\n以下客戶點燈失敗：\n{string.Join("\n", failedCustomers)}";
             }
 
-            message += "\n\n是否列印單據？";
+            StyledMessageBox.Show(message, "點燈完成");
 
-            var result = StyledMessageBox.Show(message, "點燈完成", MessageBoxButton.YesNo);
-
-            if (result == MessageBoxResult.Yes)
+            // 逐筆列印每位客戶的單據
+            foreach (var (customer, order) in createdOrders)
             {
-                await PrintLastOrderAsync();
+                try
+                {
+                    var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
+                    if (fullCustomer != null && SelectedLamp != null)
+                    {
+                        var receipt = Receipt.FromLampOrder(order, fullCustomer, SelectedLamp);
+                        await _printService.PrintReceiptAsync(receipt);
+                    }
+                }
+                catch (Exception printEx)
+                {
+                    StyledMessageBox.Show($"列印「{customer.Name}」單據失敗：{printEx.Message}", "列印錯誤");
+                }
             }
 
             StatusMessage = $"已完成 {createdOrders.Count} 位客戶點燈";
@@ -534,24 +545,7 @@ public partial class LampOrderViewModel : ViewModelBase
         if (customer == null) return;
 
         var receipt = Receipt.FromLampOrder(_lastCreatedOrder, customer, SelectedLamp);
-
-        var choice = StyledMessageBox.Show(
-            "請選擇輸出方式：\n\n「是」= 直接列印\n「否」= 儲存為 PDF",
-            "列印單據",
-            MessageBoxButton.YesNoCancel);
-
-        if (choice == MessageBoxResult.Yes)
-        {
-            await _printService.PrintReceiptAsync(receipt);
-        }
-        else if (choice == MessageBoxResult.No)
-        {
-            var path = await _printService.SaveReceiptAsPdfAsync(receipt);
-            if (!string.IsNullOrEmpty(path))
-            {
-                StyledMessageBox.Show($"PDF 已儲存至：\n{path}", "儲存成功");
-            }
-        }
+        await _printService.PrintReceiptAsync(receipt);
     }
 
     [RelayCommand]

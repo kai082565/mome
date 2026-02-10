@@ -55,6 +55,16 @@ public partial class CustomerSearchView : UserControl
                     Owner = Window.GetWindow(this)
                 };
                 window.ShowDialog();
+
+                // 若客戶已被刪除，直接從列表移除（不要觸發 SearchAsync，避免 SyncFromCloud 又把雲端資料同步回來）
+                if (window.CustomerWasDeleted && DataContext is CustomerSearchViewModel vm)
+                {
+                    var toRemove = vm.Customers.FirstOrDefault(c => c.Id == displayModel.Id);
+                    if (toRemove != null)
+                    {
+                        vm.Customers.Remove(toRemove);
+                    }
+                }
             }
             catch (Exception ex)
             {

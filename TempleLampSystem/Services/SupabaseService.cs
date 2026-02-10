@@ -61,9 +61,10 @@ public class SupabaseService : ISupabaseService
     {
         if (!_isConfigured || _client == null) return null;
 
+        var idStr = id.ToString();
         var response = await _client
             .From<SupabaseCustomer>()
-            .Where(c => c.Id == id.ToString())
+            .Where(c => c.Id == idStr)
             .Single();
 
         return response?.ToCustomer();
@@ -91,7 +92,8 @@ public class SupabaseService : ISupabaseService
     public async Task DeleteCustomerAsync(Guid id)
     {
         if (!_isConfigured || _client == null) return;
-        await _client.From<SupabaseCustomer>().Where(c => c.Id == id.ToString()).Delete();
+        var idStr = id.ToString();
+        await _client.From<SupabaseCustomer>().Where(c => c.Id == idStr).Delete();
     }
 
     #endregion
@@ -125,9 +127,10 @@ public class SupabaseService : ISupabaseService
     {
         if (!_isConfigured || _client == null) return null;
 
+        var idStr = id.ToString();
         var response = await _client
             .From<SupabaseLampOrder>()
-            .Where(o => o.Id == id.ToString())
+            .Where(o => o.Id == idStr)
             .Single();
 
         return response?.ToLampOrder();
@@ -138,9 +141,10 @@ public class SupabaseService : ISupabaseService
         if (!_isConfigured || _client == null)
             return new List<LampOrder>();
 
+        var customerIdStr = customerId.ToString();
         var response = await _client
             .From<SupabaseLampOrder>()
-            .Where(o => o.CustomerId == customerId.ToString())
+            .Where(o => o.CustomerId == customerIdStr)
             .Get();
 
         return response.Models.Select(o => o.ToLampOrder()).ToList();
@@ -159,7 +163,8 @@ public class SupabaseService : ISupabaseService
     public async Task DeleteLampOrderAsync(Guid id)
     {
         if (!_isConfigured || _client == null) return;
-        await _client.From<SupabaseLampOrder>().Where(o => o.Id == id.ToString()).Delete();
+        var idStr = id.ToString();
+        await _client.From<SupabaseLampOrder>().Where(o => o.Id == idStr).Delete();
     }
 
     public async Task<bool> HasActiveOrderAsync(Guid customerId, int lampId)
@@ -247,6 +252,19 @@ public class SupabaseService : ISupabaseService
 
         try
         {
+            // 先取得 SyncQueue 中待刪除的 ID，避免把已刪除的資料又從雲端拉回來
+            var pendingDeletes = await _localContext.SyncQueue
+                .Where(q => q.Operation == SyncOperation.Delete)
+                .ToListAsync();
+            var pendingDeleteCustomerIds = pendingDeletes
+                .Where(q => q.EntityType == SyncEntityType.Customer)
+                .Select(q => q.EntityId)
+                .ToHashSet();
+            var pendingDeleteOrderIds = pendingDeletes
+                .Where(q => q.EntityType == SyncEntityType.LampOrder)
+                .Select(q => q.EntityId)
+                .ToHashSet();
+
             var cloudLamps = await GetAllLampsAsync();
             foreach (var lamp in cloudLamps)
             {
@@ -266,6 +284,10 @@ public class SupabaseService : ISupabaseService
             var cloudCustomers = await GetAllCustomersAsync();
             foreach (var customer in cloudCustomers)
             {
+                // 跳過 SyncQueue 中待刪除的客戶
+                if (pendingDeleteCustomerIds.Contains(customer.Id.ToString()))
+                    continue;
+
                 var existing = await _localContext.Customers.FindAsync(customer.Id);
                 if (existing == null)
                 {
@@ -296,6 +318,10 @@ public class SupabaseService : ISupabaseService
             var response = await _client!.From<SupabaseLampOrder>().Get();
             foreach (var supabaseOrder in response.Models)
             {
+                // 跳過 SyncQueue 中待刪除的訂單
+                if (pendingDeleteOrderIds.Contains(supabaseOrder.Id))
+                    continue;
+
                 var order = supabaseOrder.ToLampOrder();
                 var existing = await _localContext.LampOrders.FindAsync(order.Id);
 
