@@ -175,6 +175,7 @@ public partial class CustomerSearchViewModel : ViewModelBase
         var existing = Customers.FirstOrDefault(c => c.Id == customerId);
         if (existing != null)
         {
+            // 只更新訂單資料，不從集合中移除再插入，避免破壞 ListView 的多選狀態
             existing.Orders = customer.LampOrders
                 .OrderByDescending(o => o.Year)
                 .ThenBy(o => o.Lamp.LampName)
@@ -188,24 +189,6 @@ public partial class CustomerSearchViewModel : ViewModelBase
                     Price = o.Price
                 })
                 .ToList();
-
-            // 刷新時暫時禁用事件，避免清除右側的客戶選擇
-            _isRefreshing = true;
-            try
-            {
-                var index = Customers.IndexOf(existing);
-                Customers.RemoveAt(index);
-                Customers.Insert(index, existing);
-
-                if (SelectedCustomer?.Id == customerId)
-                {
-                    SelectedCustomer = existing;
-                }
-            }
-            finally
-            {
-                _isRefreshing = false;
-            }
         }
     }
 }

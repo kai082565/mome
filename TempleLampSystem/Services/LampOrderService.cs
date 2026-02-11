@@ -68,11 +68,11 @@ public class LampOrderService : ILampOrderService
 
     private async Task<bool> CheckLocalActiveOrderAsync(Guid customerId, int lampId)
     {
-        var today = DateTime.UtcNow.Date;
+        var today = DateTime.Now.Date;
         return await _context.LampOrders
             .AnyAsync(o => o.CustomerId == customerId &&
                           o.LampId == lampId &&
-                          o.EndDate >= today);
+                          o.EndDate > today);
     }
 
     public async Task<LampOrder> CreateLampOrderAsync(Guid customerId, int lampId, decimal price, string? note = null)
@@ -81,7 +81,7 @@ public class LampOrderService : ILampOrderService
         if (reason != null)
             throw new InvalidOperationException(reason);
 
-        var today = DateTime.UtcNow.Date;
+        var today = DateTime.Now.Date;
         var endDate = LunarCalendarHelper.GetLunarYearEndDate(today);
         var order = new LampOrder
         {
@@ -93,8 +93,8 @@ public class LampOrderService : ILampOrderService
             Year = today.Year,
             Price = price,
             Note = note,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
         };
 
         // 寫入本地

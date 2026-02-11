@@ -174,7 +174,7 @@ public class SupabaseService : ISupabaseService
 
         try
         {
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Now.Date;
             var customerIdStr = customerId.ToString();
 
             // 查詢該客戶該燈種的所有訂單
@@ -183,8 +183,8 @@ public class SupabaseService : ISupabaseService
                 .Where(o => o.CustomerId == customerIdStr && o.LampId == lampId)
                 .Get();
 
-            // 在本地過濾未過期的訂單
-            return response.Models.Any(o => o.EndDate >= today);
+            // 在本地過濾未過期的訂單（截止日當天視為已過期，可重新點燈）
+            return response.Models.Any(o => o.EndDate > today);
         }
         catch (Exception ex)
         {

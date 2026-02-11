@@ -20,6 +20,11 @@ public interface IPrintService
     void PreviewReceipt(Receipt receipt);
 
     /// <summary>
+    /// 列印感謝狀（套印預印表單）
+    /// </summary>
+    Task<bool> PrintCertificateAsync(CertificateData data);
+
+    /// <summary>
     /// 列印客戶資料信件
     /// </summary>
     Task<bool> PrintCustomerLetterAsync(CustomerInfoLetter letter);

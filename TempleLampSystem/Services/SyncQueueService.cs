@@ -29,7 +29,7 @@ public class SyncQueueService : ISyncQueueService
             JsonData = operation != SyncOperation.Delete
                 ? JsonSerializer.Serialize(entity)
                 : null,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
 
         _context.SyncQueue.Add(queueItem);

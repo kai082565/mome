@@ -10,7 +10,7 @@ public class OrderStatusToTextConverter : IValueConverter
     {
         if (value is DateTime endDate)
         {
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Now.Date;
             var daysLeft = (endDate - today).Days;
 
             if (endDate < today)
@@ -34,7 +34,7 @@ public class OrderStatusToColorConverter : IValueConverter
     {
         if (value is DateTime endDate)
         {
-            var today = DateTime.UtcNow.Date;
+            var today = DateTime.Now.Date;
             var daysLeft = (endDate - today).Days;
 
             if (endDate < today)

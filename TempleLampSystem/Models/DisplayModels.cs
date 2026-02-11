@@ -30,10 +30,10 @@ public class LampOrderDisplayModel
     public DateTime EndDate { get; set; }
     public decimal Price { get; set; }
 
-    public bool IsExpired => EndDate < DateTime.UtcNow.Date;
-    public bool IsActive => StartDate <= DateTime.UtcNow.Date && EndDate >= DateTime.UtcNow.Date;
-    public bool IsExpiringSoon => IsActive && (EndDate - DateTime.UtcNow.Date).Days <= 30;
-    public int DaysLeft => Math.Max(0, (EndDate - DateTime.UtcNow.Date).Days);
+    public bool IsExpired => EndDate <= DateTime.Now.Date;
+    public bool IsActive => StartDate <= DateTime.Now.Date && EndDate > DateTime.Now.Date;
+    public bool IsExpiringSoon => IsActive && (EndDate - DateTime.Now.Date).Days <= 30;
+    public int DaysLeft => Math.Max(0, (EndDate - DateTime.Now.Date).Days);
 
     public string StatusText
     {

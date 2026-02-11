@@ -17,7 +17,7 @@ public class SyncConflict
     public string RemoteData { get; set; } = string.Empty;
     public DateTime LocalUpdatedAt { get; set; }
     public DateTime RemoteUpdatedAt { get; set; }
-    public DateTime DetectedAt { get; set; } = DateTime.UtcNow;
+    public DateTime DetectedAt { get; set; } = DateTime.Now;
     public ConflictResolution? Resolution { get; set; }
     public DateTime? ResolvedAt { get; set; }
 }

@@ -58,7 +58,7 @@ public static class LunarCalendarHelper
         var endDate = LunarToGregorian(lunarYear, 12, 24);
 
         // 若今天已超過今年農曆12/24，使用下一年的
-        if (referenceDate.Date > endDate.Date)
+        if (referenceDate.Date >= endDate.Date)
         {
             endDate = LunarToGregorian(lunarYear + 1, 12, 24);
         }
@@ -79,6 +79,16 @@ public static class LunarCalendarHelper
             : lunarMonth;
 
         return _lunar.ToDateTime(lunarYear, internalMonth, lunarDay, 0, 0, 0, 0);
+    }
+
+    /// <summary>
+    /// 取得農曆年/月/日的個別數值，供感謝狀個別欄位使用
+    /// </summary>
+    public static (int year, int month, int day, bool isLeapMonth) GetLunarDate(DateTime date)
+    {
+        int lunarYear = _lunar.GetYear(date);
+        var (month, day, isLeapMonth) = GetLunarMonthDay(date);
+        return (lunarYear, month, day, isLeapMonth);
     }
 
     /// <summary>

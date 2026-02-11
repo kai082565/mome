@@ -20,7 +20,7 @@ public class SyncQueueItem
     public string EntityId { get; set; } = string.Empty;
     public SyncOperation Operation { get; set; }
     public string? JsonData { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     public int RetryCount { get; set; } = 0;
     public string? LastError { get; set; }
 }

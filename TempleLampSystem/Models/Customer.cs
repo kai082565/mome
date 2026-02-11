@@ -15,7 +15,7 @@ public class Customer
     public int? BirthMonth { get; set; }
     public int? BirthDay { get; set; }
     public string? BirthHour { get; set; }
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
     // 生肖計算屬性（不存 DB）
     private static readonly string[] ZodiacAnimals = ["鼠", "牛", "虎", "兔", "龍", "蛇", "馬", "羊", "猴", "雞", "狗", "豬"];

@@ -39,8 +39,8 @@ public class LampOrderRepository : RepositoryBase<LampOrder>, ILampOrderReposito
 
     public async Task<List<LampOrder>> GetExpiringOrdersAsync(int daysBeforeExpiry)
     {
-        var targetDate = DateTime.UtcNow.AddDays(daysBeforeExpiry);
-        var today = DateTime.UtcNow;
+        var targetDate = DateTime.Now.AddDays(daysBeforeExpiry);
+        var today = DateTime.Now;
 
         return await _dbSet
             .Include(o => o.Customer)
@@ -52,7 +52,7 @@ public class LampOrderRepository : RepositoryBase<LampOrder>, ILampOrderReposito
 
     public async Task<List<LampOrder>> GetExpiredOrdersAsync()
     {
-        var today = DateTime.UtcNow;
+        var today = DateTime.Now;
 
         return await _dbSet
             .Include(o => o.Customer)
@@ -72,14 +72,14 @@ public class LampOrderRepository : RepositoryBase<LampOrder>, ILampOrderReposito
 
     public override async Task<LampOrder> AddAsync(LampOrder entity)
     {
-        entity.CreatedAt = DateTime.UtcNow;
-        entity.UpdatedAt = DateTime.UtcNow;
+        entity.CreatedAt = DateTime.Now;
+        entity.UpdatedAt = DateTime.Now;
         return await base.AddAsync(entity);
     }
 
     public override async Task UpdateAsync(LampOrder entity)
     {
-        entity.UpdatedAt = DateTime.UtcNow;
+        entity.UpdatedAt = DateTime.Now;
         await base.UpdateAsync(entity);
     }
 }

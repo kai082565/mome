@@ -54,8 +54,8 @@ public class CustomerInfoLetter
                     StartDate = o.StartDate,
                     EndDate = o.EndDate,
                     Price = o.Price,
-                    IsExpired = o.EndDate < DateTime.UtcNow.Date,
-                    IsActive = o.StartDate <= DateTime.UtcNow.Date && o.EndDate >= DateTime.UtcNow.Date
+                    IsExpired = o.EndDate <= DateTime.Now.Date,
+                    IsActive = o.StartDate <= DateTime.Now.Date && o.EndDate > DateTime.Now.Date
                 })
                 .ToList()
         };

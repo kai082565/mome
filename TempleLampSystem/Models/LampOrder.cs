@@ -10,8 +10,8 @@ public class LampOrder
     public int Year { get; set; }              // 點燈年度
     public decimal Price { get; set; }
     public string? Note { get; set; }                // 備註（闔家平安燈用）
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
     // 導航屬性
     public Customer Customer { get; set; } = null!;

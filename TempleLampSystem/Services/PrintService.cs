@@ -1,3 +1,4 @@
+using System.Printing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -195,6 +196,83 @@ public class PrintService : IPrintService
             BorderThickness = new Thickness(0, 1, 0, 0),
             Margin = new Thickness(0, 5, 0, 5)
         });
+    }
+
+    public Task<bool> PrintCertificateAsync(CertificateData data)
+    {
+        try
+        {
+            var settings = AppSettings.Instance.CertificateForm;
+            var printDialog = new PrintDialog();
+
+            // 設定 Landscape 方向
+            printDialog.PrintTicket.PageOrientation = PageOrientation.Landscape;
+
+            // 建立 FixedDocument
+            var fixedDoc = new FixedDocument();
+            var pageContent = new PageContent();
+            var page = new FixedPage();
+
+            if (settings.PageWidthMm > 0 && settings.PageHeightMm > 0)
+            {
+                page.Width = MmToDip(settings.PageWidthMm);
+                page.Height = MmToDip(settings.PageHeightMm);
+            }
+
+            // 依序加入各欄位文字
+            AddField(page, settings.Name, data.Name);
+            AddField(page, settings.Phone, data.Phone);
+            AddField(page, settings.Address, data.Address);
+            AddField(page, settings.BirthYear, data.BirthYear);
+            AddField(page, settings.BirthMonth, data.BirthMonth);
+            AddField(page, settings.BirthDay, data.BirthDay);
+            AddField(page, settings.LunarStartYear, data.LunarStartYear);
+            AddField(page, settings.LunarStartMonth, data.LunarStartMonth);
+            AddField(page, settings.LunarStartDay, data.LunarStartDay);
+            AddField(page, settings.LunarStartHour, data.LunarStartHour);
+            AddField(page, settings.LunarEndYear, data.LunarEndYear);
+            AddField(page, settings.LunarEndMonth, data.LunarEndMonth);
+            AddField(page, settings.LunarEndDay, data.LunarEndDay);
+            AddField(page, settings.Amount, data.Amount);
+            AddField(page, settings.LampType, data.LampType);
+
+            ((System.Windows.Markup.IAddChild)pageContent).AddChild(page);
+            fixedDoc.Pages.Add(pageContent);
+
+            var paginator = fixedDoc.DocumentPaginator;
+            printDialog.PrintDocument(paginator, $"感謝狀 - {data.Name}");
+
+            return Task.FromResult(true);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"列印感謝狀失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+            return Task.FromResult(false);
+        }
+    }
+
+    private static double MmToDip(double mm)
+    {
+        return mm * 96.0 / 25.4;
+    }
+
+    private static void AddField(FixedPage page, CertificateFieldPosition pos, string? text)
+    {
+        if (string.IsNullOrEmpty(text) || (pos.X == 0 && pos.Y == 0)) return;
+
+        var tb = new TextBlock
+        {
+            Text = text,
+            FontSize = pos.FontSize,
+            FontFamily = new FontFamily("Microsoft JhengHei")
+        };
+
+        if (pos.Rotation != 0)
+            tb.LayoutTransform = new RotateTransform(pos.Rotation);
+
+        FixedPage.SetLeft(tb, MmToDip(pos.X));
+        FixedPage.SetTop(tb, MmToDip(pos.Y));
+        page.Children.Add(tb);
     }
 
     public Task<bool> PrintCustomerLetterAsync(CustomerInfoLetter letter)

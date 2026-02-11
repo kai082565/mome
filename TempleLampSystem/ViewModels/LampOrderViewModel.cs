@@ -485,22 +485,42 @@ public partial class LampOrderViewModel : ViewModelBase
 
             StyledMessageBox.Show(message, "點燈完成");
 
-            // 逐筆列印每位客戶的單據
-            foreach (var (customer, order) in createdOrders)
+            // 列印感謝狀
+            try
             {
-                try
+                if (SelectedLamp.LampCode == "HEJIA_PINGAN")
                 {
-                    var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
-                    if (fullCustomer != null && SelectedLamp != null)
+                    // 闔家平安燈：所有客戶合併成一張感謝狀
+                    var allCustomerOrders = new List<(Customer, LampOrder)>();
+                    foreach (var (customer, order) in createdOrders)
                     {
-                        var receipt = Receipt.FromLampOrder(order, fullCustomer, SelectedLamp);
-                        await _printService.PrintReceiptAsync(receipt);
+                        var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
+                        if (fullCustomer != null)
+                            allCustomerOrders.Add((fullCustomer, order));
+                    }
+                    if (allCustomerOrders.Count > 0)
+                    {
+                        var certData = CertificateData.FromFamilyOrder(allCustomerOrders, SelectedLamp);
+                        await _printService.PrintCertificateAsync(certData);
                     }
                 }
-                catch (Exception printEx)
+                else
                 {
-                    StyledMessageBox.Show($"列印「{customer.Name}」單據失敗：{printEx.Message}", "列印錯誤");
+                    // 一般燈種：每位客戶各印一張
+                    foreach (var (customer, order) in createdOrders)
+                    {
+                        var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
+                        if (fullCustomer != null)
+                        {
+                            var certData = CertificateData.FromOrder(order, fullCustomer, SelectedLamp);
+                            await _printService.PrintCertificateAsync(certData);
+                        }
+                    }
                 }
+            }
+            catch (Exception printEx)
+            {
+                StyledMessageBox.Show($"列印感謝狀失敗：{printEx.Message}", "列印錯誤");
             }
 
             StatusMessage = $"已完成 {createdOrders.Count} 位客戶點燈";
@@ -544,8 +564,8 @@ public partial class LampOrderViewModel : ViewModelBase
         var customer = await _customerRepository.GetByIdAsync(SelectedCustomer.Id);
         if (customer == null) return;
 
-        var receipt = Receipt.FromLampOrder(_lastCreatedOrder, customer, SelectedLamp);
-        await _printService.PrintReceiptAsync(receipt);
+        var certData = CertificateData.FromOrder(_lastCreatedOrder, customer, SelectedLamp);
+        await _printService.PrintCertificateAsync(certData);
     }
 
     [RelayCommand]

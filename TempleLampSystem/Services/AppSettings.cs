@@ -24,11 +24,42 @@ public class UpdateSettings
     public int CheckIntervalHours { get; set; } = 24;
 }
 
+public class CertificateFieldPosition
+{
+    public double X { get; set; }
+    public double Y { get; set; }
+    public double FontSize { get; set; } = 12;
+    public double Rotation { get; set; } = 0;
+}
+
+public class CertificateFormSettings
+{
+    public double PageWidthMm { get; set; } = 0;
+    public double PageHeightMm { get; set; } = 0;
+
+    public CertificateFieldPosition Name { get; set; } = new() { X = 0, Y = 0, FontSize = 14 };
+    public CertificateFieldPosition Phone { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition Address { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition BirthYear { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition BirthMonth { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition BirthDay { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition LunarStartYear { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition LunarStartMonth { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition LunarStartDay { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition LunarStartHour { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition LunarEndYear { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition LunarEndMonth { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition LunarEndDay { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition Amount { get; set; } = new() { X = 0, Y = 0, FontSize = 14 };
+    public CertificateFieldPosition LampType { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+}
+
 public class AppSettings
 {
     public SupabaseSettings Supabase { get; set; } = new();
     public PrintSettings Print { get; set; } = new();
     public UpdateSettings Update { get; set; } = new();
+    public CertificateFormSettings CertificateForm { get; set; } = new();
 
     private static AppSettings? _instance;
 

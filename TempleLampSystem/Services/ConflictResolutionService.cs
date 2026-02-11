@@ -80,7 +80,7 @@ public class ConflictResolutionService : IConflictResolutionService
         }
 
         conflict.Resolution = resolution;
-        conflict.ResolvedAt = DateTime.UtcNow;
+        conflict.ResolvedAt = DateTime.Now;
         await _context.SaveChangesAsync();
     }
 
@@ -103,7 +103,7 @@ public class ConflictResolutionService : IConflictResolutionService
             var customer = JsonSerializer.Deserialize<Customer>(conflict.LocalData);
             if (customer != null)
             {
-                customer.UpdatedAt = DateTime.UtcNow;
+                customer.UpdatedAt = DateTime.Now;
                 await _supabaseService.UpsertCustomerAsync(customer);
             }
         }

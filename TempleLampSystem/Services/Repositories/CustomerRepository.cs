@@ -89,7 +89,7 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
 
     public override async Task UpdateAsync(Customer entity)
     {
-        entity.UpdatedAt = DateTime.UtcNow;
+        entity.UpdatedAt = DateTime.Now;
         await base.UpdateAsync(entity);
     }
 
