@@ -1,5 +1,3 @@
-using TempleLampSystem.Helpers;
-
 namespace TempleLampSystem.Models;
 
 /// <summary>
@@ -13,13 +11,8 @@ public class CertificateData
     public string? BirthYear { get; set; }
     public string? BirthMonth { get; set; }
     public string? BirthDay { get; set; }
-    public string LunarStartYear { get; set; } = string.Empty;
-    public string LunarStartMonth { get; set; } = string.Empty;
-    public string LunarStartDay { get; set; } = string.Empty;
-    public string? LunarStartHour { get; set; }
-    public string LunarEndYear { get; set; } = string.Empty;
-    public string LunarEndMonth { get; set; } = string.Empty;
-    public string LunarEndDay { get; set; } = string.Empty;
+    public string LunarStartDate { get; set; } = string.Empty;
+    public string LunarEndDate { get; set; } = string.Empty;
     public string Amount { get; set; } = string.Empty;
     public string? LampType { get; set; }
 
@@ -28,13 +21,7 @@ public class CertificateData
     /// </summary>
     public static CertificateData FromOrder(LampOrder order, Customer customer, Lamp lamp)
     {
-        var now = DateTime.Now;
-        var (startYear, startMonth, startDay, _) = LunarCalendarHelper.GetLunarDate(now);
-        var endDate = LunarCalendarHelper.GetLunarYearEndDate(now);
-        var (endYear, endMonth, endDay, _) = LunarCalendarHelper.GetLunarDate(endDate);
-
-        // 取得當前時辰
-        var hour = GetChineseHour(now);
+        var rocYear = Services.AppSettings.Instance.CertificateForm.RocYear;
 
         // 完整地址（郵遞區號 + 里 + 地址）
         var fullAddress = string.Join("", new[]
@@ -52,13 +39,8 @@ public class CertificateData
             BirthYear = customer.BirthYear?.ToString(),
             BirthMonth = customer.BirthMonth?.ToString(),
             BirthDay = customer.BirthDay?.ToString(),
-            LunarStartYear = startYear.ToString(),
-            LunarStartMonth = startMonth.ToString(),
-            LunarStartDay = startDay.ToString(),
-            LunarStartHour = hour,
-            LunarEndYear = endYear.ToString(),
-            LunarEndMonth = "12",
-            LunarEndDay = "24",
+            LunarStartDate = $"{rocYear}/01/15",
+            LunarEndDate = $"{rocYear}/12/24",
             Amount = order.Price.ToString("N0"),
             LampType = lamp.LampName
         };
@@ -74,16 +56,10 @@ public class CertificateData
 
         var firstCustomer = customerOrders[0].Customer;
         var firstOrder = customerOrders[0].Order;
+        var rocYear = Services.AppSettings.Instance.CertificateForm.RocYear;
 
         // 合併所有客戶名字（用頓號分隔）
         var allNames = string.Join("、", customerOrders.Select(co => co.Customer.Name));
-
-        var now = DateTime.Now;
-        var (startYear, startMonth, startDay, _) = LunarCalendarHelper.GetLunarDate(now);
-        var endDate = LunarCalendarHelper.GetLunarYearEndDate(now);
-        var (endYear, endMonth, endDay, _) = LunarCalendarHelper.GetLunarDate(endDate);
-
-        var hour = GetChineseHour(now);
 
         // 使用第一位客戶的電話和地址
         var fullAddress = string.Join("", new[]
@@ -93,9 +69,6 @@ public class CertificateData
             firstCustomer.Address
         }.Where(s => !string.IsNullOrEmpty(s)));
 
-        // 闔家平安燈固定金額，使用第一筆訂單的金額
-        var totalAmount = firstOrder.Price;
-
         return new CertificateData
         {
             Name = allNames,
@@ -104,25 +77,11 @@ public class CertificateData
             BirthYear = firstCustomer.BirthYear?.ToString(),
             BirthMonth = firstCustomer.BirthMonth?.ToString(),
             BirthDay = firstCustomer.BirthDay?.ToString(),
-            LunarStartYear = startYear.ToString(),
-            LunarStartMonth = startMonth.ToString(),
-            LunarStartDay = startDay.ToString(),
-            LunarStartHour = hour,
-            LunarEndYear = endYear.ToString(),
-            LunarEndMonth = "12",
-            LunarEndDay = "24",
-            Amount = totalAmount.ToString("N0"),
+            LunarStartDate = $"{rocYear}/01/15",
+            LunarEndDate = $"{rocYear}/12/24",
+            Amount = firstOrder.Price.ToString("N0"),
             LampType = lamp.LampName
         };
     }
 
-    /// <summary>
-    /// 根據小時取得中文時辰
-    /// </summary>
-    private static string GetChineseHour(DateTime time)
-    {
-        string[] hours = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
-        int index = ((time.Hour + 1) % 24) / 2;
-        return hours[index] + "時";
-    }
 }

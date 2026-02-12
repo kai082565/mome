@@ -73,13 +73,8 @@ public class PrintService : IPrintService
             AddField(page, settings.BirthYear, data.BirthYear);
             AddField(page, settings.BirthMonth, data.BirthMonth);
             AddField(page, settings.BirthDay, data.BirthDay);
-            AddField(page, settings.LunarStartYear, data.LunarStartYear);
-            AddField(page, settings.LunarStartMonth, data.LunarStartMonth);
-            AddField(page, settings.LunarStartDay, data.LunarStartDay);
-            AddField(page, settings.LunarStartHour, data.LunarStartHour);
-            AddField(page, settings.LunarEndYear, data.LunarEndYear);
-            AddField(page, settings.LunarEndMonth, data.LunarEndMonth);
-            AddField(page, settings.LunarEndDay, data.LunarEndDay);
+            AddField(page, settings.LunarStartDate, data.LunarStartDate);
+            AddField(page, settings.LunarEndDate, data.LunarEndDate);
             AddField(page, settings.Amount, data.Amount);
             AddField(page, settings.LampType, data.LampType);
 
