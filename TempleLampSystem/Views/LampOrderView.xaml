@@ -363,20 +363,6 @@
                                 FontSize="16"
                                 Margin="0,5,0,12"/>
 
-                        <!-- 列印按鈕 -->
-                        <StackPanel Grid.Row="8" Grid.ColumnSpan="2"
-                                    Orientation="Horizontal"
-                                    HorizontalAlignment="Center">
-                            <Button Content="預覽單據"
-                                    Command="{Binding PreviewReceiptCommand}"
-                                    Style="{StaticResource GoldButton}"
-                                    Padding="20,10"
-                                    Margin="0,0,8,0"/>
-                            <Button Content="列印 / PDF"
-                                    Command="{Binding PrintLastOrderCommand}"
-                                    Style="{StaticResource GoldButton}"
-                                    Padding="20,10"/>
-                        </StackPanel>
                     </Grid>
                 </StackPanel>
             </Border>

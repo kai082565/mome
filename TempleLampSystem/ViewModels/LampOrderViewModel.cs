@@ -74,7 +74,6 @@ public partial class LampOrderViewModel : ViewModelBase
         { "HEJIA_PINGAN", 1500 },  // 闔家平安燈
     };
 
-    private LampOrder? _lastCreatedOrder;
     private bool _isRemovingCustomer;
 
     public ObservableCollection<Lamp> Lamps { get; }
@@ -446,12 +445,6 @@ public partial class LampOrderViewModel : ViewModelBase
                 }
             }
 
-            // 記錄最後一筆訂單（用於列印）
-            if (createdOrders.Count > 0)
-            {
-                _lastCreatedOrder = createdOrders.Last().Order;
-            }
-
             // 顯示結果
             var successNames = string.Join("、", createdOrders.Select(x => x.Customer.Name));
             var lampInfo = SelectedLamp.LampName;
@@ -539,45 +532,6 @@ public partial class LampOrderViewModel : ViewModelBase
             IsBusy = false;
         }
     }
-
-    [RelayCommand]
-    private async Task PrintLastOrderAsync()
-    {
-        if (_lastCreatedOrder == null || SelectedCustomer == null || SelectedLamp == null)
-        {
-            StyledMessageBox.Show("沒有可列印的單據", "提示");
-            return;
-        }
-
-        var customer = await _customerRepository.GetByIdAsync(SelectedCustomer.Id);
-        if (customer == null) return;
-
-        var certData = CertificateData.FromOrder(_lastCreatedOrder, customer, SelectedLamp);
-        await _printService.PrintCertificateAsync(certData);
-    }
-
-    [RelayCommand]
-    private void PreviewReceipt()
-    {
-        if (_lastCreatedOrder == null || SelectedCustomer == null || SelectedLamp == null)
-        {
-            StyledMessageBox.Show("沒有可預覽的單據", "提示");
-            return;
-        }
-
-        var customer = new Customer
-        {
-            Id = SelectedCustomer.Id,
-            Name = SelectedCustomer.Name,
-            Phone = SelectedCustomer.Phone,
-            Mobile = SelectedCustomer.Mobile,
-            Address = SelectedCustomer.Address
-        };
-
-        var receipt = Receipt.FromLampOrder(_lastCreatedOrder, customer, SelectedLamp);
-        _printService.PreviewReceipt(receipt);
-    }
-
 
     public async Task LoadExpiringOrdersAsync()
     {
