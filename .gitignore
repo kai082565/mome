@@ -1,6 +1,8 @@
 TempleLampSystem/nul 
 TempleLampSystem/nul 
 TempleLampSystem/nul 
-bin/ 
-obj/ 
-nul 
+bin/
+obj/
+nul
+*.zip
+publish/

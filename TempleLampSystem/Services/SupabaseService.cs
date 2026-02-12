@@ -3,6 +3,7 @@ using Supabase;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 using TempleLampSystem.Models;
+using static Supabase.Postgrest.Constants;
 
 namespace TempleLampSystem.Services;
 
@@ -96,6 +97,31 @@ public class SupabaseService : ISupabaseService
         await _client.From<SupabaseCustomer>().Where(c => c.Id == idStr).Delete();
     }
 
+    public async Task<string?> GetMaxCustomerCodeAsync()
+    {
+        if (!_isConfigured || _client == null) return null;
+
+        try
+        {
+            // 只取 CustomerCode 欄位，按降序取第一筆
+            var response = await _client.From<SupabaseCustomer>()
+                .Select("CustomerCode")
+                .Order("CustomerCode", Ordering.Descending)
+                .Limit(1)
+                .Get();
+
+            var maxCode = response.Models
+                .Select(c => c.CustomerCode)
+                .FirstOrDefault(code => !string.IsNullOrEmpty(code));
+
+            return maxCode;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     #endregion
 
     #region Lamp
@@ -177,20 +203,78 @@ public class SupabaseService : ISupabaseService
             var today = DateTime.Now.Date;
             var customerIdStr = customerId.ToString();
 
-            // 查詢該客戶該燈種的所有訂單
             var response = await _client
                 .From<SupabaseLampOrder>()
                 .Where(o => o.CustomerId == customerIdStr && o.LampId == lampId)
                 .Get();
 
-            // 在本地過濾未過期的訂單（截止日當天視為已過期，可重新點燈）
             return response.Models.Any(o => o.EndDate > today);
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"HasActiveOrderAsync 錯誤：{ex.Message}");
-            // 查詢失敗時回傳 false，讓本地驗證接手
             return false;
+        }
+    }
+
+    public async Task<int> GetCloudOrderCountAsync(int lampId, int year)
+    {
+        if (!_isConfigured || _client == null) return 0;
+
+        try
+        {
+            var response = await _client
+                .From<SupabaseLampOrder>()
+                .Where(o => o.LampId == lampId && o.Year == year)
+                .Get();
+
+            return response.Models.Count;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    #endregion
+
+    #region ID 查詢（用於刪除同步）
+
+    public async Task<HashSet<string>> GetAllCloudCustomerIdsAsync()
+    {
+        if (!_isConfigured || _client == null)
+            return new HashSet<string>();
+
+        try
+        {
+            var response = await _client.From<SupabaseCustomer>()
+                .Select("Id")
+                .Get();
+
+            return response.Models.Select(c => c.Id).ToHashSet();
+        }
+        catch
+        {
+            return new HashSet<string>();
+        }
+    }
+
+    public async Task<HashSet<string>> GetAllCloudLampOrderIdsAsync()
+    {
+        if (!_isConfigured || _client == null)
+            return new HashSet<string>();
+
+        try
+        {
+            var response = await _client.From<SupabaseLampOrder>()
+                .Select("Id")
+                .Get();
+
+            return response.Models.Select(o => o.Id).ToHashSet();
+        }
+        catch
+        {
+            return new HashSet<string>();
         }
     }
 
@@ -198,7 +282,7 @@ public class SupabaseService : ISupabaseService
 
     #region Sync
 
-    public async Task<SyncResult> SyncToCloudAsync()
+    public async Task<SyncResult> SyncToCloudAsync(DateTime? since = null)
     {
         var result = new SyncResult();
 
@@ -210,20 +294,31 @@ public class SupabaseService : ISupabaseService
 
         try
         {
-            var customers = await _localContext.Customers.ToListAsync();
+            // 增量上傳：只上傳 since 之後修改的資料
+            IQueryable<Customer> customerQuery = _localContext.Customers.AsNoTracking();
+            IQueryable<LampOrder> orderQuery = _localContext.LampOrders.AsNoTracking();
+
+            if (since.HasValue)
+            {
+                customerQuery = customerQuery.Where(c => c.UpdatedAt > since.Value);
+                orderQuery = orderQuery.Where(o => o.UpdatedAt > since.Value);
+            }
+
+            var customers = await customerQuery.ToListAsync();
             foreach (var customer in customers)
             {
                 await UpsertCustomerAsync(customer);
                 result.CustomersUploaded++;
             }
 
-            var lamps = await _localContext.Lamps.ToListAsync();
+            // 燈種很少，全量同步即可
+            var lamps = await _localContext.Lamps.AsNoTracking().ToListAsync();
             foreach (var lamp in lamps)
             {
                 await UpsertLampAsync(lamp);
             }
 
-            var orders = await _localContext.LampOrders.ToListAsync();
+            var orders = await orderQuery.ToListAsync();
             foreach (var order in orders)
             {
                 await UpsertLampOrderAsync(order);
@@ -240,7 +335,7 @@ public class SupabaseService : ISupabaseService
         return result;
     }
 
-    public async Task<SyncResult> SyncFromCloudAsync()
+    public async Task<SyncResult> SyncFromCloudAsync(DateTime? since = null)
     {
         var result = new SyncResult();
 
@@ -265,6 +360,7 @@ public class SupabaseService : ISupabaseService
                 .Select(q => q.EntityId)
                 .ToHashSet();
 
+            // 燈種全量同步（資料量極少）
             var cloudLamps = await GetAllLampsAsync();
             foreach (var lamp in cloudLamps)
             {
@@ -277,17 +373,31 @@ public class SupabaseService : ISupabaseService
                 {
                     existing.LampCode = lamp.LampCode;
                     existing.LampName = lamp.LampName;
-                    // Temple 和 Deity 由本地固定對照表管理，不從雲端覆蓋
                 }
             }
 
-            var cloudCustomers = await GetAllCustomersAsync();
-            foreach (var customer in cloudCustomers)
+            // 增量下載客戶：只取 since 之後更新的
+            List<SupabaseCustomer> cloudCustomerModels;
+            if (since.HasValue)
             {
-                // 跳過 SyncQueue 中待刪除的客戶
-                if (pendingDeleteCustomerIds.Contains(customer.Id.ToString()))
+                var sinceStr = since.Value.ToUniversalTime().ToString("o");
+                var response = await _client!.From<SupabaseCustomer>()
+                    .Filter("UpdatedAt", Operator.GreaterThan, sinceStr)
+                    .Get();
+                cloudCustomerModels = response.Models;
+            }
+            else
+            {
+                var response = await _client!.From<SupabaseCustomer>().Get();
+                cloudCustomerModels = response.Models;
+            }
+
+            foreach (var supabaseCustomer in cloudCustomerModels)
+            {
+                if (pendingDeleteCustomerIds.Contains(supabaseCustomer.Id))
                     continue;
 
+                var customer = supabaseCustomer.ToCustomer();
                 var existing = await _localContext.Customers.FindAsync(customer.Id);
                 if (existing == null)
                 {
@@ -307,7 +417,6 @@ public class SupabaseService : ISupabaseService
                     existing.BirthMonth = customer.BirthMonth;
                     existing.BirthDay = customer.BirthDay;
                     existing.BirthHour = customer.BirthHour;
-                    // CustomerCode 由本地管理，不從雲端覆蓋（若本地已有編號）
                     if (string.IsNullOrEmpty(existing.CustomerCode))
                         existing.CustomerCode = customer.CustomerCode;
                     existing.UpdatedAt = customer.UpdatedAt;
@@ -315,10 +424,24 @@ public class SupabaseService : ISupabaseService
                 }
             }
 
-            var response = await _client!.From<SupabaseLampOrder>().Get();
-            foreach (var supabaseOrder in response.Models)
+            // 增量下載訂單：只取 since 之後更新的
+            List<SupabaseLampOrder> cloudOrderModels;
+            if (since.HasValue)
             {
-                // 跳過 SyncQueue 中待刪除的訂單
+                var sinceStr = since.Value.ToUniversalTime().ToString("o");
+                var response = await _client!.From<SupabaseLampOrder>()
+                    .Filter("UpdatedAt", Operator.GreaterThan, sinceStr)
+                    .Get();
+                cloudOrderModels = response.Models;
+            }
+            else
+            {
+                var response = await _client!.From<SupabaseLampOrder>().Get();
+                cloudOrderModels = response.Models;
+            }
+
+            foreach (var supabaseOrder in cloudOrderModels)
+            {
                 if (pendingDeleteOrderIds.Contains(supabaseOrder.Id))
                     continue;
 

@@ -108,21 +108,9 @@ public partial class LampOrderViewModel : ViewModelBase
     {
         try
         {
-            StatusMessage = "正在從雲端同步資料...";
+            StatusMessage = "正在載入資料...";
 
-            // 先從雲端同步最新資料
-            try
-            {
-                if (_supabaseService.IsConfigured)
-                {
-                    await _supabaseService.SyncFromCloudAsync();
-                }
-            }
-            catch (Exception syncEx)
-            {
-                System.Diagnostics.Debug.WriteLine($"雲端同步失敗：{syncEx.Message}");
-            }
-
+            // 直接載入本地資料（背景同步服務會自動保持資料最新）
             var lamps = await _lampRepository.GetAllOrderedAsync();
             Lamps.Clear();
             foreach (var lamp in lamps)
@@ -595,19 +583,7 @@ public partial class LampOrderViewModel : ViewModelBase
     {
         try
         {
-            // 先從雲端同步最新點燈紀錄
-            try
-            {
-                if (_supabaseService.IsConfigured)
-                {
-                    await _supabaseService.SyncFromCloudAsync();
-                }
-            }
-            catch
-            {
-                // 同步失敗時使用本地資料
-            }
-
+            // 直接查詢本地資料（背景同步服務會自動保持資料最新）
             var orders = await _lampOrderService.GetExpiringOrdersAsync(30);
 
             ExpiringOrders.Clear();

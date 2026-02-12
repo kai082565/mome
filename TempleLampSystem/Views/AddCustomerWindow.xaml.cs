@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
 using TempleLampSystem.Models;
+using TempleLampSystem.Services;
 using TempleLampSystem.Services.Repositories;
 
 namespace TempleLampSystem.Views;
@@ -13,6 +14,7 @@ public partial class AddCustomerWindow : Window
     private static readonly string[] BirthHours = ["吉時", "子時", "丑時", "寅時", "卯時", "辰時", "巳時", "午時", "未時", "申時", "酉時", "戌時", "亥時"];
 
     private readonly ICustomerRepository _customerRepository;
+    private readonly ISupabaseService _supabaseService;
     private List<Customer> _foundFamilyMembers = new();
     private Dictionary<string, Customer> _familyAddressDetails = new();
 
@@ -23,6 +25,7 @@ public partial class AddCustomerWindow : Window
         InitializeComponent();
         BirthHourComboBox.ItemsSource = BirthHours;
         _customerRepository = App.Services.GetRequiredService<ICustomerRepository>();
+        _supabaseService = App.Services.GetRequiredService<ISupabaseService>();
     }
 
     private void BirthYearTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -169,11 +172,27 @@ public partial class AddCustomerWindow : Window
             return;
         }
 
-        // 取得下一個客戶編號
+        // 取得下一個客戶編號（取本地和雲端的最大值，確保不重複）
         string customerCode;
         try
         {
-            customerCode = await _customerRepository.GetNextCustomerCodeAsync();
+            var localCode = await _customerRepository.GetNextCustomerCodeAsync();
+            var localMax = int.TryParse(localCode, out var ln) ? ln - 1 : 0;
+
+            var cloudMax = 0;
+            try
+            {
+                var cloudMaxCode = await _supabaseService.GetMaxCustomerCodeAsync();
+                if (cloudMaxCode != null && int.TryParse(cloudMaxCode, out var cn))
+                    cloudMax = cn;
+            }
+            catch
+            {
+                // 雲端查詢失敗時使用本地值
+            }
+
+            var globalMax = Math.Max(localMax, cloudMax);
+            customerCode = (globalMax + 1).ToString("D6");
         }
         catch
         {

@@ -24,6 +24,9 @@ public class CustomerInfoLetter
     // 點燈紀錄
     public List<LampOrderInfo> Orders { get; set; } = new();
 
+    // 備註
+    public string? Note { get; set; }
+
     /// <summary>
     /// 從 Customer（含 LampOrders）建立信件資料
     /// </summary>

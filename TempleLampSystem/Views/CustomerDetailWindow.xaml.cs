@@ -183,36 +183,14 @@ public partial class CustomerDetailWindow : Window
         }
     }
 
-    private async void PrintInfoButton_Click(object sender, RoutedEventArgs e)
+    private void PrintInfoButton_Click(object sender, RoutedEventArgs e)
     {
-        var result = StyledMessageBox.Show(
-            "請選擇列印方式：\n\n「是」= 直接列印\n「否」= 儲存為 PDF",
-            "列印客戶資料",
-            MessageBoxButton.YesNoCancel);
-
-        if (result == MessageBoxResult.Cancel) return;
-
-        try
+        var letter = CustomerInfoLetter.FromCustomer(_customer);
+        var previewWindow = new PrintPreviewWindow(letter)
         {
-            var letter = CustomerInfoLetter.FromCustomer(_customer);
-
-            if (result == MessageBoxResult.Yes)
-            {
-                await _printService.PrintCustomerLetterAsync(letter);
-            }
-            else if (result == MessageBoxResult.No)
-            {
-                var path = await _printService.SaveCustomerLetterAsPdfAsync(letter);
-                if (!string.IsNullOrEmpty(path))
-                {
-                    StyledMessageBox.Show($"已儲存至：\n{path}", "儲存完成");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            StyledMessageBox.Show($"列印失敗：{ex.Message}", "錯誤");
-        }
+            Owner = this
+        };
+        previewWindow.ShowDialog();
     }
 
     private async Task LoadFamilyMembersAsync(Guid customerId)

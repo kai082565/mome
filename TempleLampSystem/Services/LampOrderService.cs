@@ -110,8 +110,24 @@ public class LampOrderService : ILampOrderService
             return -1; // -1 表示不限量
 
         var currentYear = DateTime.Now.Year;
-        var usedCount = await _context.LampOrders
+
+        // 取本地和雲端的最大值，確保多台電腦的名額計算準確
+        var localCount = await _context.LampOrders
             .CountAsync(o => o.LampId == lampId && o.Year == currentYear);
+
+        var usedCount = localCount;
+        try
+        {
+            if (_supabaseService.IsConfigured)
+            {
+                var cloudCount = await _supabaseService.GetCloudOrderCountAsync(lampId, currentYear);
+                usedCount = Math.Max(localCount, cloudCount);
+            }
+        }
+        catch
+        {
+            // 雲端查詢失敗時使用本地值
+        }
 
         return Math.Max(0, lamp.MaxQuota - usedCount);
     }

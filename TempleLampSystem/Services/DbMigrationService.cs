@@ -103,6 +103,15 @@ public static class DbMigrationService
         ",
         ["1.10.0"] = @"
             ALTER TABLE ""LampOrders"" ADD COLUMN ""Note"" TEXT;
+        ",
+        ["2.0.0"] = @"
+            CREATE INDEX IF NOT EXISTS idx_customers_phone ON ""Customers""(""Phone"");
+            CREATE INDEX IF NOT EXISTS idx_customers_mobile ON ""Customers""(""Mobile"");
+            CREATE INDEX IF NOT EXISTS idx_customers_name ON ""Customers""(""Name"");
+            CREATE INDEX IF NOT EXISTS idx_customers_updated ON ""Customers""(""UpdatedAt"");
+            CREATE INDEX IF NOT EXISTS idx_lamporders_enddate ON ""LampOrders""(""EndDate"");
+            CREATE INDEX IF NOT EXISTS idx_lamporders_lampid ON ""LampOrders""(""LampId"");
+            CREATE INDEX IF NOT EXISTS idx_lamporders_updated ON ""LampOrders""(""UpdatedAt"");
         "
     };
 

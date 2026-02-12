@@ -32,20 +32,7 @@ public partial class CustomerSearchView : UserControl
 
             try
             {
-                // 先從雲端同步最新資料
-                try
-                {
-                    var supabaseService = App.Services.GetRequiredService<ISupabaseService>();
-                    if (supabaseService.IsConfigured)
-                    {
-                        await supabaseService.SyncFromCloudAsync();
-                    }
-                }
-                catch
-                {
-                    // 同步失敗時使用本地資料
-                }
-
+                // 直接查詢本地資料（背景同步服務會自動保持資料最新）
                 var repository = App.Services.GetRequiredService<ICustomerRepository>();
                 var customer = await repository.GetWithOrdersAsync(displayModel.Id);
                 if (customer == null) return;

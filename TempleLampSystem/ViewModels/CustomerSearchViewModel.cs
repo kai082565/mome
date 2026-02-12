@@ -40,24 +40,11 @@ public partial class CustomerSearchViewModel : ViewModelBase
     private async Task SearchAsync()
     {
         IsBusy = true;
-        StatusMessage = "正在從雲端同步資料...";
+        StatusMessage = "搜尋中...";
 
         try
         {
-            // 先從雲端同步最新客戶資料到本地
-            try
-            {
-                if (_supabaseService.IsConfigured)
-                {
-                    await _supabaseService.SyncFromCloudAsync();
-                }
-            }
-            catch (Exception syncEx)
-            {
-                System.Diagnostics.Debug.WriteLine($"雲端同步失敗，使用本地資料：{syncEx.Message}");
-            }
-
-            StatusMessage = "搜尋中...";
+            // 直接查詢本地資料庫（背景同步服務會自動保持資料最新）
             var customers = await _customerRepository.SearchByPhoneWithOrdersAsync(SearchPhone);
 
             Customers.Clear();

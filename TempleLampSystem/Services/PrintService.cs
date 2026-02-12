@@ -440,6 +440,18 @@ public class PrintService : IPrintService
             document.Blocks.Add(table);
         }
 
+        // 備註
+        if (!string.IsNullOrEmpty(letter.Note))
+        {
+            document.Blocks.Add(CreateSeparator());
+            document.Blocks.Add(CreateSectionTitle("【備註】"));
+            document.Blocks.Add(new Paragraph(new Run(letter.Note))
+            {
+                Margin = new Thickness(0, 2, 0, 5),
+                TextAlignment = TextAlignment.Left
+            });
+        }
+
         document.Blocks.Add(CreateSeparator());
 
         // 宮廟聯繫資訊
@@ -575,6 +587,14 @@ public class PrintService : IPrintService
                                 table.Cell().Padding(4).Text(order.StatusText).FontSize(11).FontColor(statusColor);
                             }
                         });
+                    }
+
+                    // 備註
+                    if (!string.IsNullOrEmpty(letter.Note))
+                    {
+                        column.Item().PaddingVertical(10).LineHorizontal(1).LineColor(QuestColors.Grey.Lighten2);
+                        column.Item().PaddingTop(10).Text("【備註】").Bold();
+                        column.Item().PaddingTop(5).Text(letter.Note);
                     }
 
                     column.Item().PaddingVertical(15).LineHorizontal(1).LineColor(QuestColors.Grey.Medium);

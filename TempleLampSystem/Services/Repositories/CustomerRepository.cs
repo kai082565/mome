@@ -13,9 +13,11 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
             return new List<Customer>();
 
         return await _dbSet
+            .AsNoTracking()
             .Where(c => (c.Phone != null && c.Phone.Contains(phone)) ||
                         (c.Mobile != null && c.Mobile.Contains(phone)))
             .OrderBy(c => c.Name)
+            .Take(200)
             .ToListAsync();
     }
 
@@ -25,8 +27,10 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
             return new List<Customer>();
 
         return await _dbSet
+            .AsNoTracking()
             .Where(c => c.Name.Contains(name))
             .OrderBy(c => c.Name)
+            .Take(200)
             .ToListAsync();
     }
 
@@ -40,51 +44,53 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
 
     public async Task<List<Customer>> SearchByPhoneWithOrdersAsync(string searchText)
     {
-        // 載入所有客戶
-        var allCustomers = await _dbSet
-            .Include(c => c.LampOrders)
-                .ThenInclude(o => o.Lamp)
-            .ToListAsync();
-
-        // 如果沒有搜尋條件，返回所有客戶
+        // 無搜尋條件時回傳最近更新的 200 筆
         if (string.IsNullOrWhiteSpace(searchText))
         {
-            return allCustomers.OrderBy(c => c.Name).ToList();
+            return await _dbSet
+                .AsNoTracking()
+                .Include(c => c.LampOrders)
+                    .ThenInclude(o => o.Lamp)
+                .OrderByDescending(c => c.UpdatedAt)
+                .Take(200)
+                .ToListAsync();
         }
 
         var keyword = searchText.Trim();
-
-        // 移除搜尋字串中的所有非數字字符（用於電話比對）
         var digitsOnly = new string(keyword.Where(char.IsDigit).ToArray());
+        var hasDigits = digitsOnly.Length > 0;
 
-        // 在記憶體中過濾 - 支援姓名、電話、手機搜尋
-        var results = new List<Customer>();
-        foreach (var c in allCustomers)
+        IQueryable<Customer> query;
+
+        if (hasDigits)
         {
-            // 檢查姓名
-            bool nameMatch = c.Name.Contains(keyword);
-
-            // 檢查電話號碼（帶-或純數字）
-            bool phoneMatch = !string.IsNullOrEmpty(c.Phone) &&
-                (c.Phone.Contains(keyword) ||
-                 (!string.IsNullOrEmpty(digitsOnly) && c.Phone.Replace("-", "").Contains(digitsOnly)));
-
-            // 檢查手機號碼（帶-或純數字）
-            bool mobileMatch = !string.IsNullOrEmpty(c.Mobile) &&
-                (c.Mobile.Contains(keyword) ||
-                 (!string.IsNullOrEmpty(digitsOnly) && c.Mobile.Replace("-", "").Contains(digitsOnly)));
-
-            // 檢查客戶編號
-            bool codeMatch = !string.IsNullOrEmpty(c.CustomerCode) &&
-                c.CustomerCode.Contains(keyword);
-
-            if (nameMatch || phoneMatch || mobileMatch || codeMatch)
-            {
-                results.Add(c);
-            }
+            // 搜尋包含數字：比對電話（含去除 - 的版本）、姓名、編號
+            query = _dbSet
+                .AsNoTracking()
+                .Include(c => c.LampOrders)
+                    .ThenInclude(o => o.Lamp)
+                .Where(c =>
+                    c.Name.Contains(keyword) ||
+                    (c.CustomerCode != null && c.CustomerCode.Contains(keyword)) ||
+                    (c.Phone != null && (c.Phone.Contains(keyword) || c.Phone.Replace("-", "").Contains(digitsOnly))) ||
+                    (c.Mobile != null && (c.Mobile.Contains(keyword) || c.Mobile.Replace("-", "").Contains(digitsOnly))));
+        }
+        else
+        {
+            // 純文字搜尋：比對姓名、編號
+            query = _dbSet
+                .AsNoTracking()
+                .Include(c => c.LampOrders)
+                    .ThenInclude(o => o.Lamp)
+                .Where(c =>
+                    c.Name.Contains(keyword) ||
+                    (c.CustomerCode != null && c.CustomerCode.Contains(keyword)));
         }
 
-        return results.OrderBy(c => c.Name).ToList();
+        return await query
+            .OrderBy(c => c.Name)
+            .Take(200)
+            .ToListAsync();
     }
 
     public override async Task UpdateAsync(Customer entity)
@@ -95,7 +101,7 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
 
     public async Task<List<Customer>> GetFamilyMembersAsync(Guid customerId)
     {
-        var customer = await _dbSet.FindAsync(customerId);
+        var customer = await _dbSet.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId);
         if (customer == null)
             return new List<Customer>();
 
@@ -106,6 +112,7 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
             return new List<Customer>();
 
         return await _dbSet
+            .AsNoTracking()
             .Include(c => c.LampOrders)
                 .ThenInclude(o => o.Lamp)
             .Where(c => c.Id != customerId &&
@@ -124,6 +131,7 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
             return new List<Customer>();
 
         return await _dbSet
+            .AsNoTracking()
             .Where(c =>
                 (hasPhone && c.Phone == phone) ||
                 (hasMobile && c.Mobile == mobile))
@@ -133,16 +141,16 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
 
     public async Task<string> GetNextCustomerCodeAsync()
     {
-        var allCodes = await _dbSet
+        // 用 SQL 直接取最大值，不載入所有記錄
+        var maxCode = await _dbSet
             .Where(c => c.CustomerCode != null && c.CustomerCode != "")
             .Select(c => c.CustomerCode!)
-            .ToListAsync();
+            .MaxAsync(c => (string?)c);
 
-        var maxCode = allCodes
-            .Select(code => int.TryParse(code, out var n) ? n : 0)
-            .DefaultIfEmpty(0)
-            .Max();
+        var maxNum = 0;
+        if (maxCode != null && int.TryParse(maxCode, out var n))
+            maxNum = n;
 
-        return (maxCode + 1).ToString("D6");
+        return (maxNum + 1).ToString("D6");
     }
 }
