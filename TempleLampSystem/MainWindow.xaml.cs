@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 using TempleLampSystem.Models;
 using TempleLampSystem.Services;
 using TempleLampSystem.ViewModels;
@@ -119,5 +120,79 @@ public partial class MainWindow : Window
     private void OnCustomerRemoved(object? sender, CustomerDisplayModel customer)
     {
         CustomerSearchView.DeselectCustomer(customer.Id);
+    }
+
+    private async void ImportDataButton_Click(object sender, RoutedEventArgs e)
+    {
+        var confirm = MessageBox.Show(
+            "匯入舊系統資料將會清除現有的所有客戶和點燈資料！\n\n確定要繼續嗎？",
+            "匯入舊系統資料",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (confirm != MessageBoxResult.Yes) return;
+
+        // 選擇客戶 CSV
+        var customerDialog = new OpenFileDialog
+        {
+            Title = "選擇客戶 CSV 檔案 (customers.csv)",
+            Filter = "CSV 檔案 (*.csv)|*.csv",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+        };
+        if (customerDialog.ShowDialog() != true) return;
+
+        // 選擇點燈 CSV
+        var orderDialog = new OpenFileDialog
+        {
+            Title = "選擇點燈 CSV 檔案 (lamporders.csv)",
+            Filter = "CSV 檔案 (*.csv)|*.csv",
+            InitialDirectory = System.IO.Path.GetDirectoryName(customerDialog.FileName)
+        };
+        if (orderDialog.ShowDialog() != true) return;
+
+        ImportDataButton.IsEnabled = false;
+        ImportDataButton.Content = "匯入中...";
+
+        try
+        {
+            using var scope = App.Services.CreateScope();
+            var importService = scope.ServiceProvider.GetRequiredService<DataImportService>();
+
+            var progress = new Progress<DataImportService.ImportProgress>(p =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    ImportDataButton.Content = p.CurrentStep;
+                });
+            });
+
+            var result = await Task.Run(async () =>
+                await importService.ImportAsync(customerDialog.FileName, orderDialog.FileName, progress));
+
+            var msg = $"匯入完成！\n\n" +
+                      $"客戶：{result.ImportedCustomers}/{result.TotalCustomers}\n" +
+                      $"點燈：{result.ImportedOrders}/{result.TotalOrders}\n" +
+                      $"略過：{result.SkippedOrders}";
+
+            if (result.Errors.Count > 0)
+            {
+                msg += $"\n\n錯誤 ({result.Errors.Count} 筆)：\n" +
+                       string.Join("\n", result.Errors.Take(10));
+            }
+
+            MessageBox.Show(msg, "匯入結果", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            // 重新載入資料
+            await _lampOrderViewModel.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"匯入失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            ImportDataButton.IsEnabled = true;
+            ImportDataButton.Content = "匯入舊資料";
+        }
     }
 }

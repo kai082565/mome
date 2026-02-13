@@ -27,18 +27,18 @@ public static class DbInitializer
         var lamps = new List<Lamp>
         {
             new() { LampCode = "TAISUI",       LampName = "太歲燈",     Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 4880 },
-            new() { LampCode = "PINGAN",       LampName = "平安燈",     MaxQuota = 0 },
+            new() { LampCode = "PINGAN",       LampName = "平安燈",     Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 0 },
             new() { LampCode = "GUANGMING",    LampName = "光明燈",     Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 3000 },
             new() { LampCode = "YOUXIANG",     LampName = "油香",       Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 0 },
             new() { LampCode = "YOUXIANG_WU",  LampName = "油香(無)",   Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 0 },
-            new() { LampCode = "YOUXIANG_JN",  LampName = "油香急難救", MaxQuota = 0 },
+            new() { LampCode = "YOUXIANG_JN",  LampName = "油香急難救", Temple = "聖雲宮", Deity = "保生大帝", MaxQuota = 0 },
             new() { LampCode = "YOUXIANG_FD",  LampName = "油香福德祠", Temple = "福德祠", Deity = "福德正神", MaxQuota = 0 },
             new() { LampCode = "FACAI",        LampName = "發財燈",     Temple = "福德祠", Deity = "福德正神", MaxQuota = 0 },
-            new() { LampCode = "SHENGPING",    LampName = "聖平",       MaxQuota = 0 },
+            new() { LampCode = "SHENGPING",    LampName = "聖平",       Temple = "聖雲宮", Deity = "保生大帝", MaxQuota = 0 },
             new() { LampCode = "SHENGGUANG",   LampName = "聖光",       Temple = "聖雲宮", Deity = "保生大帝", MaxQuota = 3000 },
             new() { LampCode = "SHENGYOU",     LampName = "聖油",       Temple = "聖雲宮", Deity = "保生大帝", MaxQuota = 0 },
-            new() { LampCode = "KAOSHANG",     LampName = "犒賞會",     MaxQuota = 0 },
-            new() { LampCode = "FUYOU",        LampName = "福油",       MaxQuota = 0 },
+            new() { LampCode = "KAOSHANG",     LampName = "犒賞會",     Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 0 },
+            new() { LampCode = "FUYOU",        LampName = "福油",       Temple = "福德祠", Deity = "福德正神", MaxQuota = 0 },
             new() { LampCode = "HEJIA_PINGAN", LampName = "闔家平安燈", Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 70 },
         };
 
@@ -52,18 +52,18 @@ public static class DbInitializer
     private static readonly Dictionary<string, (string? Temple, string? Deity, int MaxQuota)> LampConfigMap = new()
     {
         { "TAISUI",       ("鳳屏宮", "神農大帝", 4880) },  // 太歲燈
-        { "PINGAN",       (null,     null,       0) },     // 平安燈
+        { "PINGAN",       ("鳳屏宮", "神農大帝", 0) },     // 平安燈
         { "GUANGMING",    ("鳳屏宮", "神農大帝", 3000) },  // 光明燈
         { "YOUXIANG",     ("鳳屏宮", "神農大帝", 0) },     // 油香
         { "YOUXIANG_WU",  ("鳳屏宮", "神農大帝", 0) },     // 油香(無)
-        { "YOUXIANG_JN",  (null,     null,       0) },     // 油香急難救
+        { "YOUXIANG_JN",  ("聖雲宮", "保生大帝", 0) },     // 油香急難救
         { "YOUXIANG_FD",  ("福德祠", "福德正神", 0) },     // 油香福德祠
         { "FACAI",        ("福德祠", "福德正神", 0) },     // 發財燈
-        { "SHENGPING",    (null,     null,       0) },     // 聖平
+        { "SHENGPING",    ("聖雲宮", "保生大帝", 0) },     // 聖平
         { "SHENGGUANG",   ("聖雲宮", "保生大帝", 3000) },  // 聖光
         { "SHENGYOU",     ("聖雲宮", "保生大帝", 0) },     // 聖油
-        { "KAOSHANG",     (null,     null,       0) },     // 犒賞會
-        { "FUYOU",        (null,     null,       0) },     // 福油
+        { "KAOSHANG",     ("鳳屏宮", "神農大帝", 0) },     // 犒賞會
+        { "FUYOU",        ("福德祠", "福德正神", 0) },     // 福油
         { "HEJIA_PINGAN", ("鳳屏宮", "神農大帝", 70) },    // 闔家平安燈
     };
 

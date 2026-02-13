@@ -68,9 +68,18 @@ public partial class LampOrderViewModel : ViewModelBase
     private static readonly Dictionary<string, decimal> DefaultPriceMap = new()
     {
         { "TAISUI",       300 },   // 太歲燈
+        { "PINGAN",       100 },   // 平安燈
         { "GUANGMING",    300 },   // 光明燈
+        { "YOUXIANG",     100 },   // 油香
+        { "YOUXIANG_WU",  100 },   // 油香(無)
+        { "YOUXIANG_JN",  100 },   // 油香急難救
+        { "YOUXIANG_FD",  100 },   // 油香福德祠
         { "FACAI",        300 },   // 發財燈
+        { "SHENGPING",    100 },   // 聖平
         { "SHENGGUANG",   300 },   // 聖光
+        { "SHENGYOU",     100 },   // 聖油
+        { "KAOSHANG",     300 },   // 犒賞會
+        { "FUYOU",        0 },     // 福油
         { "HEJIA_PINGAN", 1500 },  // 闔家平安燈
     };
 

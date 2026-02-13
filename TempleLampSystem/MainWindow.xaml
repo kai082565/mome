@@ -73,17 +73,31 @@
                             <TextBlock Text="&#x2500;&#x2500;&#x2500; &#x2726; &#x2500;&#x2500;&#x2500;" Foreground="#DAA520" FontSize="16"/>
                         </StackPanel>
 
-                        <!-- 右側宮廟名稱 -->
-                        <Border Grid.Column="2" VerticalAlignment="Center"
-                                BorderBrush="{StaticResource GoldBrush}" BorderThickness="2"
-                                CornerRadius="6" Padding="18,6"
-                                Background="#3A0808">
-                            <TextBlock Text="鳳屏宮"
-                                       FontSize="24"
-                                       FontWeight="Bold"
-                                       Foreground="#FFD700"
-                                       FontFamily="{StaticResource PrimaryFont}"/>
-                        </Border>
+                        <!-- 右側宮廟名稱 + 匯入按鈕 -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="ImportDataButton"
+                                    Content="匯入舊資料"
+                                    Click="ImportDataButton_Click"
+                                    FontSize="12"
+                                    Foreground="#E8D5B5"
+                                    Background="#5A1A1A"
+                                    BorderBrush="{StaticResource GoldBrush}"
+                                    BorderThickness="1"
+                                    Padding="12,6"
+                                    Margin="0,0,12,0"
+                                    Cursor="Hand"
+                                    FontFamily="{StaticResource PrimaryFont}"/>
+                            <Border VerticalAlignment="Center"
+                                    BorderBrush="{StaticResource GoldBrush}" BorderThickness="2"
+                                    CornerRadius="6" Padding="18,6"
+                                    Background="#3A0808">
+                                <TextBlock Text="鳳屏宮"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           Foreground="#FFD700"
+                                           FontFamily="{StaticResource PrimaryFont}"/>
+                            </Border>
+                        </StackPanel>
                     </Grid>
                 </Border>
 

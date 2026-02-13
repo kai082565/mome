@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IConflictResolutionService, ConflictResolutionService>();
         services.AddScoped<IUpdateService, UpdateService>();
         services.AddSingleton<IAutoSyncService, AutoSyncService>();
+        services.AddScoped<DataImportService>();
 
         // ViewModels
         services.AddScoped<CustomerSearchViewModel>();
