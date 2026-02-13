@@ -6,11 +6,14 @@ namespace TempleLampSystem.Models;
 public class CertificateData
 {
     public string Name { get; set; } = string.Empty;
+    public string? CustomerCode { get; set; }
     public string? Phone { get; set; }
     public string? Address { get; set; }
     public string? BirthYear { get; set; }
     public string? BirthMonth { get; set; }
     public string? BirthDay { get; set; }
+    public string? BirthHour { get; set; }
+    public string PrintDate { get; set; } = string.Empty;
     public string LunarStartDate { get; set; } = string.Empty;
     public string LunarEndDate { get; set; } = string.Empty;
     public string Amount { get; set; } = string.Empty;
@@ -34,16 +37,28 @@ public class CertificateData
         return new CertificateData
         {
             Name = customer.Name,
+            CustomerCode = customer.CustomerCode,
             Phone = customer.Phone ?? customer.Mobile,
             Address = string.IsNullOrEmpty(fullAddress) ? null : fullAddress,
-            BirthYear = customer.BirthYear?.ToString(),
-            BirthMonth = customer.BirthMonth?.ToString(),
-            BirthDay = customer.BirthDay?.ToString(),
+            BirthYear = FormatBirthField(customer.BirthYear),
+            BirthMonth = FormatBirthField(customer.BirthMonth),
+            BirthDay = FormatBirthField(customer.BirthDay),
+            BirthHour = customer.BirthHour,
+            PrintDate = DateTime.Now.ToString("yyyy/MM/dd"),
             LunarStartDate = $"{rocYear}/01/15",
             LunarEndDate = $"{rocYear}/12/24",
-            Amount = order.Price.ToString("N0"),
+            Amount = $"${order.Price:N0}元整",
             LampType = lamp.LampName
         };
+    }
+
+    /// <summary>
+    /// 0 顯示「吉」，其他顯示數字
+    /// </summary>
+    private static string? FormatBirthField(int? value)
+    {
+        if (value == null) return null;
+        return value == 0 ? "吉" : value.ToString();
     }
 
     /// <summary>
@@ -72,14 +87,17 @@ public class CertificateData
         return new CertificateData
         {
             Name = allNames,
+            CustomerCode = firstCustomer.CustomerCode,
             Phone = firstCustomer.Phone ?? firstCustomer.Mobile,
             Address = string.IsNullOrEmpty(fullAddress) ? null : fullAddress,
-            BirthYear = firstCustomer.BirthYear?.ToString(),
-            BirthMonth = firstCustomer.BirthMonth?.ToString(),
-            BirthDay = firstCustomer.BirthDay?.ToString(),
+            BirthYear = FormatBirthField(firstCustomer.BirthYear),
+            BirthMonth = FormatBirthField(firstCustomer.BirthMonth),
+            BirthDay = FormatBirthField(firstCustomer.BirthDay),
+            BirthHour = firstCustomer.BirthHour,
+            PrintDate = DateTime.Now.ToString("yyyy/MM/dd"),
             LunarStartDate = $"{rocYear}/01/15",
             LunarEndDate = $"{rocYear}/12/24",
-            Amount = firstOrder.Price.ToString("N0"),
+            Amount = $"${firstOrder.Price:N0}元整",
             LampType = lamp.LampName
         };
     }

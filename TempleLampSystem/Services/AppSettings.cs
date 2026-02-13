@@ -38,11 +38,14 @@ public class CertificateFormSettings
     public double PageHeightMm { get; set; } = 0;
 
     public CertificateFieldPosition Name { get; set; } = new() { X = 0, Y = 0, FontSize = 14 };
+    public CertificateFieldPosition CustomerCode { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
     public CertificateFieldPosition Phone { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
     public CertificateFieldPosition Address { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
     public CertificateFieldPosition BirthYear { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
     public CertificateFieldPosition BirthMonth { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
     public CertificateFieldPosition BirthDay { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition BirthHour { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition PrintDate { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
     public int RocYear { get; set; } = 115;
     public CertificateFieldPosition LunarStartDate { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
     public CertificateFieldPosition LunarEndDate { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };

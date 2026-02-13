@@ -68,11 +68,14 @@ public class PrintService : IPrintService
 
             // 依序加入各欄位文字
             AddField(page, settings.Name, data.Name);
+            AddField(page, settings.CustomerCode, data.CustomerCode);
+            AddField(page, settings.PrintDate, data.PrintDate);
             AddField(page, settings.Phone, data.Phone);
             AddField(page, settings.Address, data.Address);
             AddField(page, settings.BirthYear, data.BirthYear);
             AddField(page, settings.BirthMonth, data.BirthMonth);
             AddField(page, settings.BirthDay, data.BirthDay);
+            AddField(page, settings.BirthHour, data.BirthHour);
             AddField(page, settings.LunarStartDate, data.LunarStartDate);
             AddField(page, settings.LunarEndDate, data.LunarEndDate);
             AddField(page, settings.Amount, data.Amount);
