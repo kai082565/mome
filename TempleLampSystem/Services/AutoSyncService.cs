@@ -1,4 +1,3 @@
-using System.Windows.Threading;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TempleLampSystem.Models;
@@ -8,9 +7,10 @@ namespace TempleLampSystem.Services;
 public class AutoSyncService : IAutoSyncService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly DispatcherTimer _timer;
+    private CancellationTokenSource? _cts;
     private bool _isRunning;
     private bool _isSyncing; // 防止同步重疊執行
+    private bool _isPaused;  // 匯入期間暫停同步
     private bool _lastOnlineStatus;
     private DateTime? _lastSyncTime;
     private int _syncCycleCount;
@@ -26,39 +26,70 @@ public class AutoSyncService : IAutoSyncService
     public AutoSyncService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _timer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromSeconds(30)
-        };
-        _timer.Tick += OnTimerTick;
     }
 
-    private async void OnTimerTick(object? sender, EventArgs e)
+    public void Pause()
     {
-        // 防止上一次同步還沒結束就觸發下一次（網路慢時會發生）
-        if (_isSyncing) return;
+        _isPaused = true;
+    }
 
-        try
-        {
-            _isSyncing = true;
-            await CheckAndSyncAsync();
-        }
-        catch
-        {
-            // 防止 Timer 例外導致閃退
-        }
-        finally
-        {
-            _isSyncing = false;
-        }
+    public void Resume()
+    {
+        _isPaused = false;
+        _lastSyncTime = DateTime.Now; // 跳過匯入期間的變動，避免重複上傳
     }
 
     public void Start()
     {
         if (_isRunning) return;
         _isRunning = true;
-        _timer.Start();
-        _ = SafeCheckAndSyncAsync();
+        _cts = new CancellationTokenSource();
+        _ = RunSyncLoopAsync(_cts.Token);
+    }
+
+    public void Stop()
+    {
+        _isRunning = false;
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = null;
+    }
+
+    /// <summary>
+    /// 在背景線程執行同步迴圈，完全不佔用 UI 線程
+    /// </summary>
+    private async Task RunSyncLoopAsync(CancellationToken ct)
+    {
+        // 啟動時先做一次同步
+        await SafeCheckAndSyncAsync();
+
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(30), ct);
+            }
+            catch (TaskCanceledException)
+            {
+                break;
+            }
+
+            if (_isSyncing || _isPaused) continue;
+
+            try
+            {
+                _isSyncing = true;
+                await CheckAndSyncAsync();
+            }
+            catch
+            {
+                // 防止同步例外導致閃退
+            }
+            finally
+            {
+                _isSyncing = false;
+            }
+        }
     }
 
     private async Task SafeCheckAndSyncAsync()
@@ -71,12 +102,6 @@ public class AutoSyncService : IAutoSyncService
         {
             // 防止啟動時的同步錯誤導致閃退
         }
-    }
-
-    public void Stop()
-    {
-        _isRunning = false;
-        _timer.Stop();
     }
 
     private async Task CheckAndSyncAsync()
@@ -208,56 +233,63 @@ public class AutoSyncService : IAutoSyncService
             // 比對訂單（先刪訂單再刪客戶，避免外鍵衝突）
             if (cloudOrderIds.Count > 0)
             {
-                var localOrders = await context.LampOrders
-                    .Select(o => new { o.Id })
+                var localOrderIds = await context.LampOrders
+                    .Select(o => o.Id)
                     .ToListAsync();
 
-                foreach (var local in localOrders)
-                {
-                    var idStr = local.Id.ToString();
-                    if (!cloudOrderIds.Contains(idStr) && !pendingUploadSet.Contains(idStr))
+                var orderIdsToDelete = localOrderIds
+                    .Where(id =>
                     {
-                        var entity = await context.LampOrders.FindAsync(local.Id);
-                        if (entity != null)
-                        {
-                            context.LampOrders.Remove(entity);
-                            deleted++;
-                        }
-                    }
+                        var idStr = id.ToString();
+                        return !cloudOrderIds.Contains(idStr) && !pendingUploadSet.Contains(idStr);
+                    })
+                    .ToList();
+
+                if (orderIdsToDelete.Count > 0)
+                {
+                    await context.LampOrders
+                        .Where(o => orderIdsToDelete.Contains(o.Id))
+                        .ExecuteDeleteAsync();
+                    deleted += orderIdsToDelete.Count;
                 }
             }
 
             // 比對客戶
             if (cloudCustomerIds.Count > 0)
             {
-                var localCustomers = await context.Customers
-                    .Select(c => new { c.Id })
+                var localCustomerIds = await context.Customers
+                    .Select(c => c.Id)
                     .ToListAsync();
 
-                foreach (var local in localCustomers)
-                {
-                    var idStr = local.Id.ToString();
-                    if (!cloudCustomerIds.Contains(idStr) && !pendingUploadSet.Contains(idStr))
+                var customerIdsToDelete = localCustomerIds
+                    .Where(id =>
                     {
-                        // 先確認此客戶沒有本地訂單（可能是剛建的）
-                        var hasLocalOrders = await context.LampOrders
-                            .AnyAsync(o => o.CustomerId == local.Id);
-                        if (!hasLocalOrders)
-                        {
-                            var entity = await context.Customers.FindAsync(local.Id);
-                            if (entity != null)
-                            {
-                                context.Customers.Remove(entity);
-                                deleted++;
-                            }
-                        }
+                        var idStr = id.ToString();
+                        return !cloudCustomerIds.Contains(idStr) && !pendingUploadSet.Contains(idStr);
+                    })
+                    .ToList();
+
+                if (customerIdsToDelete.Count > 0)
+                {
+                    // 只刪除沒有本地訂單的客戶
+                    var customerIdsWithOrders = await context.LampOrders
+                        .Where(o => customerIdsToDelete.Contains(o.CustomerId))
+                        .Select(o => o.CustomerId)
+                        .Distinct()
+                        .ToListAsync();
+
+                    var safeToDelete = customerIdsToDelete
+                        .Where(id => !customerIdsWithOrders.Contains(id))
+                        .ToList();
+
+                    if (safeToDelete.Count > 0)
+                    {
+                        await context.Customers
+                            .Where(c => safeToDelete.Contains(c.Id))
+                            .ExecuteDeleteAsync();
+                        deleted += safeToDelete.Count;
                     }
                 }
-            }
-
-            if (deleted > 0)
-            {
-                await context.SaveChangesAsync();
             }
         }
         catch (Exception ex)

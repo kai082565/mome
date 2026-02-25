@@ -90,6 +90,17 @@ public class SupabaseService : ISupabaseService
         return customer;
     }
 
+    public async Task UpsertCustomerBatchAsync(List<Customer> customers)
+    {
+        if (!_isConfigured || _client == null)
+            throw new InvalidOperationException("Supabase 未設定");
+
+        if (customers.Count == 0) return;
+
+        var supabaseModels = customers.Select(SupabaseCustomer.FromCustomer).ToList();
+        await _client.From<SupabaseCustomer>().Upsert(supabaseModels);
+    }
+
     public async Task DeleteCustomerAsync(Guid id)
     {
         if (!_isConfigured || _client == null) return;
@@ -184,6 +195,17 @@ public class SupabaseService : ISupabaseService
         var supabaseOrder = SupabaseLampOrder.FromLampOrder(order);
         await _client.From<SupabaseLampOrder>().Upsert(supabaseOrder);
         return order;
+    }
+
+    public async Task UpsertLampOrderBatchAsync(List<LampOrder> orders)
+    {
+        if (!_isConfigured || _client == null)
+            throw new InvalidOperationException("Supabase 未設定");
+
+        if (orders.Count == 0) return;
+
+        var supabaseModels = orders.Select(SupabaseLampOrder.FromLampOrder).ToList();
+        await _client.From<SupabaseLampOrder>().Upsert(supabaseModels);
     }
 
     public async Task DeleteLampOrderAsync(Guid id)
@@ -304,13 +326,6 @@ public class SupabaseService : ISupabaseService
                 orderQuery = orderQuery.Where(o => o.UpdatedAt > since.Value);
             }
 
-            var customers = await customerQuery.ToListAsync();
-            foreach (var customer in customers)
-            {
-                await UpsertCustomerAsync(customer);
-                result.CustomersUploaded++;
-            }
-
             // 燈種很少，全量同步即可
             var lamps = await _localContext.Lamps.AsNoTracking().ToListAsync();
             foreach (var lamp in lamps)
@@ -318,11 +333,22 @@ public class SupabaseService : ISupabaseService
                 await UpsertLampAsync(lamp);
             }
 
-            var orders = await orderQuery.ToListAsync();
-            foreach (var order in orders)
+            // 批量上傳客戶（每批 200 筆）
+            var customers = await customerQuery.ToListAsync();
+            for (var i = 0; i < customers.Count; i += 200)
             {
-                await UpsertLampOrderAsync(order);
-                result.OrdersUploaded++;
+                var batch = customers.Skip(i).Take(200).ToList();
+                await UpsertCustomerBatchAsync(batch);
+                result.CustomersUploaded += batch.Count;
+            }
+
+            // 批量上傳訂單（每批 200 筆）
+            var orders = await orderQuery.ToListAsync();
+            for (var i = 0; i < orders.Count; i += 200)
+            {
+                var batch = orders.Skip(i).Take(200).ToList();
+                await UpsertLampOrderBatchAsync(batch);
+                result.OrdersUploaded += batch.Count;
             }
 
             result.Success = true;

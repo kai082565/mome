@@ -32,6 +32,10 @@ public interface ISupabaseService
     // 名額查詢
     Task<int> GetCloudOrderCountAsync(int lampId, int year);
 
+    // 批量上傳
+    Task UpsertCustomerBatchAsync(List<Customer> customers);
+    Task UpsertLampOrderBatchAsync(List<LampOrder> orders);
+
     // 同步（支援增量）
     Task<SyncResult> SyncToCloudAsync(DateTime? since = null);
     Task<SyncResult> SyncFromCloudAsync(DateTime? since = null);

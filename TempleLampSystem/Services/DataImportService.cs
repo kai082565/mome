@@ -199,55 +199,76 @@ public class DataImportService
             result.ImportedOrders += orderBatch.Count;
         }
 
-        // 6. 上傳到 Supabase
+        // 6. 批量上傳到 Supabase（每批 200 筆，3 條並行）
         if (_supabaseService.IsConfigured)
         {
-            result.CurrentStep = "上傳到雲端（這可能需要幾分鐘）...";
+            result.CurrentStep = "上傳到雲端...";
             progress?.Report(result);
 
             try
             {
-                // 先上傳燈種
+                // 先上傳燈種（數量極少）
                 foreach (var lamp in lamps)
                 {
                     try { await _supabaseService.UpsertLampAsync(lamp); } catch { }
                 }
 
-                // 分批上傳客戶
+                // 批量上傳客戶（每批 200 筆，最多 3 個並行請求）
                 var allCustomers = await _context.Customers.AsNoTracking().ToListAsync();
                 var uploaded = 0;
-                foreach (var c in allCustomers)
+                var semaphore = new SemaphoreSlim(3);
+                var customerBatches = new List<List<Customer>>();
+                for (var i = 0; i < allCustomers.Count; i += 200)
+                    customerBatches.Add(allCustomers.Skip(i).Take(200).ToList());
+
+                var customerTasks = customerBatches.Select(async batch =>
                 {
+                    await semaphore.WaitAsync();
                     try
                     {
-                        await _supabaseService.UpsertCustomerAsync(c);
-                        uploaded++;
-                        if (uploaded % 200 == 0)
-                        {
-                            result.CurrentStep = $"上傳客戶到雲端 {uploaded}/{allCustomers.Count}...";
-                            progress?.Report(result);
-                        }
+                        await _supabaseService.UpsertCustomerBatchAsync(batch);
+                        var count = Interlocked.Add(ref uploaded, batch.Count);
+                        result.CurrentStep = $"上傳客戶到雲端 {count}/{allCustomers.Count}...";
+                        progress?.Report(result);
                     }
-                    catch { }
-                }
+                    catch (Exception ex)
+                    {
+                        result.Errors.Add($"客戶批量上傳錯誤：{ex.Message}");
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                });
+                await Task.WhenAll(customerTasks);
 
-                // 分批上傳點燈紀錄
+                // 批量上傳點燈紀錄（每批 200 筆，最多 3 個並行請求）
                 var allOrders = await _context.LampOrders.AsNoTracking().ToListAsync();
                 uploaded = 0;
-                foreach (var o in allOrders)
+                var orderBatches = new List<List<LampOrder>>();
+                for (var i = 0; i < allOrders.Count; i += 200)
+                    orderBatches.Add(allOrders.Skip(i).Take(200).ToList());
+
+                var orderTasks = orderBatches.Select(async batch =>
                 {
+                    await semaphore.WaitAsync();
                     try
                     {
-                        await _supabaseService.UpsertLampOrderAsync(o);
-                        uploaded++;
-                        if (uploaded % 200 == 0)
-                        {
-                            result.CurrentStep = $"上傳點燈到雲端 {uploaded}/{allOrders.Count}...";
-                            progress?.Report(result);
-                        }
+                        await _supabaseService.UpsertLampOrderBatchAsync(batch);
+                        var count = Interlocked.Add(ref uploaded, batch.Count);
+                        result.CurrentStep = $"上傳點燈到雲端 {count}/{allOrders.Count}...";
+                        progress?.Report(result);
                     }
-                    catch { }
-                }
+                    catch (Exception ex)
+                    {
+                        result.Errors.Add($"點燈批量上傳錯誤：{ex.Message}");
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                });
+                await Task.WhenAll(orderTasks);
             }
             catch (Exception ex)
             {

@@ -153,6 +153,9 @@ public partial class MainWindow : Window
         ImportDataButton.IsEnabled = false;
         ImportDataButton.Content = "匯入中...";
 
+        // 匯入期間暫停自動同步，避免衝突和延遲
+        _autoSyncService.Pause();
+
         try
         {
             using var scope = App.Services.CreateScope();
@@ -191,6 +194,8 @@ public partial class MainWindow : Window
         }
         finally
         {
+            // 恢復自動同步
+            _autoSyncService.Resume();
             ImportDataButton.IsEnabled = true;
             ImportDataButton.Content = "匯入舊資料";
         }

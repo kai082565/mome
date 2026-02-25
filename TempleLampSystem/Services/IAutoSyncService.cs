@@ -4,6 +4,8 @@ public interface IAutoSyncService
 {
     void Start();
     void Stop();
+    void Pause();
+    void Resume();
     bool IsRunning { get; }
     event EventHandler<SyncStatusEventArgs>? SyncStatusChanged;
 }
