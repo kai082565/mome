@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
     public DbSet<LampOrder> LampOrders => Set<LampOrder>();
     public DbSet<SyncQueueItem> SyncQueue => Set<SyncQueueItem>();
     public DbSet<SyncConflict> SyncConflicts => Set<SyncConflict>();
+    public DbSet<Staff> Staff => Set<Staff>();
 
     public AppDbContext() { }
 
@@ -56,6 +57,21 @@ public class AppDbContext : DbContext
             entity.Property(e => e.UpdatedAt).IsRequired();
         });
 
+        // ===== Staff =====
+        modelBuilder.Entity<Staff>(entity =>
+        {
+            entity.ToTable("Staff");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnType("TEXT");
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.PasswordHash).IsRequired();
+            entity.Property(e => e.Salt).IsRequired();
+            entity.Property(e => e.Role).IsRequired().HasDefaultValue(StaffRole.Staff);
+            entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
+
         // ===== Lamp =====
         modelBuilder.Entity<Lamp>(entity =>
         {
@@ -96,6 +112,8 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Year).IsRequired();
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
+            entity.Property(e => e.StaffId).HasMaxLength(50);
+            entity.Property(e => e.StaffName).HasMaxLength(50);
 
             entity.HasOne(e => e.Customer)
                   .WithMany(c => c.LampOrders)

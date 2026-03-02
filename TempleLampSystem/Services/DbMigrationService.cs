@@ -112,6 +112,19 @@ public static class DbMigrationService
             CREATE INDEX IF NOT EXISTS idx_lamporders_enddate ON ""LampOrders""(""EndDate"");
             CREATE INDEX IF NOT EXISTS idx_lamporders_lampid ON ""LampOrders""(""LampId"");
             CREATE INDEX IF NOT EXISTS idx_lamporders_updated ON ""LampOrders""(""UpdatedAt"");
+        ",
+        ["2.1.0"] = @"
+            CREATE TABLE IF NOT EXISTS ""Staff"" (
+                ""Id"" TEXT PRIMARY KEY,
+                ""Name"" TEXT NOT NULL UNIQUE,
+                ""PasswordHash"" TEXT NOT NULL,
+                ""Salt"" TEXT NOT NULL,
+                ""Role"" INTEGER NOT NULL DEFAULT 0,
+                ""IsActive"" INTEGER NOT NULL DEFAULT 1,
+                ""CreatedAt"" TEXT NOT NULL
+            );
+            ALTER TABLE ""LampOrders"" ADD COLUMN ""StaffId"" TEXT;
+            ALTER TABLE ""LampOrders"" ADD COLUMN ""StaffName"" TEXT;
         "
     };
 

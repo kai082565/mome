@@ -12,7 +12,7 @@ public interface ILampOrderService
     /// <summary>
     /// 建立點燈紀錄
     /// </summary>
-    Task<LampOrder> CreateLampOrderAsync(Guid customerId, int lampId, decimal price, string? note = null);
+    Task<LampOrder> CreateLampOrderAsync(Guid customerId, int lampId, decimal price, string? note = null, string? staffId = null, string? staffName = null);
 
     /// <summary>
     /// 取得即將到期的點燈紀錄

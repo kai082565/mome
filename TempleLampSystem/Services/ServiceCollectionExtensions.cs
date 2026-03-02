@@ -21,9 +21,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPrintService, PrintService>();
         services.AddScoped<ISupabaseService, SupabaseService>();
         services.AddScoped<ISyncQueueService, SyncQueueService>();
-        services.AddScoped<IConflictResolutionService, ConflictResolutionService>();
         services.AddScoped<IUpdateService, UpdateService>();
         services.AddSingleton<IAutoSyncService, AutoSyncService>();
+        services.AddSingleton<SessionService>();
+        services.AddScoped<IStaffService, StaffService>();
         services.AddScoped<DataImportService>();
 
         // ViewModels

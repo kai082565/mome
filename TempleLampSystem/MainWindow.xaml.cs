@@ -6,6 +6,7 @@ using Microsoft.Win32;
 using TempleLampSystem.Models;
 using TempleLampSystem.Services;
 using TempleLampSystem.ViewModels;
+using TempleLampSystem.Views;
 
 namespace TempleLampSystem;
 
@@ -14,6 +15,7 @@ public partial class MainWindow : Window
     private readonly CustomerSearchViewModel _customerSearchViewModel;
     private readonly LampOrderViewModel _lampOrderViewModel;
     private readonly IAutoSyncService _autoSyncService;
+    private readonly SessionService _sessionService;
     private readonly DispatcherTimer _clockTimer;
 
     public MainWindow()
@@ -23,6 +25,7 @@ public partial class MainWindow : Window
         _customerSearchViewModel = App.Services.GetRequiredService<CustomerSearchViewModel>();
         _lampOrderViewModel = App.Services.GetRequiredService<LampOrderViewModel>();
         _autoSyncService = App.Services.GetRequiredService<IAutoSyncService>();
+        _sessionService = App.Services.GetRequiredService<SessionService>();
 
         CustomerSearchView.DataContext = _customerSearchViewModel;
         LampOrderView.DataContext = _lampOrderViewModel;
@@ -51,6 +54,9 @@ public partial class MainWindow : Window
     {
         try
         {
+            // 顯示登入者
+            UpdateStaffDisplay();
+
             await _lampOrderViewModel.InitializeAsync();
             _autoSyncService.Start();
             CurrentTimeText.Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
@@ -58,6 +64,18 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             MessageBox.Show($"初始化失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void UpdateStaffDisplay()
+    {
+        if (_sessionService.CurrentStaff != null)
+        {
+            var roleText = _sessionService.IsAdmin ? "（管理員）" : "";
+            LoginStaffText.Text = $"登入：{_sessionService.CurrentStaff.Name}{roleText}";
+            AdminDashboardButton.Visibility = _sessionService.IsAdmin
+                ? System.Windows.Visibility.Visible
+                : System.Windows.Visibility.Collapsed;
         }
     }
 
@@ -120,6 +138,34 @@ public partial class MainWindow : Window
     private void OnCustomerRemoved(object? sender, CustomerDisplayModel customer)
     {
         CustomerSearchView.DeselectCustomer(customer.Id);
+    }
+
+    private void AdminDashboardButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dashboardWindow = new AdminDashboardWindow
+        {
+            Owner = this
+        };
+        dashboardWindow.ShowDialog();
+    }
+
+    private void LogoutButton_Click(object sender, RoutedEventArgs e)
+    {
+        var confirm = MessageBox.Show("確定要登出嗎？", "登出", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (confirm != MessageBoxResult.Yes) return;
+
+        _sessionService.Logout();
+
+        var loginWindow = new LoginWindow();
+        loginWindow.ShowDialog();
+
+        if (!loginWindow.LoginSucceeded)
+        {
+            Application.Current.Shutdown();
+            return;
+        }
+
+        UpdateStaffDisplay();
     }
 
     private async void ImportDataButton_Click(object sender, RoutedEventArgs e)

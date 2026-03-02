@@ -75,7 +75,7 @@ public class LampOrderService : ILampOrderService
                           o.EndDate > today);
     }
 
-    public async Task<LampOrder> CreateLampOrderAsync(Guid customerId, int lampId, decimal price, string? note = null)
+    public async Task<LampOrder> CreateLampOrderAsync(Guid customerId, int lampId, decimal price, string? note = null, string? staffId = null, string? staffName = null)
     {
         var reason = await GetCannotOrderReasonAsync(customerId, lampId);
         if (reason != null)
@@ -94,7 +94,9 @@ public class LampOrderService : ILampOrderService
             Price = price,
             Note = note,
             CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
+            UpdatedAt = DateTime.Now,
+            StaffId = staffId,
+            StaffName = staffName
         };
 
         // 寫入本地
@@ -135,27 +137,5 @@ public class LampOrderService : ILampOrderService
     public async Task<List<LampOrder>> GetExpiringOrdersAsync(int daysBeforeExpiry = 30)
     {
         return await _lampOrderRepository.GetExpiringOrdersAsync(daysBeforeExpiry);
-    }
-
-    private async Task<List<Guid>> GetRelatedCustomerIdsAsync(Customer customer)
-    {
-        var query = _context.Customers.AsQueryable();
-
-        var hasPhone = !string.IsNullOrWhiteSpace(customer.Phone);
-        var hasMobile = !string.IsNullOrWhiteSpace(customer.Mobile);
-
-        if (hasPhone || hasMobile)
-        {
-            query = query.Where(c =>
-                (hasPhone && c.Phone == customer.Phone) ||
-                (hasMobile && c.Mobile == customer.Mobile) ||
-                c.Id == customer.Id);
-        }
-        else
-        {
-            query = query.Where(c => c.Id == customer.Id);
-        }
-
-        return await query.Select(c => c.Id).ToListAsync();
     }
 }

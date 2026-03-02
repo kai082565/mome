@@ -14,11 +14,12 @@ public class AutoSyncService : IAutoSyncService
     private bool _lastOnlineStatus;
     private DateTime? _lastSyncTime;
     private int _syncCycleCount;
+    private int _totalCycleCount; // 含離線次數，用於記憶體清理
 
-    // 每 20 次增量同步（約 10 分鐘）做一次刪除同步
+    // 每 20 次線上同步（約 10 分鐘）做一次刪除同步
     private const int DeleteSyncInterval = 20;
-    // 每 6 次增量同步（約 3 分鐘）清理一次 DbContext 記憶體
-    private const int MemoryCleanupInterval = 6;
+    // 每 12 次循環（約 6 分鐘，含離線）清理一次 DbContext 記憶體
+    private const int MemoryCleanupInterval = 12;
 
     public bool IsRunning => _isRunning;
     public event EventHandler<SyncStatusEventArgs>? SyncStatusChanged;
@@ -115,6 +116,8 @@ public class AutoSyncService : IAutoSyncService
             var isOnline = await syncQueueService.IsOnlineAsync();
             var pendingCount = await syncQueueService.GetPendingCountAsync();
 
+            _totalCycleCount++; // 每次循環都計數，含離線
+
             if (isOnline != _lastOnlineStatus)
             {
                 _lastOnlineStatus = isOnline;
@@ -188,8 +191,8 @@ public class AutoSyncService : IAutoSyncService
                 });
             }
 
-            // 定期清理 DbContext 記憶體（不管線上離線都要做）
-            if (_syncCycleCount % MemoryCleanupInterval == 0)
+            // 定期清理 DbContext 記憶體（不管線上離線都要做，使用獨立計數器）
+            if (_totalCycleCount % MemoryCleanupInterval == 0)
             {
                 CleanupMemory();
             }

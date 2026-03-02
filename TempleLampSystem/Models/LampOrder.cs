@@ -12,6 +12,8 @@ public class LampOrder
     public string? Note { get; set; }                // 備註（闔家平安燈用）
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public string? StaffId { get; set; }
+    public string? StaffName { get; set; }
 
     // 導航屬性
     public Customer Customer { get; set; } = null!;

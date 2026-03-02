@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using TempleLampSystem.Services;
+using TempleLampSystem.Views;
 
 namespace TempleLampSystem;
 
@@ -32,6 +33,33 @@ public partial class App : Application
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 DbMigrationService.ApplyMigrations(context);
                 DbInitializer.Initialize(context);
+            }
+
+            // 嘗試自動登入（從 session.json 讀取上次登入的帳號）
+            var sessionService = Services.GetRequiredService<SessionService>();
+            var savedStaffId = sessionService.TryLoadSavedStaffId();
+            if (savedStaffId != null)
+            {
+                using var scope = Services.CreateScope();
+                var staffService = scope.ServiceProvider.GetRequiredService<IStaffService>();
+                var staff = await staffService.GetByIdAsync(savedStaffId);
+                if (staff != null && staff.IsActive)
+                {
+                    sessionService.Login(staff);
+                }
+            }
+
+            // 若未登入，顯示登入視窗
+            if (!sessionService.IsLoggedIn)
+            {
+                var loginWindow = new LoginWindow();
+                loginWindow.ShowDialog();
+
+                if (!loginWindow.LoginSucceeded)
+                {
+                    Shutdown(0);
+                    return;
+                }
             }
 
             // 檢查更新

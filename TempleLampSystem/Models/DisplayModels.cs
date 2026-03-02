@@ -30,6 +30,8 @@ public class LampOrderDisplayModel
     public DateTime EndDate { get; set; }
     public decimal Price { get; set; }
 
+    public string? StaffName { get; set; }
+
     public bool IsExpired => EndDate <= DateTime.Now.Date;
     public bool IsActive => StartDate <= DateTime.Now.Date && EndDate > DateTime.Now.Date;
     public bool IsExpiringSoon => IsActive && (EndDate - DateTime.Now.Date).Days <= 30;

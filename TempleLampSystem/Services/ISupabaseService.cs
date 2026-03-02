@@ -6,9 +6,12 @@ public interface ISupabaseService
 {
     Task<bool> TestConnectionAsync();
 
+    // Staff
+    Task UpsertStaffAsync(Staff staff);
+    Task UpsertStaffBatchAsync(List<Staff> staffList);
+    Task<List<Staff>> GetAllStaffAsync();
+
     // Customer
-    Task<Customer?> GetCustomerAsync(Guid id);
-    Task<List<Customer>> GetAllCustomersAsync();
     Task<Customer> UpsertCustomerAsync(Customer customer);
     Task DeleteCustomerAsync(Guid id);
 
@@ -17,7 +20,6 @@ public interface ISupabaseService
     Task<Lamp> UpsertLampAsync(Lamp lamp);
 
     // LampOrder
-    Task<LampOrder?> GetLampOrderAsync(Guid id);
     Task<List<LampOrder>> GetLampOrdersByCustomerAsync(Guid customerId);
     Task<LampOrder> UpsertLampOrderAsync(LampOrder order);
     Task DeleteLampOrderAsync(Guid id);
@@ -52,7 +54,5 @@ public class SyncResult
     public int CustomersDownloaded { get; set; }
     public int OrdersUploaded { get; set; }
     public int OrdersDownloaded { get; set; }
-    public int CustomersDeleted { get; set; }
-    public int OrdersDeleted { get; set; }
     public string? ErrorMessage { get; set; }
 }

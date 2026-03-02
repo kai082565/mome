@@ -87,7 +87,8 @@ public partial class CustomerDetailWindow : Window
                 Year = o.Year,
                 StartDate = o.StartDate,
                 EndDate = o.EndDate,
-                Price = o.Price
+                Price = o.Price,
+                StaffName = o.StaffName
             })
             .ToList();
 

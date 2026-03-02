@@ -56,29 +56,39 @@ public class SupabaseService : ISupabaseService
         }
     }
 
+    #region Staff
+
+    public async Task UpsertStaffAsync(Staff staff)
+    {
+        if (!_isConfigured || _client == null) return;
+        var model = SupabaseStaff.FromStaff(staff);
+        await _client.From<SupabaseStaff>().Upsert(model);
+    }
+
+    public async Task UpsertStaffBatchAsync(List<Staff> staffList)
+    {
+        if (!_isConfigured || _client == null || staffList.Count == 0) return;
+        var models = staffList.Select(SupabaseStaff.FromStaff).ToList();
+        await _client.From<SupabaseStaff>().Upsert(models);
+    }
+
+    public async Task<List<Staff>> GetAllStaffAsync()
+    {
+        if (!_isConfigured || _client == null) return new List<Staff>();
+        try
+        {
+            var response = await _client.From<SupabaseStaff>().Get();
+            return response.Models.Select(s => s.ToStaff()).ToList();
+        }
+        catch
+        {
+            return new List<Staff>();
+        }
+    }
+
+    #endregion
+
     #region Customer
-
-    public async Task<Customer?> GetCustomerAsync(Guid id)
-    {
-        if (!_isConfigured || _client == null) return null;
-
-        var idStr = id.ToString();
-        var response = await _client
-            .From<SupabaseCustomer>()
-            .Where(c => c.Id == idStr)
-            .Single();
-
-        return response?.ToCustomer();
-    }
-
-    public async Task<List<Customer>> GetAllCustomersAsync()
-    {
-        if (!_isConfigured || _client == null)
-            return new List<Customer>();
-
-        var response = await _client.From<SupabaseCustomer>().Get();
-        return response.Models.Select(c => c.ToCustomer()).ToList();
-    }
 
     public async Task<Customer> UpsertCustomerAsync(Customer customer)
     {
@@ -159,19 +169,6 @@ public class SupabaseService : ISupabaseService
     #endregion
 
     #region LampOrder
-
-    public async Task<LampOrder?> GetLampOrderAsync(Guid id)
-    {
-        if (!_isConfigured || _client == null) return null;
-
-        var idStr = id.ToString();
-        var response = await _client
-            .From<SupabaseLampOrder>()
-            .Where(o => o.Id == idStr)
-            .Single();
-
-        return response?.ToLampOrder();
-    }
 
     public async Task<List<LampOrder>> GetLampOrdersByCustomerAsync(Guid customerId)
     {
@@ -326,6 +323,11 @@ public class SupabaseService : ISupabaseService
                 orderQuery = orderQuery.Where(o => o.UpdatedAt > since.Value);
             }
 
+            // Staff 全量同步（數量少）
+            var staffList = await _localContext.Staff.AsNoTracking().ToListAsync();
+            if (staffList.Count > 0)
+                await UpsertStaffBatchAsync(staffList);
+
             // 燈種很少，全量同步即可
             var lamps = await _localContext.Lamps.AsNoTracking().ToListAsync();
             foreach (var lamp in lamps)
@@ -373,6 +375,33 @@ public class SupabaseService : ISupabaseService
 
         try
         {
+            // 從雲端同步 Staff（雙向，以 Id 為主鍵，雲端有就覆蓋本地）
+            var cloudStaff = await GetAllStaffAsync();
+            if (cloudStaff.Count > 0)
+            {
+                var localStaffIds = await _localContext.Staff.Select(s => s.Id).ToListAsync();
+                var localStaffIdSet = localStaffIds.ToHashSet();
+                foreach (var staff in cloudStaff)
+                {
+                    if (!localStaffIdSet.Contains(staff.Id))
+                    {
+                        _localContext.Staff.Add(staff);
+                    }
+                    else
+                    {
+                        var existing = await _localContext.Staff.FindAsync(staff.Id);
+                        if (existing != null)
+                        {
+                            existing.Name = staff.Name;
+                            existing.PasswordHash = staff.PasswordHash;
+                            existing.Salt = staff.Salt;
+                            existing.Role = staff.Role;
+                            existing.IsActive = staff.IsActive;
+                        }
+                    }
+                }
+            }
+
             // 先取得 SyncQueue 中待刪除的 ID，避免把已刪除的資料又從雲端拉回來
             var pendingDeletes = await _localContext.SyncQueue
                 .Where(q => q.Operation == SyncOperation.Delete)
@@ -388,17 +417,22 @@ public class SupabaseService : ISupabaseService
 
             // 燈種全量同步（資料量極少）
             var cloudLamps = await GetAllLampsAsync();
+            var localLampIds = await _localContext.Lamps.Select(l => l.Id).ToListAsync();
+            var localLampIdSet = localLampIds.ToHashSet();
             foreach (var lamp in cloudLamps)
             {
-                var existing = await _localContext.Lamps.FindAsync(lamp.Id);
-                if (existing == null)
+                if (!localLampIdSet.Contains(lamp.Id))
                 {
                     _localContext.Lamps.Add(lamp);
                 }
                 else
                 {
-                    existing.LampCode = lamp.LampCode;
-                    existing.LampName = lamp.LampName;
+                    var existing = await _localContext.Lamps.FindAsync(lamp.Id);
+                    if (existing != null)
+                    {
+                        existing.LampCode = lamp.LampCode;
+                        existing.LampName = lamp.LampName;
+                    }
                 }
             }
 
@@ -418,14 +452,23 @@ public class SupabaseService : ISupabaseService
                 cloudCustomerModels = response.Models;
             }
 
+            // 批量讀取本地客戶到字典，避免在循環中逐筆查詢（N+1 問題）
+            var cloudCustomerIds = cloudCustomerModels
+                .Select(c => c.Id)
+                .Where(id => !pendingDeleteCustomerIds.Contains(id))
+                .Select(id => Guid.Parse(id))
+                .ToList();
+            var localCustomerDict = await _localContext.Customers
+                .Where(c => cloudCustomerIds.Contains(c.Id))
+                .ToDictionaryAsync(c => c.Id);
+
             foreach (var supabaseCustomer in cloudCustomerModels)
             {
                 if (pendingDeleteCustomerIds.Contains(supabaseCustomer.Id))
                     continue;
 
                 var customer = supabaseCustomer.ToCustomer();
-                var existing = await _localContext.Customers.FindAsync(customer.Id);
-                if (existing == null)
+                if (!localCustomerDict.TryGetValue(customer.Id, out var existing))
                 {
                     _localContext.Customers.Add(customer);
                     result.CustomersDownloaded++;
@@ -466,15 +509,23 @@ public class SupabaseService : ISupabaseService
                 cloudOrderModels = response.Models;
             }
 
+            // 批量讀取本地訂單到字典，避免在循環中逐筆查詢（N+1 問題）
+            var cloudOrderIds = cloudOrderModels
+                .Select(o => o.Id)
+                .Where(id => !pendingDeleteOrderIds.Contains(id))
+                .Select(id => Guid.Parse(id))
+                .ToList();
+            var localOrderDict = await _localContext.LampOrders
+                .Where(o => cloudOrderIds.Contains(o.Id))
+                .ToDictionaryAsync(o => o.Id);
+
             foreach (var supabaseOrder in cloudOrderModels)
             {
                 if (pendingDeleteOrderIds.Contains(supabaseOrder.Id))
                     continue;
 
                 var order = supabaseOrder.ToLampOrder();
-                var existing = await _localContext.LampOrders.FindAsync(order.Id);
-
-                if (existing == null)
+                if (!localOrderDict.TryGetValue(order.Id, out var existing))
                 {
                     _localContext.LampOrders.Add(order);
                     result.OrdersDownloaded++;
@@ -489,6 +540,8 @@ public class SupabaseService : ISupabaseService
                     existing.Price = order.Price;
                     existing.Note = order.Note;
                     existing.UpdatedAt = order.UpdatedAt;
+                    existing.StaffId = order.StaffId;
+                    existing.StaffName = order.StaffName;
                     result.OrdersDownloaded++;
                 }
             }
@@ -508,6 +561,54 @@ public class SupabaseService : ISupabaseService
 }
 
 #region Supabase Models
+
+[Table("Staff")]
+public class SupabaseStaff : BaseModel
+{
+    [Supabase.Postgrest.Attributes.PrimaryKey("Id", false)]
+    [Column("Id")]
+    public string Id { get; set; } = string.Empty;
+
+    [Column("Name")]
+    public string Name { get; set; } = string.Empty;
+
+    [Column("PasswordHash")]
+    public string PasswordHash { get; set; } = string.Empty;
+
+    [Column("Salt")]
+    public string Salt { get; set; } = string.Empty;
+
+    [Column("Role")]
+    public int Role { get; set; }
+
+    [Column("IsActive")]
+    public bool IsActive { get; set; } = true;
+
+    [Column("CreatedAt")]
+    public DateTime CreatedAt { get; set; }
+
+    public Staff ToStaff() => new()
+    {
+        Id = Id,
+        Name = Name,
+        PasswordHash = PasswordHash,
+        Salt = Salt,
+        Role = (StaffRole)Role,
+        IsActive = IsActive,
+        CreatedAt = CreatedAt
+    };
+
+    public static SupabaseStaff FromStaff(Staff s) => new()
+    {
+        Id = s.Id,
+        Name = s.Name,
+        PasswordHash = s.PasswordHash,
+        Salt = s.Salt,
+        Role = (int)s.Role,
+        IsActive = s.IsActive,
+        CreatedAt = s.CreatedAt
+    };
+}
 
 [Table("Customers")]
 public class SupabaseCustomer : BaseModel
@@ -669,6 +770,12 @@ public class SupabaseLampOrder : BaseModel
     [Column("UpdatedAt")]
     public DateTime UpdatedAt { get; set; }
 
+    [Column("StaffId")]
+    public string? StaffId { get; set; }
+
+    [Column("StaffName")]
+    public string? StaffName { get; set; }
+
     public LampOrder ToLampOrder() => new()
     {
         Id = Guid.Parse(Id),
@@ -680,7 +787,9 @@ public class SupabaseLampOrder : BaseModel
         Price = Price,
         Note = Note,
         CreatedAt = CreatedAt,
-        UpdatedAt = UpdatedAt
+        UpdatedAt = UpdatedAt,
+        StaffId = StaffId,
+        StaffName = StaffName
     };
 
     public static SupabaseLampOrder FromLampOrder(LampOrder o) => new()
@@ -694,7 +803,9 @@ public class SupabaseLampOrder : BaseModel
         Price = o.Price,
         Note = o.Note,
         CreatedAt = o.CreatedAt,
-        UpdatedAt = o.UpdatedAt
+        UpdatedAt = o.UpdatedAt,
+        StaffId = o.StaffId,
+        StaffName = o.StaffName
     };
 }
 

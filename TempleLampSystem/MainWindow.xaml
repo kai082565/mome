@@ -73,8 +73,31 @@
                             <TextBlock Text="&#x2500;&#x2500;&#x2500; &#x2726; &#x2500;&#x2500;&#x2500;" Foreground="#DAA520" FontSize="16"/>
                         </StackPanel>
 
-                        <!-- 右側宮廟名稱 + 匯入按鈕 -->
+                        <!-- 右側：登入者、按鈕、宮廟名稱 -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- 登入者 -->
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                                <TextBlock x:Name="LoginStaffText"
+                                           FontSize="13" Foreground="#C9A96E"
+                                           FontFamily="{StaticResource PrimaryFont}"/>
+                            </StackPanel>
+
+                            <!-- 管理員儀表板（僅管理員可見） -->
+                            <Button x:Name="AdminDashboardButton"
+                                    Content="管理員儀表板"
+                                    Click="AdminDashboardButton_Click"
+                                    FontSize="12"
+                                    Foreground="#E8D5B5"
+                                    Background="#5A1A1A"
+                                    BorderBrush="{StaticResource GoldBrush}"
+                                    BorderThickness="1"
+                                    Padding="12,6"
+                                    Margin="0,0,6,0"
+                                    Cursor="Hand"
+                                    FontFamily="{StaticResource PrimaryFont}"
+                                    Visibility="Collapsed"/>
+
+                            <!-- 匯入舊資料 -->
                             <Button x:Name="ImportDataButton"
                                     Content="匯入舊資料"
                                     Click="ImportDataButton_Click"
@@ -84,9 +107,24 @@
                                     BorderBrush="{StaticResource GoldBrush}"
                                     BorderThickness="1"
                                     Padding="12,6"
+                                    Margin="0,0,6,0"
+                                    Cursor="Hand"
+                                    FontFamily="{StaticResource PrimaryFont}"/>
+
+                            <!-- 登出 -->
+                            <Button x:Name="LogoutButton"
+                                    Content="登出"
+                                    Click="LogoutButton_Click"
+                                    FontSize="12"
+                                    Foreground="#E8D5B5"
+                                    Background="#5A1A1A"
+                                    BorderBrush="{StaticResource GoldBrush}"
+                                    BorderThickness="1"
+                                    Padding="12,6"
                                     Margin="0,0,12,0"
                                     Cursor="Hand"
                                     FontFamily="{StaticResource PrimaryFont}"/>
+
                             <Border VerticalAlignment="Center"
                                     BorderBrush="{StaticResource GoldBrush}" BorderThickness="2"
                                     CornerRadius="6" Padding="18,6"

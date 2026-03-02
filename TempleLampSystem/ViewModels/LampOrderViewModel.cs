@@ -16,19 +16,22 @@ public partial class LampOrderViewModel : ViewModelBase
     private readonly ICustomerRepository _customerRepository;
     private readonly IPrintService _printService;
     private readonly ISupabaseService _supabaseService;
+    private readonly SessionService _sessionService;
 
     public LampOrderViewModel(
         ILampRepository lampRepository,
         ILampOrderService lampOrderService,
         ICustomerRepository customerRepository,
         IPrintService printService,
-        ISupabaseService supabaseService)
+        ISupabaseService supabaseService,
+        SessionService sessionService)
     {
         _lampRepository = lampRepository;
         _lampOrderService = lampOrderService;
         _customerRepository = customerRepository;
         _printService = printService;
         _supabaseService = supabaseService;
+        _sessionService = sessionService;
 
         Lamps = new ObservableCollection<Lamp>();
         ExpiringOrders = new ObservableCollection<LampOrderDisplayModel>();
@@ -109,7 +112,6 @@ public partial class LampOrderViewModel : ViewModelBase
     public ObservableCollection<CustomerDisplayModel> SelectedCustomers { get; } = new();
 
     public event EventHandler<Guid>? OrderCreated;
-    public event EventHandler<IEnumerable<Guid>>? OrdersCreated;
     public event EventHandler<CustomerDisplayModel>? CustomerRemoved;
 
     public async Task InitializeAsync()
@@ -406,7 +408,7 @@ public partial class LampOrderViewModel : ViewModelBase
 
         try
         {
-            var createdOrders = new List<(CustomerDisplayModel Customer, LampOrder Order)>();
+            var createdOrders = new List<(CustomerDisplayModel Customer, LampOrder Order, Customer? FullCustomer)>();
             var failedCustomers = new List<string>();
 
             foreach (var customer in customersToOrder)
@@ -424,26 +426,30 @@ public partial class LampOrderViewModel : ViewModelBase
                         }
                     }
 
-                    var order = await _lampOrderService.CreateLampOrderAsync(customer.Id, SelectedLamp.Id, Price, OrderNote);
+                    var order = await _lampOrderService.CreateLampOrderAsync(
+                        customer.Id, SelectedLamp.Id, Price, OrderNote,
+                        _sessionService.CurrentStaff?.Id,
+                        _sessionService.CurrentStaff?.Name);
+
+                    // 查詢完整客戶資料（同時用於雲端同步和列印感謝狀，避免重複查詢）
+                    var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
 
                     // 先上傳到雲端，確保成功後才算完成
                     try
                     {
                         if (_supabaseService.IsConfigured)
                         {
-                            // 先確保客戶和燈種已上傳，再上傳訂單
-                            var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
                             if (fullCustomer != null)
                                 await _supabaseService.UpsertCustomerAsync(fullCustomer);
                             await _supabaseService.UpsertLampAsync(SelectedLamp);
                             await _supabaseService.UpsertLampOrderAsync(order);
                         }
-                        createdOrders.Add((customer, order));
+                        createdOrders.Add((customer, order, fullCustomer));
                     }
                     catch (Exception syncEx)
                     {
                         // 雲端同步失敗，但本地已建立，仍算成功（離線模式）
-                        createdOrders.Add((customer, order));
+                        createdOrders.Add((customer, order, fullCustomer));
                         System.Diagnostics.Debug.WriteLine($"雲端同步失敗：{syncEx.Message}");
                         StatusMessage = $"點燈成功，但雲端同步失敗：{syncEx.Message}";
                     }
@@ -475,19 +481,16 @@ public partial class LampOrderViewModel : ViewModelBase
 
             StyledMessageBox.Show(message, "點燈完成");
 
-            // 列印感謝狀
+            // 列印感謝狀（重用上方已查詢的完整客戶資料）
             try
             {
                 if (SelectedLamp.LampCode == "HEJIA_PINGAN")
                 {
                     // 闔家平安燈：所有客戶合併成一張感謝狀
-                    var allCustomerOrders = new List<(Customer, LampOrder)>();
-                    foreach (var (customer, order) in createdOrders)
-                    {
-                        var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
-                        if (fullCustomer != null)
-                            allCustomerOrders.Add((fullCustomer, order));
-                    }
+                    var allCustomerOrders = createdOrders
+                        .Where(x => x.FullCustomer != null)
+                        .Select(x => (x.FullCustomer!, x.Order))
+                        .ToList();
                     if (allCustomerOrders.Count > 0)
                     {
                         var certData = CertificateData.FromFamilyOrder(allCustomerOrders, SelectedLamp);
@@ -497,9 +500,8 @@ public partial class LampOrderViewModel : ViewModelBase
                 else
                 {
                     // 一般燈種：每位客戶各印一張
-                    foreach (var (customer, order) in createdOrders)
+                    foreach (var (_, order, fullCustomer) in createdOrders)
                     {
-                        var fullCustomer = await _customerRepository.GetByIdAsync(customer.Id);
                         if (fullCustomer != null)
                         {
                             var certData = CertificateData.FromOrder(order, fullCustomer, SelectedLamp);
@@ -516,7 +518,7 @@ public partial class LampOrderViewModel : ViewModelBase
             StatusMessage = $"已完成 {createdOrders.Count} 位客戶點燈";
 
             // 通知更新
-            foreach (var (customer, _) in createdOrders)
+            foreach (var (customer, _, _) in createdOrders)
             {
                 OrderCreated?.Invoke(this, customer.Id);
             }
