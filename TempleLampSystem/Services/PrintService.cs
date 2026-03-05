@@ -80,6 +80,8 @@ public class PrintService : IPrintService
             AddField(page, settings.LunarEndDate, data.LunarEndDate);
             AddField(page, settings.Amount, data.Amount);
             AddField(page, settings.LampType, data.LampType);
+            AddField(page, settings.OrderNumber, data.OrderNumber);
+            AddField(page, settings.Temple, data.Temple);
 
             ((System.Windows.Markup.IAddChild)pageContent).AddChild(page);
             fixedDoc.Pages.Add(pageContent);

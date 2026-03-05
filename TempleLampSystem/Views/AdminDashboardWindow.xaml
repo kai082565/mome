@@ -17,6 +17,54 @@
 
     <Window.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <!-- TabItem 金色主題 -->
+        <Style TargetType="TabItem">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="#FFF8ED"/>
+            <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="border"
+                                BorderBrush="{StaticResource GoldDarkBrush}"
+                                BorderThickness="1,1,1,0"
+                                CornerRadius="6,6,0,0"
+                                Background="{TemplateBinding Background}"
+                                Margin="2,4,2,0"
+                                Padding="20,8">
+                            <ContentPresenter ContentSource="Header"
+                                              TextBlock.FontSize="14"
+                                              TextBlock.FontWeight="{TemplateBinding FontWeight}"
+                                              TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource HeaderGradient}"/>
+                                <Setter Property="Foreground" Value="#FFD700"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="1.5,1.5,1.5,0"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FFF3DC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- DataGrid 欄位標頭金色主題 -->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{StaticResource HeaderGradient}"/>
+            <Setter Property="Foreground" Value="#FFD700"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
+            <Setter Property="Padding" Value="8,7"/>
+            <Setter Property="BorderBrush" Value="{StaticResource GoldDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -281,11 +329,16 @@
                                             Click="ResetPasswordButton_Click"/>
                                 </StackPanel>
 
-                                <!-- 啟用/停用 -->
+                                <!-- 啟用/停用 + 刪除 -->
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="ToggleActiveButton"
                                             Padding="20,8" FontSize="13"
                                             Click="ToggleActiveButton_Click"/>
+                                    <Button Content="刪除帳號"
+                                            Padding="20,8" FontSize="13"
+                                            Margin="10,0,0,0"
+                                            Style="{StaticResource DangerButton}"
+                                            Click="DeleteStaffButton_Click"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>

@@ -51,6 +51,8 @@ public class CertificateFormSettings
     public CertificateFieldPosition LunarEndDate { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
     public CertificateFieldPosition Amount { get; set; } = new() { X = 0, Y = 0, FontSize = 14 };
     public CertificateFieldPosition LampType { get; set; } = new() { X = 0, Y = 0, FontSize = 12 };
+    public CertificateFieldPosition OrderNumber { get; set; } = new() { X = 0, Y = 0, FontSize = 11 };
+    public CertificateFieldPosition Temple { get; set; } = new() { X = 0, Y = 0, FontSize = 11 };
 }
 
 public class AppSettings

@@ -14,6 +14,7 @@ public class LampOrder
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
     public string? StaffId { get; set; }
     public string? StaffName { get; set; }
+    public string? OrderNumber { get; set; }
 
     // 導航屬性
     public Customer Customer { get; set; } = null!;

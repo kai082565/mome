@@ -83,6 +83,34 @@ public class LampOrderService : ILampOrderService
 
         var today = DateTime.Now.Date;
         var endDate = LunarCalendarHelper.GetLunarYearEndDate(today);
+
+        // 產生燈號：民國年(3碼) + 流水號(4碼)，每年重新從 0001 開始
+        var rocYear = today.Year - 1911;
+        var prefix = rocYear.ToString();
+        var localMax = await _context.LampOrders
+            .Where(o => o.OrderNumber != null && o.LampId == lampId && o.OrderNumber.StartsWith(prefix))
+            .Select(o => o.OrderNumber)
+            .MaxAsync();
+
+        // 同時查雲端，防止多台電腦同時點同一燈種時流水號重複
+        string? cloudMax = null;
+        try
+        {
+            if (_supabaseService.IsConfigured)
+                cloudMax = await _supabaseService.GetMaxOrderNumberAsync(lampId, rocYear);
+        }
+        catch { }
+
+        // 取本機和雲端的較大值
+        var effectiveMax = string.Compare(localMax, cloudMax, StringComparison.Ordinal) >= 0
+            ? localMax : cloudMax;
+
+        var seq = 1;
+        if (effectiveMax != null && effectiveMax.Length > prefix.Length &&
+            int.TryParse(effectiveMax[prefix.Length..], out var maxSeq))
+            seq = maxSeq + 1;
+        var orderNumber = $"{rocYear}{seq:D5}";
+
         var order = new LampOrder
         {
             Id = Guid.NewGuid(),
@@ -96,7 +124,8 @@ public class LampOrderService : ILampOrderService
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,
             StaffId = staffId,
-            StaffName = staffName
+            StaffName = staffName,
+            OrderNumber = orderNumber
         };
 
         // 寫入本地

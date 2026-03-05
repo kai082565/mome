@@ -162,6 +162,26 @@ public class AutoSyncService : IAutoSyncService
                 var syncResult = await supabaseService.SyncFromCloudAsync(_lastSyncTime);
                 var totalDownloaded = syncResult.CustomersDownloaded + syncResult.OrdersDownloaded;
 
+                // 若同步失敗，顯示錯誤訊息（便於診斷）
+                if (!syncResult.Success && !string.IsNullOrEmpty(syncResult.ErrorMessage))
+                {
+                    SyncStatusChanged?.Invoke(this, new SyncStatusEventArgs
+                    {
+                        IsOnline = true,
+                        PendingCount = pendingCount,
+                        Message = $"同步失敗：{syncResult.ErrorMessage}"
+                    });
+                    return;
+                }
+
+                // 若有新增客戶，重新執行編號指派（修補雲端 null/重複 code）
+                if (syncResult.CustomersDownloaded > 0)
+                {
+                    using var codeScope = _serviceProvider.CreateScope();
+                    var ctx = codeScope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    DbInitializer.AssignCustomerCodes(ctx);
+                }
+
                 // 記錄本次同步時間，下次只同步此時間之後的變動
                 _lastSyncTime = DateTime.Now;
 
@@ -218,13 +238,27 @@ public class AutoSyncService : IAutoSyncService
             var supabaseService = scopeProvider.GetRequiredService<ISupabaseService>();
             var context = scopeProvider.GetRequiredService<AppDbContext>();
 
+            // 取得本機資料數量
+            var localCustomerCount = await context.Customers.CountAsync();
+            var localOrderCount = await context.LampOrders.CountAsync();
+
             // 取得雲端所有 ID
             var cloudCustomerIds = await supabaseService.GetAllCloudCustomerIdsAsync();
             var cloudOrderIds = await supabaseService.GetAllCloudLampOrderIdsAsync();
 
-            // 雲端回傳空集合表示查詢可能失敗，跳過刪除以免誤刪
-            if (cloudCustomerIds.Count == 0 && cloudOrderIds.Count == 0)
+            // 安全防護 1：兩個查詢都必須有回傳值才繼續（任一為空表示查詢可能失敗）
+            if (cloudCustomerIds.Count == 0 || cloudOrderIds.Count == 0)
                 return 0;
+
+            // 安全防護 2：雲端筆數不能遠少於本機（防止網路問題導致部分回傳）
+            // 雲端至少要有本機 80% 的資料才允許刪除
+            if (cloudCustomerIds.Count < localCustomerCount * 0.8 ||
+                cloudOrderIds.Count < localOrderCount * 0.8)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"刪除同步跳過：雲端資料筆數異常偏少（客戶 {cloudCustomerIds.Count}/{localCustomerCount}，訂單 {cloudOrderIds.Count}/{localOrderCount}）");
+                return 0;
+            }
 
             // 取得 SyncQueue 中待上傳的 ID（這些是本地新增但還沒上傳的，不能刪）
             var pendingUploadIds = await context.SyncQueue
@@ -234,64 +268,74 @@ public class AutoSyncService : IAutoSyncService
             var pendingUploadSet = pendingUploadIds.ToHashSet();
 
             // 比對訂單（先刪訂單再刪客戶，避免外鍵衝突）
-            if (cloudOrderIds.Count > 0)
-            {
-                var localOrderIds = await context.LampOrders
-                    .Select(o => o.Id)
-                    .ToListAsync();
+            var localOrderIds = await context.LampOrders
+                .Select(o => o.Id)
+                .ToListAsync();
 
-                var orderIdsToDelete = localOrderIds
-                    .Where(id =>
-                    {
-                        var idStr = id.ToString();
-                        return !cloudOrderIds.Contains(idStr) && !pendingUploadSet.Contains(idStr);
-                    })
-                    .ToList();
-
-                if (orderIdsToDelete.Count > 0)
+            var orderIdsToDelete = localOrderIds
+                .Where(id =>
                 {
-                    await context.LampOrders
-                        .Where(o => orderIdsToDelete.Contains(o.Id))
-                        .ExecuteDeleteAsync();
-                    deleted += orderIdsToDelete.Count;
-                }
+                    var idStr = id.ToString();
+                    return !cloudOrderIds.Contains(idStr) && !pendingUploadSet.Contains(idStr);
+                })
+                .ToList();
+
+            // 安全防護 3：單次刪除超過 10 筆或超過本機總量 10%，拒絕執行
+            if (orderIdsToDelete.Count > 10 || orderIdsToDelete.Count > localOrderCount * 0.1)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"刪除同步跳過：準備刪除 {orderIdsToDelete.Count} 筆訂單，超過安全閾值");
+                return 0;
+            }
+
+            if (orderIdsToDelete.Count > 0)
+            {
+                await context.LampOrders
+                    .Where(o => orderIdsToDelete.Contains(o.Id))
+                    .ExecuteDeleteAsync();
+                deleted += orderIdsToDelete.Count;
             }
 
             // 比對客戶
-            if (cloudCustomerIds.Count > 0)
+            var localCustomerIds = await context.Customers
+                .Select(c => c.Id)
+                .ToListAsync();
+
+            var customerIdsToDelete = localCustomerIds
+                .Where(id =>
+                {
+                    var idStr = id.ToString();
+                    return !cloudCustomerIds.Contains(idStr) && !pendingUploadSet.Contains(idStr);
+                })
+                .ToList();
+
+            // 安全防護 3（客戶）：單次刪除超過 5 筆或超過本機總量 10%，拒絕執行
+            if (customerIdsToDelete.Count > 5 || customerIdsToDelete.Count > localCustomerCount * 0.1)
             {
-                var localCustomerIds = await context.Customers
-                    .Select(c => c.Id)
+                System.Diagnostics.Debug.WriteLine(
+                    $"刪除同步跳過：準備刪除 {customerIdsToDelete.Count} 筆客戶，超過安全閾值");
+                return 0;
+            }
+
+            if (customerIdsToDelete.Count > 0)
+            {
+                // 只刪除沒有本地訂單的客戶
+                var customerIdsWithOrders = await context.LampOrders
+                    .Where(o => customerIdsToDelete.Contains(o.CustomerId))
+                    .Select(o => o.CustomerId)
+                    .Distinct()
                     .ToListAsync();
 
-                var customerIdsToDelete = localCustomerIds
-                    .Where(id =>
-                    {
-                        var idStr = id.ToString();
-                        return !cloudCustomerIds.Contains(idStr) && !pendingUploadSet.Contains(idStr);
-                    })
+                var safeToDelete = customerIdsToDelete
+                    .Where(id => !customerIdsWithOrders.Contains(id))
                     .ToList();
 
-                if (customerIdsToDelete.Count > 0)
+                if (safeToDelete.Count > 0)
                 {
-                    // 只刪除沒有本地訂單的客戶
-                    var customerIdsWithOrders = await context.LampOrders
-                        .Where(o => customerIdsToDelete.Contains(o.CustomerId))
-                        .Select(o => o.CustomerId)
-                        .Distinct()
-                        .ToListAsync();
-
-                    var safeToDelete = customerIdsToDelete
-                        .Where(id => !customerIdsWithOrders.Contains(id))
-                        .ToList();
-
-                    if (safeToDelete.Count > 0)
-                    {
-                        await context.Customers
-                            .Where(c => safeToDelete.Contains(c.Id))
-                            .ExecuteDeleteAsync();
-                        deleted += safeToDelete.Count;
-                    }
+                    await context.Customers
+                        .Where(c => safeToDelete.Contains(c.Id))
+                        .ExecuteDeleteAsync();
+                    deleted += safeToDelete.Count;
                 }
             }
         }

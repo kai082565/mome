@@ -18,6 +18,8 @@ public class CertificateData
     public string LunarEndDate { get; set; } = string.Empty;
     public string Amount { get; set; } = string.Empty;
     public string? LampType { get; set; }
+    public string? OrderNumber { get; set; }
+    public string? Temple { get; set; }
 
     /// <summary>
     /// 從單一客戶建立感謝狀資料
@@ -48,7 +50,9 @@ public class CertificateData
             LunarStartDate = $"{rocYear}/01/15",
             LunarEndDate = $"{rocYear}/12/24",
             Amount = $"${order.Price:N0}元整",
-            LampType = lamp.LampName
+            LampType = lamp.LampName,
+            OrderNumber = order.OrderNumber,
+            Temple = lamp.Temple
         };
     }
 
@@ -98,7 +102,9 @@ public class CertificateData
             LunarStartDate = $"{rocYear}/01/15",
             LunarEndDate = $"{rocYear}/12/24",
             Amount = $"${firstOrder.Price:N0}元整",
-            LampType = lamp.LampName
+            LampType = lamp.LampName,
+            OrderNumber = firstOrder.OrderNumber,
+            Temple = lamp.Temple
         };
     }
 

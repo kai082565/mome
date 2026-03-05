@@ -10,6 +10,7 @@ public interface ISupabaseService
     Task UpsertStaffAsync(Staff staff);
     Task UpsertStaffBatchAsync(List<Staff> staffList);
     Task<List<Staff>> GetAllStaffAsync();
+    Task DeleteStaffAsync(string staffId);
 
     // Customer
     Task<Customer> UpsertCustomerAsync(Customer customer);
@@ -33,6 +34,9 @@ public interface ISupabaseService
 
     // 名額查詢
     Task<int> GetCloudOrderCountAsync(int lampId, int year);
+
+    // 燈號查詢（防多台撞號）
+    Task<string?> GetMaxOrderNumberAsync(int lampId, int rocYear);
 
     // 批量上傳
     Task UpsertCustomerBatchAsync(List<Customer> customers);

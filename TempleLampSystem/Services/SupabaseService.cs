@@ -75,15 +75,14 @@ public class SupabaseService : ISupabaseService
     public async Task<List<Staff>> GetAllStaffAsync()
     {
         if (!_isConfigured || _client == null) return new List<Staff>();
-        try
-        {
-            var response = await _client.From<SupabaseStaff>().Get();
-            return response.Models.Select(s => s.ToStaff()).ToList();
-        }
-        catch
-        {
-            return new List<Staff>();
-        }
+        var response = await _client.From<SupabaseStaff>().Get();
+        return response.Models.Select(s => s.ToStaff()).ToList();
+    }
+
+    public async Task DeleteStaffAsync(string staffId)
+    {
+        if (!_isConfigured || _client == null) return;
+        await _client.From<SupabaseStaff>().Where(s => s.Id == staffId).Delete();
     }
 
     #endregion
@@ -236,6 +235,31 @@ public class SupabaseService : ISupabaseService
         }
     }
 
+    public async Task<string?> GetMaxOrderNumberAsync(int lampId, int rocYear)
+    {
+        if (!_isConfigured || _client == null) return null;
+
+        try
+        {
+            var prefix = rocYear.ToString();
+            var response = await _client.From<SupabaseLampOrder>()
+                .Select("OrderNumber")
+                .Where(o => o.LampId == lampId)
+                .Filter("OrderNumber", Operator.Like, $"{prefix}%")
+                .Order("OrderNumber", Ordering.Descending)
+                .Limit(1)
+                .Get();
+
+            return response.Models
+                .Select(o => o.OrderNumber)
+                .FirstOrDefault(n => !string.IsNullOrEmpty(n));
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public async Task<int> GetCloudOrderCountAsync(int lampId, int year)
     {
         if (!_isConfigured || _client == null) return 0;
@@ -376,21 +400,23 @@ public class SupabaseService : ISupabaseService
         try
         {
             // 從雲端同步 Staff（雙向，以 Id 為主鍵，雲端有就覆蓋本地）
-            var cloudStaff = await GetAllStaffAsync();
-            if (cloudStaff.Count > 0)
+            // 用獨立 try-catch，Staff 查詢失敗不影響其他資料同步
+            try
             {
-                var localStaffIds = await _localContext.Staff.Select(s => s.Id).ToListAsync();
-                var localStaffIdSet = localStaffIds.ToHashSet();
-                foreach (var staff in cloudStaff)
+                var cloudStaff = await GetAllStaffAsync();
+                if (cloudStaff.Count > 0)
                 {
-                    if (!localStaffIdSet.Contains(staff.Id))
+                    var cloudStaffIds = cloudStaff.Select(s => s.Id).ToHashSet();
+                    var localStaffDict = await _localContext.Staff
+                        .Where(s => cloudStaffIds.Contains(s.Id))
+                        .ToDictionaryAsync(s => s.Id);
+                    foreach (var staff in cloudStaff)
                     {
-                        _localContext.Staff.Add(staff);
-                    }
-                    else
-                    {
-                        var existing = await _localContext.Staff.FindAsync(staff.Id);
-                        if (existing != null)
+                        if (!localStaffDict.TryGetValue(staff.Id, out var existing))
+                        {
+                            _localContext.Staff.Add(staff);
+                        }
+                        else
                         {
                             existing.Name = staff.Name;
                             existing.PasswordHash = staff.PasswordHash;
@@ -400,6 +426,10 @@ public class SupabaseService : ISupabaseService
                         }
                     }
                 }
+            }
+            catch
+            {
+                // Staff 同步失敗靜默忽略，下次同步會重試
             }
 
             // 先取得 SyncQueue 中待刪除的 ID，避免把已刪除的資料又從雲端拉回來
@@ -416,25 +446,35 @@ public class SupabaseService : ISupabaseService
                 .ToHashSet();
 
             // 燈種全量同步（資料量極少）
+            // 用 LampCode 作為次要比對鍵，避免本地初始化的 ID 與雲端 ID 不同導致 UNIQUE 衝突
             var cloudLamps = await GetAllLampsAsync();
-            var localLampIds = await _localContext.Lamps.Select(l => l.Id).ToListAsync();
-            var localLampIdSet = localLampIds.ToHashSet();
+            var localLamps = await _localContext.Lamps.ToListAsync();
+            var localLampById = localLamps.ToDictionary(l => l.Id);
+            var localLampByCode = localLamps.ToDictionary(l => l.LampCode);
             foreach (var lamp in cloudLamps)
             {
-                if (!localLampIdSet.Contains(lamp.Id))
+                if (localLampById.TryGetValue(lamp.Id, out var existingById))
                 {
-                    _localContext.Lamps.Add(lamp);
+                    existingById.LampCode = lamp.LampCode;
+                    existingById.LampName = lamp.LampName;
+                }
+                else if (localLampByCode.TryGetValue(lamp.LampCode, out var existingByCode))
+                {
+                    // 本地用不同 ID 初始化了相同 LampCode：移除本地燈種，改用雲端版本
+                    var hasLocalOrders = await _localContext.LampOrders.AnyAsync(o => o.LampId == existingByCode.Id);
+                    if (!hasLocalOrders)
+                    {
+                        _localContext.Lamps.Remove(existingByCode);
+                        _localContext.Lamps.Add(lamp);
+                    }
                 }
                 else
                 {
-                    var existing = await _localContext.Lamps.FindAsync(lamp.Id);
-                    if (existing != null)
-                    {
-                        existing.LampCode = lamp.LampCode;
-                        existing.LampName = lamp.LampName;
-                    }
+                    _localContext.Lamps.Add(lamp);
                 }
             }
+            // 先儲存燈種，確保後續訂單的外鍵參照正確
+            await _localContext.SaveChangesAsync();
 
             // 增量下載客戶：只取 since 之後更新的
             List<SupabaseCustomer> cloudCustomerModels;
@@ -462,12 +502,24 @@ public class SupabaseService : ISupabaseService
                 .Where(c => cloudCustomerIds.Contains(c.Id))
                 .ToDictionaryAsync(c => c.Id);
 
+            // 預先收集本地已有的 CustomerCode，用於去重（空字串視為 null）
+            var usedCustomerCodes = (await _localContext.Customers
+                .Where(c => !string.IsNullOrEmpty(c.CustomerCode))
+                .Select(c => c.CustomerCode!)
+                .ToListAsync()).ToHashSet();
+
             foreach (var supabaseCustomer in cloudCustomerModels)
             {
                 if (pendingDeleteCustomerIds.Contains(supabaseCustomer.Id))
                     continue;
 
                 var customer = supabaseCustomer.ToCustomer();
+                // 空字串 normalize 成 null（空字串不是 NULL，多筆會觸發 UNIQUE 衝突）
+                if (customer.CustomerCode == "") customer.CustomerCode = null;
+                // 去除重複 code（若 code 已存在本地或本批次中，改為 null 由 DbInitializer 重新指派）
+                if (customer.CustomerCode != null && !usedCustomerCodes.Add(customer.CustomerCode))
+                    customer.CustomerCode = null;
+
                 if (!localCustomerDict.TryGetValue(customer.Id, out var existing))
                 {
                     _localContext.Customers.Add(customer);
@@ -492,6 +544,9 @@ public class SupabaseService : ISupabaseService
                     result.CustomersDownloaded++;
                 }
             }
+
+            // 先儲存 Staff 和 Customer，確保後續訂單外鍵可以正確參照
+            await _localContext.SaveChangesAsync();
 
             // 增量下載訂單：只取 since 之後更新的
             List<SupabaseLampOrder> cloudOrderModels;
@@ -519,12 +574,19 @@ public class SupabaseService : ISupabaseService
                 .Where(o => cloudOrderIds.Contains(o.Id))
                 .ToDictionaryAsync(o => o.Id);
 
+            // 建立本地有效的 FK 集合，過濾孤兒訂單（雲端有訂單但客戶或燈種已被刪除）
+            var validCustomerIds = (await _localContext.Customers.Select(c => c.Id).ToListAsync()).ToHashSet();
+            var validLampIds = (await _localContext.Lamps.Select(l => l.Id).ToListAsync()).ToHashSet();
+
             foreach (var supabaseOrder in cloudOrderModels)
             {
                 if (pendingDeleteOrderIds.Contains(supabaseOrder.Id))
                     continue;
 
                 var order = supabaseOrder.ToLampOrder();
+                if (!validCustomerIds.Contains(order.CustomerId) || !validLampIds.Contains(order.LampId))
+                    continue;
+
                 if (!localOrderDict.TryGetValue(order.Id, out var existing))
                 {
                     _localContext.LampOrders.Add(order);
@@ -542,6 +604,7 @@ public class SupabaseService : ISupabaseService
                     existing.UpdatedAt = order.UpdatedAt;
                     existing.StaffId = order.StaffId;
                     existing.StaffName = order.StaffName;
+                    existing.OrderNumber = order.OrderNumber;
                     result.OrdersDownloaded++;
                 }
             }
@@ -551,7 +614,8 @@ public class SupabaseService : ISupabaseService
         }
         catch (Exception ex)
         {
-            result.ErrorMessage = ex.Message;
+            var inner = ex.InnerException;
+            result.ErrorMessage = inner != null ? $"{ex.Message} | Inner: {inner.Message}" : ex.Message;
         }
 
         return result;
@@ -562,7 +626,7 @@ public class SupabaseService : ISupabaseService
 
 #region Supabase Models
 
-[Table("Staff")]
+[Table("staff")]
 public class SupabaseStaff : BaseModel
 {
     [Supabase.Postgrest.Attributes.PrimaryKey("Id", false)]
@@ -776,6 +840,9 @@ public class SupabaseLampOrder : BaseModel
     [Column("StaffName")]
     public string? StaffName { get; set; }
 
+    [Column("OrderNumber")]
+    public string? OrderNumber { get; set; }
+
     public LampOrder ToLampOrder() => new()
     {
         Id = Guid.Parse(Id),
@@ -789,7 +856,8 @@ public class SupabaseLampOrder : BaseModel
         CreatedAt = CreatedAt,
         UpdatedAt = UpdatedAt,
         StaffId = StaffId,
-        StaffName = StaffName
+        StaffName = StaffName,
+        OrderNumber = OrderNumber
     };
 
     public static SupabaseLampOrder FromLampOrder(LampOrder o) => new()
@@ -805,7 +873,8 @@ public class SupabaseLampOrder : BaseModel
         CreatedAt = o.CreatedAt,
         UpdatedAt = o.UpdatedAt,
         StaffId = o.StaffId,
-        StaffName = o.StaffName
+        StaffName = o.StaffName,
+        OrderNumber = o.OrderNumber
     };
 }
 

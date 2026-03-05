@@ -125,6 +125,9 @@ public static class DbMigrationService
             );
             ALTER TABLE ""LampOrders"" ADD COLUMN ""StaffId"" TEXT;
             ALTER TABLE ""LampOrders"" ADD COLUMN ""StaffName"" TEXT;
+        ",
+        ["2.2.0"] = @"
+            ALTER TABLE ""LampOrders"" ADD COLUMN ""OrderNumber"" TEXT;
         "
     };
 
