@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISyncQueueService, SyncQueueService>();
         services.AddScoped<IUpdateService, UpdateService>();
         services.AddSingleton<IAutoSyncService, AutoSyncService>();
+        services.AddSingleton<IBackupService, BackupService>();
         services.AddSingleton<SessionService>();
         services.AddScoped<IStaffService, StaffService>();
         services.AddScoped<DataImportService>();

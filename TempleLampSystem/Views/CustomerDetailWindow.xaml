@@ -212,6 +212,10 @@
 
             <!-- 操作按鈕 -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
+                <Button Content="編輯客戶" Padding="30,10" FontSize="15"
+                        Style="{StaticResource PrimaryButton}"
+                        Margin="0,0,10,0"
+                        Click="EditButton_Click"/>
                 <Button Content="已故" Padding="30,10" FontSize="15"
                         Background="#D32F2F" Foreground="White"
                         Margin="0,0,10,0"

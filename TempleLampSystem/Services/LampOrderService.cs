@@ -84,32 +84,39 @@ public class LampOrderService : ILampOrderService
         var today = DateTime.Now.Date;
         var endDate = LunarCalendarHelper.GetLunarYearEndDate(today);
 
-        // 產生燈號：民國年(3碼) + 流水號(4碼)，每年重新從 0001 開始
+        // 產生燈號：民國年(3碼) + 流水號(5碼)，每年重新從 00001 開始
         var rocYear = today.Year - 1911;
         var prefix = rocYear.ToString();
-        var localMax = await _context.LampOrders
-            .Where(o => o.OrderNumber != null && o.LampId == lampId && o.OrderNumber.StartsWith(prefix))
-            .Select(o => o.OrderNumber)
-            .MaxAsync();
 
-        // 同時查雲端，防止多台電腦同時點同一燈種時流水號重複
-        string? cloudMax = null;
+        // 線上：從 Supabase 原子取號（保證多台電腦絕對不重複）
+        // 離線：fallback 查本地最大值（單機不會重複，離線期間極少點燈）
+        string orderNumber;
+        string? cloudNumber = null;
         try
         {
             if (_supabaseService.IsConfigured)
-                cloudMax = await _supabaseService.GetMaxOrderNumberAsync(lampId, rocYear);
+                cloudNumber = await _supabaseService.GetNextOrderNumberFromCloudAsync(lampId, rocYear);
         }
         catch { }
 
-        // 取本機和雲端的較大值
-        var effectiveMax = string.Compare(localMax, cloudMax, StringComparison.Ordinal) >= 0
-            ? localMax : cloudMax;
+        if (cloudNumber != null)
+        {
+            orderNumber = cloudNumber;
+        }
+        else
+        {
+            // 離線 fallback：取本地最大流水號 +1
+            var localMax = await _context.LampOrders
+                .Where(o => o.OrderNumber != null && o.LampId == lampId && o.OrderNumber.StartsWith(prefix))
+                .Select(o => o.OrderNumber)
+                .MaxAsync();
 
-        var seq = 1;
-        if (effectiveMax != null && effectiveMax.Length > prefix.Length &&
-            int.TryParse(effectiveMax[prefix.Length..], out var maxSeq))
-            seq = maxSeq + 1;
-        var orderNumber = $"{rocYear}{seq:D5}";
+            var seq = 1;
+            if (localMax != null && localMax.Length > prefix.Length &&
+                int.TryParse(localMax[prefix.Length..], out var maxSeq))
+                seq = maxSeq + 1;
+            orderNumber = $"{rocYear}{seq:D5}";
+        }
 
         var order = new LampOrder
         {

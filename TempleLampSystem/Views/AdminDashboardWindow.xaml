@@ -125,6 +125,8 @@
                                     Margin="8,0,0,0" Click="TodayButton_Click"/>
                             <Button Content="本月" Padding="16,6" FontSize="13"
                                     Margin="8,0,0,0" Click="ThisMonthButton_Click"/>
+                            <Button Content="本年度" Padding="16,6" FontSize="13"
+                                    Margin="8,0,0,0" Click="ThisYearButton_Click"/>
                         </StackPanel>
                     </Border>
 
@@ -174,41 +176,146 @@
                             </Grid.RowDefinitions>
 
                             <!-- 篩選列 -->
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,8">
-                                <TextBlock Text="篩選 " FontSize="13" VerticalAlignment="Center"
-                                           Foreground="{StaticResource TextSecondaryBrush}"/>
-                                <ComboBox x:Name="StaffFilterCombo" Width="110" FontSize="13"
-                                          Margin="6,0" SelectionChanged="Filter_SelectionChanged"
-                                          ToolTip="按操作人員篩選"/>
-                                <ComboBox x:Name="TempleFilterCombo" Width="100" FontSize="13"
-                                          Margin="6,0" SelectionChanged="Filter_SelectionChanged"
-                                          ToolTip="按廟別篩選"/>
-                                <ComboBox x:Name="LampFilterCombo" Width="100" FontSize="13"
-                                          Margin="6,0" SelectionChanged="Filter_SelectionChanged"
-                                          ToolTip="按燈種篩選"/>
-                            </StackPanel>
+                            <Border Grid.Row="0" Background="#FFF8ED" CornerRadius="8,8,0,0"
+                                    BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="0,0,0,1">
+                                <StackPanel Orientation="Horizontal" Margin="10,8">
+                                    <TextBlock Text="篩選 " FontSize="13" VerticalAlignment="Center"
+                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <ComboBox x:Name="StaffFilterCombo" Width="110" FontSize="13"
+                                              Margin="6,0" SelectionChanged="Filter_SelectionChanged"
+                                              ToolTip="按操作人員篩選"/>
+                                    <ComboBox x:Name="TempleFilterCombo" Width="100" FontSize="13"
+                                              Margin="6,0" SelectionChanged="Filter_SelectionChanged"
+                                              ToolTip="按廟別篩選"/>
+                                    <ComboBox x:Name="LampFilterCombo" Width="100" FontSize="13"
+                                              Margin="6,0" SelectionChanged="Filter_SelectionChanged"
+                                              ToolTip="按燈種篩選"/>
+                                </StackPanel>
+                            </Border>
 
                             <DataGrid Grid.Row="1"
                                       x:Name="OrdersDataGrid"
                                       AutoGenerateColumns="False"
                                       IsReadOnly="True"
                                       CanUserReorderColumns="False"
-                                      GridLinesVisibility="Horizontal"
+                                      GridLinesVisibility="All"
+                                      HorizontalGridLinesBrush="#E8D5A3"
+                                      VerticalGridLinesBrush="#E8D5A3"
                                       HeadersVisibility="Column"
                                       AlternatingRowBackground="#FFFAF0"
+                                      RowHeight="32"
                                       FontSize="13"
                                       Margin="0,0,0,0">
+                                <DataGrid.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="Padding" Value="8,0"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="DataGridCell">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGrid.CellStyle>
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="點燈時間" Binding="{Binding CreatedAt, StringFormat=MM/dd HH:mm}" Width="100"/>
+                                    <DataGridTextColumn Header="點燈時間" Binding="{Binding CreatedAt, StringFormat={}{0:MM/dd HH:mm}}" Width="100"/>
                                     <DataGridTextColumn Header="操作人員" Binding="{Binding StaffName}" Width="80"/>
                                     <DataGridTextColumn Header="客戶" Binding="{Binding CustomerName}" Width="80"/>
                                     <DataGridTextColumn Header="燈種" Binding="{Binding LampName}" Width="100"/>
                                     <DataGridTextColumn Header="廟別" Binding="{Binding Temple}" Width="80"/>
                                     <DataGridTextColumn Header="神明" Binding="{Binding Deity}" Width="80"/>
                                     <DataGridTextColumn Header="年度" Binding="{Binding Year}" Width="55"/>
-                                    <DataGridTextColumn Header="金額" Binding="{Binding Price, StringFormat=${0:N0}}" Width="70"/>
-                                    <DataGridTextColumn Header="起始日" Binding="{Binding StartDate, StringFormat=MM/dd}" Width="70"/>
-                                    <DataGridTextColumn Header="到期日" Binding="{Binding EndDate, StringFormat=yyyy/MM/dd}" Width="90"/>
+                                    <DataGridTextColumn Header="金額" Binding="{Binding Price, StringFormat={}{0:$#,##0}}" Width="70"/>
+                                    <DataGridTextColumn Header="起始日" Binding="{Binding StartDate, StringFormat={}{0:MM/dd}}" Width="70"/>
+                                    <DataGridTextColumn Header="到期日" Binding="{Binding EndDate, StringFormat={}{0:yyyy/MM/dd}}" Width="90"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ===== 即將到期 TabItem ===== -->
+            <TabItem Header="即將到期" FontSize="14" FontWeight="SemiBold">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 摘要卡片（與點燈統計同風格） -->
+                    <Border Grid.Row="0" Background="#FFF8ED" CornerRadius="8" Padding="16,10"
+                            BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Margin="0,0,32,0">
+                                <TextBlock Text="即將到期" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock x:Name="ExpiringCountNumber" FontSize="22" FontWeight="Bold"
+                                           Foreground="#E65100"/>
+                            </StackPanel>
+                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,32,0"/>
+                            <TextBlock x:Name="ExpiringCountText" FontSize="13"
+                                       Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 即將到期 DataGrid（與點燈統計 DataGrid 同風格） -->
+                    <Border Grid.Row="1" Background="White" CornerRadius="8"
+                            BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- 標題列（與點燈統計篩選列同風格） -->
+                            <Border Grid.Row="0" Background="#FFF8ED" CornerRadius="8,8,0,0"
+                                    BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="0,0,0,1">
+                                <StackPanel Orientation="Horizontal" Margin="10,8">
+                                    <TextBlock Text="30 天內即將到期的點燈訂單" FontSize="13" VerticalAlignment="Center"
+                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <DataGrid Grid.Row="1"
+                                      x:Name="ExpiringOrdersDataGrid"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      CanUserReorderColumns="False"
+                                      GridLinesVisibility="All"
+                                      HorizontalGridLinesBrush="#E8D5A3"
+                                      VerticalGridLinesBrush="#E8D5A3"
+                                      HeadersVisibility="Column"
+                                      AlternatingRowBackground="#FFFAF0"
+                                      RowHeight="32"
+                                      FontSize="13"
+                                      Margin="0,0,0,0">
+                                <DataGrid.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="Padding" Value="8,0"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="DataGridCell">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGrid.CellStyle>
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="剩餘天數" Binding="{Binding DaysLeft, StringFormat={}{0} 天}" Width="80"/>
+                                    <DataGridTextColumn Header="到期日" Binding="{Binding EndDate, StringFormat={}{0:yyyy/MM/dd}}" Width="100"/>
+                                    <DataGridTextColumn Header="客戶姓名" Binding="{Binding CustomerName}" Width="90"/>
+                                    <DataGridTextColumn Header="電話" Binding="{Binding Phone}" Width="120"/>
+                                    <DataGridTextColumn Header="燈種" Binding="{Binding LampName}" Width="*"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>

@@ -235,6 +235,32 @@ public class SupabaseService : ISupabaseService
         }
     }
 
+    public async Task<string?> GetNextOrderNumberFromCloudAsync(int lampId, int rocYear)
+    {
+        if (!_isConfigured || _client == null) return null;
+
+        try
+        {
+            var response = await _client.Rpc("get_next_order_number", new
+            {
+                p_lamp_id = lampId,
+                p_roc_year = rocYear
+            });
+
+            // Supabase RPC 回傳 JSON 字串，例如 "\"11400023\""，需去掉引號
+            var content = response.Content;
+            if (!string.IsNullOrWhiteSpace(content))
+                return content.Trim().Trim('"');
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"GetNextOrderNumberFromCloudAsync 失敗：{ex.Message}");
+            return null;
+        }
+    }
+
     public async Task<string?> GetMaxOrderNumberAsync(int lampId, int rocYear)
     {
         if (!_isConfigured || _client == null) return null;
@@ -266,12 +292,15 @@ public class SupabaseService : ISupabaseService
 
         try
         {
-            var response = await _client
-                .From<SupabaseLampOrder>()
-                .Where(o => o.LampId == lampId && o.Year == year)
-                .Get();
-
-            return response.Models.Count;
+            var response = await _client.Rpc("get_lamp_order_count", new
+            {
+                p_lamp_id = lampId,
+                p_year = year
+            });
+            var content = response.Content?.Trim();
+            if (!string.IsNullOrEmpty(content) && int.TryParse(content, out var count))
+                return count;
+            return 0;
         }
         catch
         {
@@ -352,12 +381,9 @@ public class SupabaseService : ISupabaseService
             if (staffList.Count > 0)
                 await UpsertStaffBatchAsync(staffList);
 
-            // 燈種很少，全量同步即可
+            // 燈種很少，全量並行同步
             var lamps = await _localContext.Lamps.AsNoTracking().ToListAsync();
-            foreach (var lamp in lamps)
-            {
-                await UpsertLampAsync(lamp);
-            }
+            await Task.WhenAll(lamps.Select(UpsertLampAsync));
 
             // 批量上傳客戶（每批 200 筆）
             var customers = await customerQuery.ToListAsync();

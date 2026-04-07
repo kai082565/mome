@@ -189,7 +189,7 @@
 
         <!-- 按鈕 -->
         <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
-            <Button Content="確認新增" Style="{StaticResource SuccessButton}"
+            <Button x:Name="ConfirmButton" Content="確認新增" Style="{StaticResource SuccessButton}"
                     Padding="40,16" FontSize="22" Click="ConfirmButton_Click"/>
             <Button Content="取消" Padding="40,16" FontSize="22" Margin="12,0,0,0"
                     Click="CancelButton_Click"/>

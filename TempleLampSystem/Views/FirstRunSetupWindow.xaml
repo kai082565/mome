@@ -21,8 +21,12 @@
         <TextBox x:Name="NameTextBox" FontSize="15" Padding="10,8" Margin="0,0,0,16"/>
 
         <!-- 密碼 -->
-        <TextBlock Text="密碼" FontSize="13" FontWeight="SemiBold"
-                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="密碼" FontSize="13" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+            <TextBlock Text="（至少 4 個字元）" FontSize="11"
+                       Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+        </StackPanel>
         <PasswordBox x:Name="PasswordBox" FontSize="15" Padding="10,8" Margin="0,0,0,8"/>
 
         <!-- 確認密碼 -->
@@ -35,7 +39,7 @@
                    HorizontalAlignment="Center" Margin="0,0,0,14" Visibility="Collapsed"/>
 
         <!-- 按鈕 -->
-        <Button Content="建立管理員帳號" FontSize="15" FontWeight="Bold"
+        <Button x:Name="CreateButton" Content="建立管理員帳號" FontSize="15" FontWeight="Bold"
                 Padding="0,12" Style="{StaticResource PrimaryButton}"
                 Click="CreateButton_Click"/>
     </StackPanel>

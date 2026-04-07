@@ -119,59 +119,41 @@ public partial class CustomerDetailWindow : Window
 
         try
         {
-            // 1) 先刪除 Supabase 資料（必須先成功，否則下次同步會把資料拉回來）
-            var supabaseFailed = false;
-            if (_supabaseService.IsConfigured)
-            {
-                try
-                {
-                    // 刪除雲端 LampOrder
-                    var cloudOrders = await _supabaseService.GetLampOrdersByCustomerAsync(_customer.Id);
-                    foreach (var order in cloudOrders)
-                    {
-                        await _supabaseService.DeleteLampOrderAsync(order.Id);
-                    }
-
-                    // 刪除雲端 Customer
-                    await _supabaseService.DeleteCustomerAsync(_customer.Id);
-                }
-                catch (Exception ex)
-                {
-                    supabaseFailed = true;
-                    var retry = StyledMessageBox.Show(
-                        $"雲端刪除失敗：{ex.Message}\n\n是否仍要刪除本機資料？\n（下次同步可能會從雲端恢復資料）",
-                        "雲端刪除失敗",
-                        MessageBoxButton.YesNo);
-
-                    if (retry != MessageBoxResult.Yes) return;
-                }
-            }
-
-            // 2) 刪除本機資料
-            // 取得該客戶所有 LampOrder（從當前 DbContext 查詢）
+            // 1) 先刪除本機資料（本地刪除成功後，雲端刪除失敗可透過 SyncQueue 重試）
             var localOrders = await _lampOrderRepository.GetByCustomerIdAsync(_customer.Id);
 
-            // 逐筆刪除本機 LampOrder（因為 RESTRICT 必須先刪 orders）
             foreach (var order in localOrders)
             {
                 await _lampOrderRepository.DeleteAsync(order);
             }
 
-            // 從當前 DbContext 重新查詢 Customer，確保在追蹤範圍內
             var customerToDelete = await _customerRepository.GetByIdAsync(_customer.Id);
             if (customerToDelete != null)
             {
                 await _customerRepository.DeleteAsync(customerToDelete);
             }
 
-            // 3) 若 Supabase 刪除失敗，將刪除操作加入 SyncQueue 排隊重試
-            if (supabaseFailed)
+            // 2) 嘗試刪除雲端資料；失敗時加入 SyncQueue 排隊重試
+            if (_supabaseService.IsConfigured)
             {
-                foreach (var order in localOrders)
+                try
                 {
-                    await _syncQueueService.EnqueueAsync(order, SyncOperation.Delete);
+                    var cloudOrders = await _supabaseService.GetLampOrdersByCustomerAsync(_customer.Id);
+                    foreach (var order in cloudOrders)
+                    {
+                        await _supabaseService.DeleteLampOrderAsync(order.Id);
+                    }
+                    await _supabaseService.DeleteCustomerAsync(_customer.Id);
                 }
-                await _syncQueueService.EnqueueAsync(_customer, SyncOperation.Delete);
+                catch
+                {
+                    // 雲端刪除失敗，加入 SyncQueue 背景重試
+                    foreach (var order in localOrders)
+                    {
+                        await _syncQueueService.EnqueueAsync(order, SyncOperation.Delete);
+                    }
+                    await _syncQueueService.EnqueueAsync(_customer, SyncOperation.Delete);
+                }
             }
 
             CustomerWasDeleted = true;
@@ -181,6 +163,44 @@ public partial class CustomerDetailWindow : Window
         catch (Exception ex)
         {
             StyledMessageBox.Show($"刪除失敗：{ex.Message}", "錯誤");
+        }
+    }
+
+    private async void EditButton_Click(object sender, RoutedEventArgs e)
+    {
+        // 取得最新的 Customer 物件（含 LampOrders，以便 Edit 完後重新顯示）
+        var customer = await _customerRepository.GetWithOrdersAsync(_customer.Id);
+        if (customer == null) return;
+
+        var editWindow = new AddCustomerWindow(customer)
+        {
+            Owner = this
+        };
+
+        if (editWindow.ShowDialog() != true || editWindow.EditedCustomer == null)
+            return;
+
+        try
+        {
+            await _customerRepository.UpdateAsync(editWindow.EditedCustomer);
+
+            // 同步到雲端
+            if (_supabaseService.IsConfigured)
+            {
+                try { await _supabaseService.UpsertCustomerAsync(editWindow.EditedCustomer); }
+                catch { await _syncQueueService.EnqueueAsync(editWindow.EditedCustomer, SyncOperation.Update); }
+            }
+
+            // 重新載入畫面
+            var refreshed = await _customerRepository.GetWithOrdersAsync(_customer.Id);
+            if (refreshed != null)
+                LoadCustomerData(refreshed);
+
+            StyledMessageBox.Show("客戶資料已更新。", "儲存成功");
+        }
+        catch (Exception ex)
+        {
+            StyledMessageBox.Show($"儲存失敗：{ex.Message}", "錯誤");
         }
     }
 

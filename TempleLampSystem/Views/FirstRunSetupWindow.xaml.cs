@@ -36,6 +36,12 @@ public partial class FirstRunSetupWindow : Window
             return;
         }
 
+        if (password.Length < 4)
+        {
+            ShowError("密碼至少需要 4 個字元");
+            return;
+        }
+
         if (password != confirm)
         {
             ShowError("兩次輸入的密碼不一致");
@@ -44,7 +50,28 @@ public partial class FirstRunSetupWindow : Window
 
         try
         {
-            await _staffService.CreateStaffAsync(name, password, StaffRole.Admin);
+            CreateButton.IsEnabled = false;
+            var staff = await _staffService.CreateStaffAsync(name, password, StaffRole.Admin);
+
+            // 立即上傳到 Supabase，確保其他電腦能立刻找到帳號（不必等 AutoSync 30 秒）
+            var supabaseService = App.Services.GetRequiredService<ISupabaseService>();
+            if (supabaseService.IsConfigured)
+            {
+                try
+                {
+                    await supabaseService.UpsertStaffAsync(staff);
+                }
+                catch
+                {
+                    // 上傳失敗：讓使用者主動確認後再繼續，AutoSync 會在背景重試
+                    MessageBox.Show(
+                        "帳號已建立於本機，但無法即時上傳至雲端。\n\n請確認網路連線，其他電腦需等待同步後才能登入。",
+                        "雲端同步提醒",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+            }
+
             AdminName = name;
             AdminPassword = password;
             DialogResult = true;
@@ -53,6 +80,7 @@ public partial class FirstRunSetupWindow : Window
         catch (Exception ex)
         {
             ShowError($"建立失敗：{ex.Message}");
+            CreateButton.IsEnabled = true;
         }
     }
 

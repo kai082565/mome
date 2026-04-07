@@ -35,7 +35,10 @@ public interface ISupabaseService
     // 名額查詢
     Task<int> GetCloudOrderCountAsync(int lampId, int year);
 
-    // 燈號查詢（防多台撞號）
+    // 燈號取號（原子操作，防多台撞號）
+    Task<string?> GetNextOrderNumberFromCloudAsync(int lampId, int rocYear);
+
+    // 燈號查詢（舊版，離線 fallback 用）
     Task<string?> GetMaxOrderNumberAsync(int lampId, int rocYear);
 
     // 批量上傳

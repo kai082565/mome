@@ -10,7 +10,6 @@ public class AppDbContext : DbContext
     public DbSet<Lamp> Lamps => Set<Lamp>();
     public DbSet<LampOrder> LampOrders => Set<LampOrder>();
     public DbSet<SyncQueueItem> SyncQueue => Set<SyncQueueItem>();
-    public DbSet<SyncConflict> SyncConflicts => Set<SyncConflict>();
     public DbSet<Staff> Staff => Set<Staff>();
 
     public AppDbContext() { }
@@ -21,7 +20,11 @@ public class AppDbContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            var dbPath = Path.Combine(AppContext.BaseDirectory, "TempleLamp.db");
+            var appDataPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "TempleLampSystem");
+            Directory.CreateDirectory(appDataPath);
+            var dbPath = Path.Combine(appDataPath, "TempleLamp.db");
             optionsBuilder.UseSqlite($"Data Source={dbPath}");
         }
     }

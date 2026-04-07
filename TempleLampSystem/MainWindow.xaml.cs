@@ -81,6 +81,11 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
+        _customerSearchViewModel.CustomerSelected -= OnCustomerSelected;
+        _customerSearchViewModel.CustomersSelectionChanged -= OnCustomersSelectionChanged;
+        _lampOrderViewModel.OrderCreated -= OnOrderCreated;
+        _lampOrderViewModel.CustomerRemoved -= OnCustomerRemoved;
+        _autoSyncService.SyncStatusChanged -= OnSyncStatusChanged;
         _autoSyncService.Stop();
         _clockTimer.Stop();
     }
@@ -98,6 +103,10 @@ public partial class MainWindow : Window
             PendingSyncText.Text = e.PendingCount > 0
                 ? $"待同步：{e.PendingCount} 筆"
                 : "";
+
+            // 有其他電腦的新資料下載時，刷新剩餘名額顯示
+            if (e.HasNewData)
+                _ = _lampOrderViewModel.RefreshQuotaAsync();
         });
     }
 
@@ -154,6 +163,8 @@ public partial class MainWindow : Window
         var confirm = MessageBox.Show("確定要登出嗎？", "登出", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (confirm != MessageBoxResult.Yes) return;
 
+        // 登出前停止背景同步，避免舊帳號狀態繼續運作
+        _autoSyncService.Stop();
         _sessionService.Logout();
 
         var loginWindow = new LoginWindow();
@@ -165,6 +176,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        // 新帳號登入後重新啟動同步服務
+        _autoSyncService.Start();
         UpdateStaffDisplay();
     }
 

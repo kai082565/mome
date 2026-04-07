@@ -1,3 +1,4 @@
+using System.IO;
 using System.Printing;
 using System.Windows;
 using System.Windows.Controls;
@@ -149,10 +150,12 @@ public class PrintService : IPrintService
     {
         if (string.IsNullOrEmpty(filePath))
         {
+            var safeName = string.Concat(letter.CustomerName
+                .Where(c => !Path.GetInvalidFileNameChars().Contains(c)));
             var saveDialog = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "PDF 檔案|*.pdf",
-                FileName = $"客戶資料_{letter.CustomerName}_{letter.PrintDate:yyyyMMdd}.pdf"
+                FileName = $"客戶資料_{safeName}_{letter.PrintDate:yyyyMMdd}.pdf"
             };
 
             if (saveDialog.ShowDialog() != true)

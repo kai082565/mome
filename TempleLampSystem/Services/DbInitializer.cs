@@ -106,7 +106,7 @@ public static class DbInitializer
     /// <summary>
     /// 為缺少編號的客戶自動產生 6 碼流水編號
     /// </summary>
-    private static void AssignCustomerCodes(AppDbContext context)
+    internal static void AssignCustomerCodes(AppDbContext context)
     {
         var customersWithoutCode = context.Customers
             .Where(c => c.CustomerCode == null || c.CustomerCode == "")

@@ -207,7 +207,8 @@ public class AutoSyncService : IAutoSyncService
                 {
                     IsOnline = true,
                     PendingCount = pendingCount,
-                    Message = message
+                    Message = message,
+                    HasNewData = totalDownloaded > 0
                 });
             }
 

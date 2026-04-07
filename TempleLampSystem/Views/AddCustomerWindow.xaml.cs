@@ -17,8 +17,10 @@ public partial class AddCustomerWindow : Window
     private readonly ISupabaseService _supabaseService;
     private List<Customer> _foundFamilyMembers = new();
     private Dictionary<string, Customer> _familyAddressDetails = new();
+    private Customer? _editCustomer; // 編輯模式時的目標客戶
 
     public Customer? NewCustomer { get; private set; }
+    public Customer? EditedCustomer { get; private set; }
 
     public AddCustomerWindow()
     {
@@ -26,6 +28,43 @@ public partial class AddCustomerWindow : Window
         BirthHourComboBox.ItemsSource = BirthHours;
         _customerRepository = App.Services.GetRequiredService<ICustomerRepository>();
         _supabaseService = App.Services.GetRequiredService<ISupabaseService>();
+    }
+
+    /// <summary>以編輯模式開啟，預填客戶資料</summary>
+    public AddCustomerWindow(Customer editCustomer) : this()
+    {
+        _editCustomer = editCustomer;
+        Title = "編輯客戶資料";
+        ConfirmButton.Content = "儲存修改";
+        PopulateFields(editCustomer);
+    }
+
+    private void PopulateFields(Customer c)
+    {
+        NameTextBox.Text = c.Name;
+        PhoneTextBox.Text = c.Phone ?? "";
+        PostalCodeTextBox.Text = c.PostalCode ?? "";
+        VillageTextBox.Text = c.Village ?? "";
+        AddressTextBox.Text = c.Address ?? "";
+        NoteTextBox.Text = c.Note ?? "";
+
+        if (c.BirthYear == 0)
+            JiYearCheckBox.IsChecked = true;
+        else if (c.BirthYear != null)
+            BirthYearTextBox.Text = c.BirthYear.ToString();
+
+        if (c.BirthMonth == 0)
+            JiMonthCheckBox.IsChecked = true;
+        else if (c.BirthMonth != null)
+            BirthMonthTextBox.Text = c.BirthMonth.ToString();
+
+        if (c.BirthDay == 0)
+            JiDayCheckBox.IsChecked = true;
+        else if (c.BirthDay != null)
+            BirthDayTextBox.Text = c.BirthDay.ToString();
+
+        if (c.BirthHour != null)
+            BirthHourComboBox.SelectedItem = c.BirthHour;
     }
 
     private void BirthYearTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -44,6 +83,8 @@ public partial class AddCustomerWindow : Window
 
     private async void PhoneTextBox_LostFocus(object sender, RoutedEventArgs e)
     {
+        // 編輯模式不顯示家人提示（避免把自己列出來）
+        if (_editCustomer != null) return;
         await CheckFamilyMembersAsync();
     }
 
@@ -172,6 +213,32 @@ public partial class AddCustomerWindow : Window
             return;
         }
 
+        // ===== 編輯模式 =====
+        if (_editCustomer != null)
+        {
+            _editCustomer.Name = name;
+            _editCustomer.Phone = NullIfEmpty(PhoneTextBox.Text);
+            _editCustomer.Mobile = NullIfEmpty(PhoneTextBox.Text);
+            _editCustomer.Address = NullIfEmpty(AddressTextBox.Text);
+            _editCustomer.Village = NullIfEmpty(VillageTextBox.Text);
+            _editCustomer.PostalCode = NullIfEmpty(PostalCodeTextBox.Text);
+            _editCustomer.Note = NullIfEmpty(NoteTextBox.Text);
+            _editCustomer.BirthHour = BirthHourComboBox.SelectedItem as string;
+            _editCustomer.UpdatedAt = DateTime.Now;
+
+            _editCustomer.BirthYear = JiYearCheckBox.IsChecked == true ? 0
+                : int.TryParse(BirthYearTextBox.Text.Trim(), out var ey) ? ey : null;
+            _editCustomer.BirthMonth = JiMonthCheckBox.IsChecked == true ? 0
+                : int.TryParse(BirthMonthTextBox.Text.Trim(), out var em) ? em : null;
+            _editCustomer.BirthDay = JiDayCheckBox.IsChecked == true ? 0
+                : int.TryParse(BirthDayTextBox.Text.Trim(), out var ed) ? ed : null;
+
+            EditedCustomer = _editCustomer;
+            DialogResult = true;
+            return;
+        }
+
+        // ===== 新增模式 =====
         // 取得下一個客戶編號（取本地和雲端的最大值，確保不重複）
         string customerCode;
         try

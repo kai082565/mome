@@ -10,5 +10,6 @@ public interface IStaffService
     Task<Staff> CreateStaffAsync(string name, string password, StaffRole role);
     Task UpdatePasswordAsync(string staffId, string newPassword);
     Task SetActiveAsync(string staffId, bool isActive);
+    Task DeleteAsync(string staffId);
     Task<bool> HasAnyStaffAsync();
 }

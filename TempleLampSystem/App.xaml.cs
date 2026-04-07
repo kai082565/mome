@@ -65,6 +65,10 @@ public partial class App : Application
             // 檢查更新
             await CheckForUpdatesAsync();
 
+            // 啟動每日定時備份服務
+            var backupService = Services.GetRequiredService<IBackupService>();
+            backupService.Start();
+
             // 手動啟動 MainWindow
             var mainWindow = new MainWindow();
             mainWindow.Show();

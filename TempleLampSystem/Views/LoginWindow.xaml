@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="點燈管理系統 - 登入"
         Width="420"
-        Height="500"
+        MinHeight="480"
+        SizeToContent="Height"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="{StaticResource BackgroundBrush}"
@@ -77,6 +78,8 @@
                        Foreground="Red"
                        FontSize="13"
                        HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
                        Margin="0,0,0,16"
                        Visibility="Collapsed"/>
 
@@ -88,6 +91,15 @@
                     Padding="0,12"
                     Style="{StaticResource PrimaryButton}"
                     Click="LoginButton_Click"/>
+
+            <!-- 重試按鈕（雲端連線失敗時顯示） -->
+            <Button x:Name="RetryButton"
+                    Content="重新連線"
+                    FontSize="14"
+                    Padding="0,10"
+                    Margin="0,8,0,0"
+                    Visibility="Collapsed"
+                    Click="RetryButton_Click"/>
         </StackPanel>
     </Grid>
 </Window>

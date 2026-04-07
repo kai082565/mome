@@ -10,17 +10,17 @@ namespace TempleLampSystem.Views;
 
 public partial class AdminDashboardWindow : Window
 {
-    private readonly IStaffService _staffService;
-    private readonly AppDbContext _dbContext;
     private List<DashboardOrderRow> _allRows = new();
+    private List<ExpiringOrderRow> _expiringRows = new();
     private List<StaffListItem> _staffItems = new();
     private StaffListItem? _selectedStaffItem;
+    private readonly SessionService _sessionService;
 
     public AdminDashboardWindow()
     {
         InitializeComponent();
-        _staffService = App.Services.GetRequiredService<IStaffService>();
-        _dbContext = App.Services.GetRequiredService<AppDbContext>();
+
+        _sessionService = App.Services.GetRequiredService<SessionService>();
 
         // 預設今天
         StartDatePicker.SelectedDate = DateTime.Today;
@@ -32,6 +32,7 @@ public partial class AdminDashboardWindow : Window
     private async Task LoadAsync()
     {
         await LoadOrdersAsync();
+        await LoadExpiringOrdersAsync();
         await LoadStaffListAsync();
     }
 
@@ -42,7 +43,10 @@ public partial class AdminDashboardWindow : Window
         var start = StartDatePicker.SelectedDate ?? DateTime.Today;
         var end = (EndDatePicker.SelectedDate ?? DateTime.Today).AddDays(1).AddTicks(-1);
 
-        _allRows = await _dbContext.LampOrders
+        using var scope = App.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        _allRows = await dbContext.LampOrders
             .AsNoTracking()
             .Include(o => o.Customer)
             .Include(o => o.Lamp)
@@ -131,6 +135,14 @@ public partial class AdminDashboardWindow : Window
         _ = LoadOrdersAsync();
     }
 
+    private void ThisYearButton_Click(object sender, RoutedEventArgs e)
+    {
+        var today = DateTime.Today;
+        StartDatePicker.SelectedDate = new DateTime(today.Year, 1, 1);
+        EndDatePicker.SelectedDate = today;
+        _ = LoadOrdersAsync();
+    }
+
     private void DateFilter_Changed(object? sender, SelectionChangedEventArgs e) { }
 
     private void Filter_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -140,11 +152,48 @@ public partial class AdminDashboardWindow : Window
 
     #endregion
 
+    #region 即將到期訂單
+
+    private async Task LoadExpiringOrdersAsync()
+    {
+        var today = DateTime.Today;
+        var threshold = today.AddDays(30);
+
+        using var scope = App.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        _expiringRows = await dbContext.LampOrders
+            .AsNoTracking()
+            .Include(o => o.Customer)
+            .Include(o => o.Lamp)
+            .Where(o => o.EndDate >= today && o.EndDate <= threshold)
+            .OrderBy(o => o.EndDate)
+            .Select(o => new ExpiringOrderRow
+            {
+                CustomerName = o.Customer.Name,
+                Phone = o.Customer.Phone ?? "",
+                LampName = o.Lamp.LampName,
+                EndDate = o.EndDate,
+                DaysLeft = (int)(o.EndDate - today).TotalDays
+            })
+            .ToListAsync();
+
+        ExpiringOrdersDataGrid.ItemsSource = _expiringRows;
+        ExpiringCountNumber.Text = _expiringRows.Count.ToString("N0");
+        ExpiringCountText.Text = _expiringRows.Count > 0
+            ? "筆訂單即將到期（每次開啟自動更新）"
+            : "目前無即將到期的點燈訂單";
+    }
+
+    #endregion
+
     #region 帳號管理
 
     private async Task LoadStaffListAsync()
     {
-        var staffList = await _staffService.GetAllAsync();
+        using var scope = App.Services.CreateScope();
+        var staffService = scope.ServiceProvider.GetRequiredService<IStaffService>();
+        var staffList = await staffService.GetAllAsync();
         _staffItems = staffList.Select(s => new StaffListItem
         {
             Id = s.Id,
@@ -195,18 +244,27 @@ public partial class AdminDashboardWindow : Window
             return;
         }
 
+        if (password.Length < 4)
+        {
+            AddStaffErrorText.Text = "密碼至少需要 4 個字元";
+            AddStaffErrorText.Visibility = Visibility.Visible;
+            return;
+        }
+
         try
         {
             var role = isAdmin ? StaffRole.Admin : StaffRole.Staff;
-            await _staffService.CreateStaffAsync(name, password, role);
 
-            // 同步到雲端
-            using var scope = App.Services.CreateScope();
-            var supabaseService = scope.ServiceProvider.GetRequiredService<ISupabaseService>();
-            var staffContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var newStaff = await staffContext.Staff.FirstOrDefaultAsync(s => s.Name == name);
-            if (newStaff != null)
-                await supabaseService.UpsertStaffAsync(newStaff);
+            Staff newStaff;
+            using (var scope = App.Services.CreateScope())
+            {
+                var staffService = scope.ServiceProvider.GetRequiredService<IStaffService>();
+                newStaff = await staffService.CreateStaffAsync(name, password, role);
+
+                // 同步到雲端（同一 scope，避免 context 衝突）
+                var supabaseService = scope.ServiceProvider.GetRequiredService<ISupabaseService>();
+                try { await supabaseService.UpsertStaffAsync(newStaff); } catch { /* 背景同步會重試 */ }
+            }
 
             NewNameTextBox.Clear();
             NewPasswordBox.Password = string.Empty;
@@ -215,7 +273,8 @@ public partial class AdminDashboardWindow : Window
         }
         catch (Exception ex)
         {
-            AddStaffErrorText.Text = ex.Message.Contains("UNIQUE") ? "此姓名已存在" : ex.Message;
+            var msg = (ex.InnerException ?? ex).Message;
+            AddStaffErrorText.Text = msg.Contains("UNIQUE") ? "此姓名已存在" : msg;
             AddStaffErrorText.Visibility = Visibility.Visible;
         }
     }
@@ -230,24 +289,69 @@ public partial class AdminDashboardWindow : Window
             return;
         }
 
+        if (newPwd.Length < 4)
+        {
+            StyledMessageBox.Show("密碼至少需要 4 個字元", "提示");
+            return;
+        }
+
         try
         {
-            await _staffService.UpdatePasswordAsync(_selectedStaffItem.Id, newPwd);
-
-            // 同步到雲端
             using var scope = App.Services.CreateScope();
-            var supabaseService = scope.ServiceProvider.GetRequiredService<ISupabaseService>();
+            var staffService = scope.ServiceProvider.GetRequiredService<IStaffService>();
+            await staffService.UpdatePasswordAsync(_selectedStaffItem.Id, newPwd);
+
             var staffContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var staff = await staffContext.Staff.FindAsync(_selectedStaffItem.Id);
             if (staff != null)
-                await supabaseService.UpsertStaffAsync(staff);
+            {
+                var supabaseService = scope.ServiceProvider.GetRequiredService<ISupabaseService>();
+                try { await supabaseService.UpsertStaffAsync(staff); } catch { }
+            }
 
             ResetPasswordBox.Password = string.Empty;
             StyledMessageBox.Show("密碼已重設", "完成");
         }
         catch (Exception ex)
         {
-            StyledMessageBox.Show($"重設失敗：{ex.Message}", "錯誤");
+            StyledMessageBox.Show($"重設失敗：{(ex.InnerException ?? ex).Message}", "錯誤");
+        }
+    }
+
+    private async void DeleteStaffButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedStaffItem == null) return;
+
+        // 防止刪除自己的帳號
+        if (_selectedStaffItem.Id == _sessionService.CurrentStaff?.Id)
+        {
+            StyledMessageBox.Show("無法刪除目前登入中的帳號。", "操作拒絕");
+            return;
+        }
+
+        var confirm = MessageBox.Show(
+            $"確定要刪除「{_selectedStaffItem.Name}」的帳號嗎？\n此操作無法復原。",
+            "確認刪除",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (confirm != MessageBoxResult.Yes) return;
+
+        try
+        {
+            using var scope = App.Services.CreateScope();
+            var staffService = scope.ServiceProvider.GetRequiredService<IStaffService>();
+            await staffService.DeleteAsync(_selectedStaffItem.Id);
+
+            // 同步刪除到雲端
+            var supabaseService = scope.ServiceProvider.GetRequiredService<ISupabaseService>();
+            await supabaseService.DeleteStaffAsync(_selectedStaffItem.Id);
+
+            await LoadStaffListAsync();
+        }
+        catch (Exception ex)
+        {
+            StyledMessageBox.Show($"刪除失敗：{(ex.InnerException ?? ex).Message}", "錯誤");
         }
     }
 
@@ -258,21 +362,24 @@ public partial class AdminDashboardWindow : Window
         try
         {
             var newActive = !_selectedStaffItem.IsActive;
-            await _staffService.SetActiveAsync(_selectedStaffItem.Id, newActive);
 
-            // 同步到雲端
             using var scope = App.Services.CreateScope();
-            var supabaseService = scope.ServiceProvider.GetRequiredService<ISupabaseService>();
+            var staffService = scope.ServiceProvider.GetRequiredService<IStaffService>();
+            await staffService.SetActiveAsync(_selectedStaffItem.Id, newActive);
+
             var staffContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var staff = await staffContext.Staff.FindAsync(_selectedStaffItem.Id);
             if (staff != null)
-                await supabaseService.UpsertStaffAsync(staff);
+            {
+                var supabaseService = scope.ServiceProvider.GetRequiredService<ISupabaseService>();
+                try { await supabaseService.UpsertStaffAsync(staff); } catch { }
+            }
 
             await LoadStaffListAsync();
         }
         catch (Exception ex)
         {
-            StyledMessageBox.Show($"操作失敗：{ex.Message}", "錯誤");
+            StyledMessageBox.Show($"操作失敗：{(ex.InnerException ?? ex).Message}", "錯誤");
         }
     }
 
@@ -297,6 +404,15 @@ public class StaffSummaryItem
 {
     public string StaffName { get; set; } = string.Empty;
     public int Count { get; set; }
+}
+
+public class ExpiringOrderRow
+{
+    public string CustomerName { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string LampName { get; set; } = string.Empty;
+    public DateTime EndDate { get; set; }
+    public int DaysLeft { get; set; }
 }
 
 public class StaffListItem

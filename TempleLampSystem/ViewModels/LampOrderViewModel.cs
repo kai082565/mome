@@ -323,6 +323,9 @@ public partial class LampOrderViewModel : ViewModelBase
         }
     }
 
+    /// <summary>AutoSync 下載新資料後由外部呼叫，刷新剩餘名額顯示</summary>
+    public Task RefreshQuotaAsync() => UpdateQuotaInfoAsync(SelectedLamp);
+
     private async Task UpdateQuotaInfoAsync(Lamp? lamp)
     {
         if (lamp == null)
@@ -523,7 +526,7 @@ public partial class LampOrderViewModel : ViewModelBase
                 OrderCreated?.Invoke(this, customer.Id);
             }
 
-            // 重新檢查點燈狀態
+            // 重新檢查點燈狀態並更新剩餘名額
             if (SelectedCustomers.Count > 0)
             {
                 await CheckCanOrderForMultipleAsync();
@@ -532,6 +535,7 @@ public partial class LampOrderViewModel : ViewModelBase
             {
                 await CheckCanOrderAsync();
             }
+            await UpdateQuotaInfoAsync(SelectedLamp);
         }
         catch (Exception ex)
         {
