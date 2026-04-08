@@ -67,20 +67,14 @@ public partial class AdminDashboardWindow : Window
             })
             .ToListAsync();
 
-        // 填入篩選 ComboBox
-        var allItem = new[] { "（全部）" };
-
-        var staffNames = allItem.Concat(_allRows.Select(r => r.StaffName).Distinct().OrderBy(x => x)).ToList();
+        // 填入工作人員 ComboBox（從 Staff 表取得，只顯示啟用中的人員）
+        var staffService = scope.ServiceProvider.GetRequiredService<IStaffService>();
+        var staffList = await staffService.GetAllAsync();
+        var staffNames = new[] { "（全部）" }
+            .Concat(staffList.Where(s => s.IsActive).Select(s => s.Name).OrderBy(x => x))
+            .ToList();
         StaffFilterCombo.ItemsSource = staffNames;
         StaffFilterCombo.SelectedIndex = 0;
-
-        var temples = allItem.Concat(_allRows.Select(r => r.Temple).Where(t => !string.IsNullOrEmpty(t)).Distinct().OrderBy(x => x)).ToList();
-        TempleFilterCombo.ItemsSource = temples;
-        TempleFilterCombo.SelectedIndex = 0;
-
-        var lampNames = allItem.Concat(_allRows.Select(r => r.LampName).Distinct().OrderBy(x => x)).ToList();
-        LampFilterCombo.ItemsSource = lampNames;
-        LampFilterCombo.SelectedIndex = 0;
 
         ApplyFilters();
     }
@@ -88,22 +82,14 @@ public partial class AdminDashboardWindow : Window
     private void ApplyFilters()
     {
         var filteredStaff = StaffFilterCombo.SelectedItem as string;
-        var filteredTemple = TempleFilterCombo.SelectedItem as string;
-        var filteredLamp = LampFilterCombo.SelectedItem as string;
-
         var rows = _allRows.AsEnumerable();
 
         if (!string.IsNullOrEmpty(filteredStaff) && filteredStaff != "（全部）")
             rows = rows.Where(r => r.StaffName == filteredStaff);
-        if (!string.IsNullOrEmpty(filteredTemple) && filteredTemple != "（全部）")
-            rows = rows.Where(r => r.Temple == filteredTemple);
-        if (!string.IsNullOrEmpty(filteredLamp) && filteredLamp != "（全部）")
-            rows = rows.Where(r => r.LampName == filteredLamp);
 
         var list = rows.ToList();
         OrdersDataGrid.ItemsSource = list;
 
-        // 更新統計
         TotalOrdersText.Text = list.Count.ToString("N0");
         TotalAmountText.Text = $"${list.Sum(r => r.Price):N0}";
 
@@ -113,11 +99,6 @@ public partial class AdminDashboardWindow : Window
             .OrderByDescending(x => x.Count)
             .ToList();
         StaffSummaryControl.ItemsSource = staffSummary;
-    }
-
-    private async void FilterButton_Click(object sender, RoutedEventArgs e)
-    {
-        await LoadOrdersAsync();
     }
 
     private void TodayButton_Click(object sender, RoutedEventArgs e)
@@ -135,15 +116,10 @@ public partial class AdminDashboardWindow : Window
         _ = LoadOrdersAsync();
     }
 
-    private void ThisYearButton_Click(object sender, RoutedEventArgs e)
+    private void DateFilter_Changed(object? sender, SelectionChangedEventArgs e)
     {
-        var today = DateTime.Today;
-        StartDatePicker.SelectedDate = new DateTime(today.Year, 1, 1);
-        EndDatePicker.SelectedDate = today;
         _ = LoadOrdersAsync();
     }
-
-    private void DateFilter_Changed(object? sender, SelectionChangedEventArgs e) { }
 
     private void Filter_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {

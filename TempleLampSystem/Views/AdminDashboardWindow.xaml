@@ -107,45 +107,57 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- 日期篩選 -->
-                    <Border Grid.Row="0" Background="#FFF8ED" CornerRadius="8" Padding="16,10"
+                    <!-- 篩選列 -->
+                    <Border Grid.Row="0" Background="#FFF8ED" CornerRadius="8" Padding="12,8"
                             BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1" Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="日期範圍：" FontSize="14" FontWeight="SemiBold"
-                                       VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,10,0"/>
-                            <DatePicker x:Name="StartDatePicker" FontSize="13" Margin="0,0,8,0"
+                            <Button Content="今天" Padding="14,5" FontSize="13"
+                                    Margin="0,0,6,0" Click="TodayButton_Click"/>
+                            <Button Content="本月" Padding="14,5" FontSize="13"
+                                    Margin="0,0,16,0" Click="ThisMonthButton_Click"/>
+                            <DatePicker x:Name="StartDatePicker" FontSize="13" Margin="0,0,6,0"
                                         SelectedDateChanged="DateFilter_Changed"/>
-                            <TextBlock Text="～" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="～" FontSize="14" VerticalAlignment="Center" Margin="0,0,6,0"/>
                             <DatePicker x:Name="EndDatePicker" FontSize="13" Margin="0,0,16,0"
                                         SelectedDateChanged="DateFilter_Changed"/>
-                            <Button Content="篩選" Padding="16,6" FontSize="13"
-                                    Style="{StaticResource PrimaryButton}"
-                                    Click="FilterButton_Click"/>
-                            <Button Content="今天" Padding="16,6" FontSize="13"
-                                    Margin="8,0,0,0" Click="TodayButton_Click"/>
-                            <Button Content="本月" Padding="16,6" FontSize="13"
-                                    Margin="8,0,0,0" Click="ThisMonthButton_Click"/>
-                            <Button Content="本年度" Padding="16,6" FontSize="13"
-                                    Margin="8,0,0,0" Click="ThisYearButton_Click"/>
+                            <TextBlock Text="工作人員：" FontSize="13" VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,4,0"/>
+                            <ComboBox x:Name="StaffFilterCombo" Width="120" FontSize="13"
+                                      SelectionChanged="Filter_SelectionChanged"/>
                         </StackPanel>
                     </Border>
 
                     <!-- 統計摘要卡片 -->
-                    <Border Grid.Row="1" Background="#FFF8ED" CornerRadius="8" Padding="16,10"
+                    <Border Grid.Row="1" Background="#FFF8ED" CornerRadius="8" Padding="14,10"
                             BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1" Margin="0,0,0,10">
-                        <StackPanel Orientation="Horizontal">
-                            <StackPanel Margin="0,0,32,0">
-                                <TextBlock Text="總點燈數" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                <TextBlock x:Name="TotalOrdersText" FontSize="22" FontWeight="Bold"
-                                           Foreground="{StaticResource SecondaryBrush}"/>
-                            </StackPanel>
-                            <StackPanel Margin="0,0,32,0">
-                                <TextBlock Text="總金額" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                <TextBlock x:Name="TotalAmountText" FontSize="22" FontWeight="Bold"
-                                           Foreground="{StaticResource GoldDarkBrush}"/>
-                            </StackPanel>
-                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,32,0"/>
-                            <!-- 人員摘要由 ItemsControl 動態產生 -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                            <!-- 總點燈數 -->
+                            <Border Background="White" CornerRadius="6" Padding="14,8"
+                                    BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1" Margin="0,0,10,0">
+                                <StackPanel>
+                                    <TextBlock Text="總點燈數" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="TotalOrdersText" FontSize="24" FontWeight="Bold"
+                                               Foreground="{StaticResource SecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 總金額 -->
+                            <Border Background="White" CornerRadius="6" Padding="14,8"
+                                    BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1" Margin="0,0,16,0">
+                                <StackPanel>
+                                    <TextBlock Text="總金額" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="TotalAmountText" FontSize="24" FontWeight="Bold"
+                                               Foreground="{StaticResource GoldDarkBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 分隔線 -->
+                            <Rectangle Width="1" Fill="{StaticResource GoldDarkBrush}" Margin="0,4,16,4" Opacity="0.4"/>
+
+                            <!-- 各人員點燈數（動態產生） -->
                             <ItemsControl x:Name="StaffSummaryControl">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -154,15 +166,19 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Margin="0,0,24,0">
-                                            <TextBlock Text="{Binding StaffName}" FontSize="12"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding Count}" FontSize="20" FontWeight="Bold"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"/>
-                                        </StackPanel>
+                                        <Border Background="White" CornerRadius="6" Padding="14,8"
+                                                BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1" Margin="0,0,8,0">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding StaffName}" FontSize="13" FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding Count}" FontSize="24" FontWeight="Bold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            </StackPanel>
+                                        </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+
                         </StackPanel>
                     </Border>
 
@@ -175,21 +191,12 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <!-- 篩選列 -->
+                            <!-- DataGrid 標題列 -->
                             <Border Grid.Row="0" Background="#FFF8ED" CornerRadius="8,8,0,0"
                                     BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="0,0,0,1">
                                 <StackPanel Orientation="Horizontal" Margin="10,8">
-                                    <TextBlock Text="篩選 " FontSize="13" VerticalAlignment="Center"
+                                    <TextBlock Text="點燈紀錄" FontSize="13" VerticalAlignment="Center"
                                                Foreground="{StaticResource TextSecondaryBrush}"/>
-                                    <ComboBox x:Name="StaffFilterCombo" Width="110" FontSize="13"
-                                              Margin="6,0" SelectionChanged="Filter_SelectionChanged"
-                                              ToolTip="按操作人員篩選"/>
-                                    <ComboBox x:Name="TempleFilterCombo" Width="100" FontSize="13"
-                                              Margin="6,0" SelectionChanged="Filter_SelectionChanged"
-                                              ToolTip="按廟別篩選"/>
-                                    <ComboBox x:Name="LampFilterCombo" Width="100" FontSize="13"
-                                              Margin="6,0" SelectionChanged="Filter_SelectionChanged"
-                                              ToolTip="按燈種篩選"/>
                                 </StackPanel>
                             </Border>
 
@@ -231,8 +238,8 @@
                                     <DataGridTextColumn Header="神明" Binding="{Binding Deity}" Width="80"/>
                                     <DataGridTextColumn Header="年度" Binding="{Binding Year}" Width="55"/>
                                     <DataGridTextColumn Header="金額" Binding="{Binding Price, StringFormat={}{0:$#,##0}}" Width="70"/>
-                                    <DataGridTextColumn Header="起始日" Binding="{Binding StartDate, StringFormat={}{0:MM/dd}}" Width="70"/>
-                                    <DataGridTextColumn Header="到期日" Binding="{Binding EndDate, StringFormat={}{0:yyyy/MM/dd}}" Width="90"/>
+                                    <DataGridTextColumn Header="起始日" Binding="{Binding StartDate, StringFormat={}{0:yyyy/MM/dd}}" Width="110"/>
+                                    <DataGridTextColumn Header="到期日" Binding="{Binding EndDate, StringFormat={}{0:yyyy/MM/dd}}" Width="110"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>

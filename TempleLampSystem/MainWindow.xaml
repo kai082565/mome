@@ -125,16 +125,6 @@
                                     Cursor="Hand"
                                     FontFamily="{StaticResource PrimaryFont}"/>
 
-                            <Border VerticalAlignment="Center"
-                                    BorderBrush="{StaticResource GoldBrush}" BorderThickness="2"
-                                    CornerRadius="6" Padding="18,6"
-                                    Background="#3A0808">
-                                <TextBlock Text="鳳屏宮"
-                                           FontSize="24"
-                                           FontWeight="Bold"
-                                           Foreground="#FFD700"
-                                           FontFamily="{StaticResource PrimaryFont}"/>
-                            </Border>
                         </StackPanel>
                     </Grid>
                 </Border>
