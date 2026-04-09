@@ -15,6 +15,7 @@ public partial class AdminDashboardWindow : Window
     private List<StaffListItem> _staffItems = new();
     private StaffListItem? _selectedStaffItem;
     private readonly SessionService _sessionService;
+    private bool _isSettingDates;
 
     public AdminDashboardWindow()
     {
@@ -103,21 +104,26 @@ public partial class AdminDashboardWindow : Window
 
     private void TodayButton_Click(object sender, RoutedEventArgs e)
     {
+        _isSettingDates = true;
         StartDatePicker.SelectedDate = DateTime.Today;
         EndDatePicker.SelectedDate = DateTime.Today;
+        _isSettingDates = false;
         _ = LoadOrdersAsync();
     }
 
     private void ThisMonthButton_Click(object sender, RoutedEventArgs e)
     {
         var today = DateTime.Today;
+        _isSettingDates = true;
         StartDatePicker.SelectedDate = new DateTime(today.Year, today.Month, 1);
         EndDatePicker.SelectedDate = today;
+        _isSettingDates = false;
         _ = LoadOrdersAsync();
     }
 
     private void DateFilter_Changed(object? sender, SelectionChangedEventArgs e)
     {
+        if (_isSettingDates) return;
         _ = LoadOrdersAsync();
     }
 

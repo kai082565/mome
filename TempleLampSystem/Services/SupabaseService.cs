@@ -319,11 +319,20 @@ public class SupabaseService : ISupabaseService
 
         try
         {
-            var response = await _client.From<SupabaseCustomer>()
-                .Select("Id")
-                .Get();
-
-            return response.Models.Select(c => c.Id).ToHashSet();
+            const int pageSize = 1000;
+            var all = new HashSet<string>();
+            var offset = 0;
+            while (true)
+            {
+                var response = await _client.From<SupabaseCustomer>()
+                    .Select("Id")
+                    .Range(offset, offset + pageSize - 1)
+                    .Get();
+                foreach (var c in response.Models) all.Add(c.Id);
+                if (response.Models.Count < pageSize) break;
+                offset += pageSize;
+            }
+            return all;
         }
         catch
         {
@@ -338,16 +347,66 @@ public class SupabaseService : ISupabaseService
 
         try
         {
-            var response = await _client.From<SupabaseLampOrder>()
-                .Select("Id")
-                .Get();
-
-            return response.Models.Select(o => o.Id).ToHashSet();
+            const int pageSize = 1000;
+            var all = new HashSet<string>();
+            var offset = 0;
+            while (true)
+            {
+                var response = await _client.From<SupabaseLampOrder>()
+                    .Select("Id")
+                    .Range(offset, offset + pageSize - 1)
+                    .Get();
+                foreach (var o in response.Models) all.Add(o.Id);
+                if (response.Models.Count < pageSize) break;
+                offset += pageSize;
+            }
+            return all;
         }
         catch
         {
             return new HashSet<string>();
         }
+    }
+
+    #endregion
+
+    #region 分頁輔助方法
+
+    /// <summary>分頁拉取全部資料，突破 Supabase 預設 1000 筆限制</summary>
+    private async Task<List<T>> FetchAllAsync<T>() where T : BaseModel, new()
+    {
+        const int pageSize = 1000;
+        var all = new List<T>();
+        var offset = 0;
+        while (true)
+        {
+            var response = await _client!.From<T>()
+                .Range(offset, offset + pageSize - 1)
+                .Get();
+            all.AddRange(response.Models);
+            if (response.Models.Count < pageSize) break;
+            offset += pageSize;
+        }
+        return all;
+    }
+
+    /// <summary>分頁拉取指定時間之後更新的資料</summary>
+    private async Task<List<T>> FetchAllSinceAsync<T>(string sinceStr) where T : BaseModel, new()
+    {
+        const int pageSize = 1000;
+        var all = new List<T>();
+        var offset = 0;
+        while (true)
+        {
+            var response = await _client!.From<T>()
+                .Filter("UpdatedAt", Operator.GreaterThan, sinceStr)
+                .Range(offset, offset + pageSize - 1)
+                .Get();
+            all.AddRange(response.Models);
+            if (response.Models.Count < pageSize) break;
+            offset += pageSize;
+        }
+        return all;
     }
 
     #endregion
@@ -502,20 +561,16 @@ public class SupabaseService : ISupabaseService
             // 先儲存燈種，確保後續訂單的外鍵參照正確
             await _localContext.SaveChangesAsync();
 
-            // 增量下載客戶：只取 since 之後更新的
+            // 增量下載客戶：只取 since 之後更新的（分頁拉取，突破 1000 筆限制）
             List<SupabaseCustomer> cloudCustomerModels;
             if (since.HasValue)
             {
                 var sinceStr = since.Value.ToUniversalTime().ToString("o");
-                var response = await _client!.From<SupabaseCustomer>()
-                    .Filter("UpdatedAt", Operator.GreaterThan, sinceStr)
-                    .Get();
-                cloudCustomerModels = response.Models;
+                cloudCustomerModels = await FetchAllSinceAsync<SupabaseCustomer>(sinceStr);
             }
             else
             {
-                var response = await _client!.From<SupabaseCustomer>().Get();
-                cloudCustomerModels = response.Models;
+                cloudCustomerModels = await FetchAllAsync<SupabaseCustomer>();
             }
 
             // 批量讀取本地客戶到字典，避免在循環中逐筆查詢（N+1 問題）
@@ -574,20 +629,16 @@ public class SupabaseService : ISupabaseService
             // 先儲存 Staff 和 Customer，確保後續訂單外鍵可以正確參照
             await _localContext.SaveChangesAsync();
 
-            // 增量下載訂單：只取 since 之後更新的
+            // 增量下載訂單：只取 since 之後更新的（分頁拉取，突破 1000 筆限制）
             List<SupabaseLampOrder> cloudOrderModels;
             if (since.HasValue)
             {
                 var sinceStr = since.Value.ToUniversalTime().ToString("o");
-                var response = await _client!.From<SupabaseLampOrder>()
-                    .Filter("UpdatedAt", Operator.GreaterThan, sinceStr)
-                    .Get();
-                cloudOrderModels = response.Models;
+                cloudOrderModels = await FetchAllSinceAsync<SupabaseLampOrder>(sinceStr);
             }
             else
             {
-                var response = await _client!.From<SupabaseLampOrder>().Get();
-                cloudOrderModels = response.Models;
+                cloudOrderModels = await FetchAllAsync<SupabaseLampOrder>();
             }
 
             // 批量讀取本地訂單到字典，避免在循環中逐筆查詢（N+1 問題）

@@ -90,6 +90,13 @@ public class BackupService : IBackupService
 
     private async Task RunBackupLoopAsync(CancellationToken ct)
     {
+        // 啟動時補備份：若今天還未備份且已過備份時間（例如程式重啟、電腦重開機）
+        var startNow = DateTime.Now;
+        if (_lastBackupDate != startNow.Date && startNow.Hour >= BackupHour)
+        {
+            await BackupNowAsync();
+        }
+
         while (!ct.IsCancellationRequested)
         {
             try
@@ -108,8 +115,8 @@ public class BackupService : IBackupService
             if (_lastBackupDate == now.Date)
                 continue;
 
-            // 到達備份時間（19:00 ~ 19:00:59）才執行
-            if (now.Hour == BackupHour && now.Minute == 0)
+            // 備份時間窗口：19:00 ~ 19:09（給 10 分鐘重試機會，防止備份失敗後整天跳過）
+            if (now.Hour == BackupHour && now.Minute < 10)
             {
                 await BackupNowAsync();
             }
