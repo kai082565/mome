@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:TempleLampSystem.Views"
-        Title="點燈管理系統"
+        Title="鎰翔科技 - 點燈管理系統"
         Height="800"
         Width="1280"
         WindowStartupLocation="CenterScreen"
@@ -20,7 +20,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 頂部標題區 - 廟宇殿堂風格 -->
+        <!-- 頂部標題區 - 鎰翔水墨殿堂 -->
         <Border Grid.Row="0"
                 Background="{StaticResource HeaderGradient}"
                 BorderBrush="{StaticResource GoldDarkBrush}"
@@ -36,7 +36,7 @@
                 <Border Height="4" Background="{StaticResource GoldGradient}"/>
 
                 <!-- 主標題區 -->
-                <Border Grid.Row="1" Padding="25,14">
+                <Border Grid.Row="1" Padding="25,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -44,13 +44,14 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- 左側系統標題 -->
+                        <!-- 左側：系統標題 + 鎰翔品牌 -->
                         <StackPanel Orientation="Horizontal">
-                            <Border Background="#3A0808" CornerRadius="25" Padding="8" Margin="0,0,15,0"
+                            <!-- 品牌印章圓形 -->
+                            <Border Background="#0D1B2A" CornerRadius="25" Padding="8" Margin="0,0,15,0"
                                     BorderBrush="{StaticResource GoldBrush}" BorderThickness="2">
                                 <TextBlock Text="&#x2726;"
                                            FontSize="26"
-                                           Foreground="#FFD700"
+                                           Foreground="#C8A84B"
                                            VerticalAlignment="Center"
                                            HorizontalAlignment="Center"/>
                             </Border>
@@ -58,27 +59,35 @@
                                 <TextBlock Text="點燈管理系統"
                                            FontSize="26"
                                            FontWeight="Bold"
-                                           Foreground="#FFD700"
+                                           Foreground="#E5CA7A"
                                            FontFamily="{StaticResource PrimaryFont}"/>
-                                <TextBlock Text="Temple Lamp Management System"
-                                           FontSize="11"
-                                           Foreground="#C9A96E"
-                                           FontFamily="{StaticResource PrimaryFont}"
-                                           Margin="2,2,0,0"/>
+                                <!-- 鎰翔科技品牌標語 -->
+                                <StackPanel Orientation="Horizontal" Margin="2,3,0,0">
+                                    <TextBlock Text="鎰翔科技"
+                                               FontSize="12"
+                                               FontWeight="Bold"
+                                               Foreground="#C8A84B"
+                                               FontFamily="{StaticResource PrimaryFont}"/>
+                                    <TextBlock Text=" ・ 科技如詩，為你譜寫"
+                                               FontSize="11"
+                                               Foreground="#B8A880"
+                                               Opacity="0.75"
+                                               FontFamily="{StaticResource PrimaryFont}"/>
+                                </StackPanel>
                             </StackPanel>
                         </StackPanel>
 
                         <!-- 中間裝飾 -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.4">
-                            <TextBlock Text="&#x2500;&#x2500;&#x2500; &#x2726; &#x2500;&#x2500;&#x2500;" Foreground="#DAA520" FontSize="16"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.35">
+                            <TextBlock Text="&#x2500;&#x2500;&#x2500; &#x2726; &#x2500;&#x2500;&#x2500;" Foreground="#C8A84B" FontSize="16"/>
                         </StackPanel>
 
-                        <!-- 右側：登入者、按鈕、宮廟名稱 -->
+                        <!-- 右側：登入者、按鈕 -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                             <!-- 登入者 -->
                             <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
                                 <TextBlock x:Name="LoginStaffText"
-                                           FontSize="13" Foreground="#C9A96E"
+                                           FontSize="13" Foreground="#C8A84B"
                                            FontFamily="{StaticResource PrimaryFont}"/>
                             </StackPanel>
 
@@ -87,8 +96,8 @@
                                     Content="管理員儀表板"
                                     Click="AdminDashboardButton_Click"
                                     FontSize="12"
-                                    Foreground="#E8D5B5"
-                                    Background="#5A1A1A"
+                                    Foreground="#E5CA7A"
+                                    Background="#1A2B3C"
                                     BorderBrush="{StaticResource GoldBrush}"
                                     BorderThickness="1"
                                     Padding="12,6"
@@ -102,8 +111,8 @@
                                     Content="匯入舊資料"
                                     Click="ImportDataButton_Click"
                                     FontSize="12"
-                                    Foreground="#E8D5B5"
-                                    Background="#5A1A1A"
+                                    Foreground="#E5CA7A"
+                                    Background="#1A2B3C"
                                     BorderBrush="{StaticResource GoldBrush}"
                                     BorderThickness="1"
                                     Padding="12,6"
@@ -116,15 +125,14 @@
                                     Content="登出"
                                     Click="LogoutButton_Click"
                                     FontSize="12"
-                                    Foreground="#E8D5B5"
-                                    Background="#5A1A1A"
+                                    Foreground="#E5CA7A"
+                                    Background="#1A2B3C"
                                     BorderBrush="{StaticResource GoldBrush}"
                                     BorderThickness="1"
                                     Padding="12,6"
                                     Margin="0,0,12,0"
                                     Cursor="Hand"
                                     FontFamily="{StaticResource PrimaryFont}"/>
-
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -182,17 +190,17 @@
                             <Ellipse x:Name="OnlineIndicator"
                                      Width="0" Height="0"
                                      Visibility="Collapsed"/>
-                            <TextBlock x:Name="SyncStatusText" Text="檢查連線中..." FontWeight="SemiBold" Foreground="#E8D5B5"/>
+                            <TextBlock x:Name="SyncStatusText" Text="檢查連線中..." FontWeight="SemiBold" Foreground="#C8A84B"/>
                         </StackPanel>
                     </StatusBarItem>
-                    <Separator Background="#8B6914"/>
+                    <Separator Background="{StaticResource GoldDarkBrush}" Opacity="0.5"/>
                     <StatusBarItem>
-                        <TextBlock x:Name="PendingSyncText" Text="" Foreground="#E8D5B5"/>
+                        <TextBlock x:Name="PendingSyncText" Text="" Foreground="#8A7A60"/>
                     </StatusBarItem>
                     <StatusBarItem HorizontalAlignment="Right">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#x2726; " FontSize="12" Foreground="#DAA520" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="CurrentTimeText" Text="" FontWeight="SemiBold" Foreground="#FFD700"/>
+                            <TextBlock Text="鎰翔科技 &#x2726; " FontSize="11" Foreground="#9A7C2A" VerticalAlignment="Center" Opacity="0.8"/>
+                            <TextBlock x:Name="CurrentTimeText" Text="" FontWeight="SemiBold" Foreground="#E5CA7A"/>
                         </StackPanel>
                     </StatusBarItem>
                 </StatusBar>

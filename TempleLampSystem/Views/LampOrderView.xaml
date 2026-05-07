@@ -22,7 +22,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- 已選客戶資訊 -->
+            <!-- 已選客戶資訊 - 宣紙底，金邊 -->
             <Border Grid.Row="0"
                     CornerRadius="10"
                     Padding="15"
@@ -32,12 +32,12 @@
                     BorderThickness="1.5">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#FFFCF5" Offset="0"/>
-                        <GradientStop Color="#FFF8ED" Offset="1"/>
+                        <GradientStop Color="#FAF6EE" Offset="0"/>
+                        <GradientStop Color="#F5EDD8" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.12" Direction="270"/>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" Direction="270"/>
                 </Border.Effect>
                 <Grid>
                     <!-- 未選擇客戶時 -->
@@ -67,8 +67,8 @@
                                             BorderThickness="1">
                                         <Border.Background>
                                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                <GradientStop Color="#FFF8ED" Offset="0"/>
-                                                <GradientStop Color="#FFF0D6" Offset="1"/>
+                                                <GradientStop Color="#FAF6EE" Offset="0"/>
+                                                <GradientStop Color="#F2E8D4" Offset="1"/>
                                             </LinearGradientBrush>
                                         </Border.Background>
                                         <Grid>
@@ -78,12 +78,13 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
+                                            <!-- 金裝飾條 -->
                                             <Border Width="4" CornerRadius="2" Margin="0,0,10,0"
                                                     VerticalAlignment="Stretch">
                                                 <Border.Background>
                                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                                        <GradientStop Color="#DAA520" Offset="0"/>
-                                                        <GradientStop Color="#B8860B" Offset="1"/>
+                                                        <GradientStop Color="#C8A84B" Offset="0"/>
+                                                        <GradientStop Color="#9A7C2A" Offset="1"/>
                                                     </LinearGradientBrush>
                                                 </Border.Background>
                                             </Border>
@@ -108,11 +109,12 @@
                                                 </StackPanel>
                                             </StackPanel>
 
+                                            <!-- 移除按鈕 -->
                                             <Button Grid.Column="2"
                                                     Content="&#x2715;"
                                                     FontSize="13"
                                                     FontWeight="Bold"
-                                                    Foreground="#B8956A"
+                                                    Foreground="{StaticResource GoldDarkBrush}"
                                                     Background="Transparent"
                                                     BorderThickness="0"
                                                     Cursor="Hand"
@@ -130,7 +132,7 @@
                 </Grid>
             </Border>
 
-            <!-- 點燈表單 -->
+            <!-- 點燈表單 - 宣紙底，金邊 -->
             <Border Grid.Row="1"
                     CornerRadius="10"
                     Padding="18"
@@ -139,12 +141,12 @@
                     BorderThickness="1.5">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#FFFCF5" Offset="0"/>
-                        <GradientStop Color="#FFF8ED" Offset="1"/>
+                        <GradientStop Color="#FAF6EE" Offset="0"/>
+                        <GradientStop Color="#F5EDD8" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.12" Direction="270"/>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" Direction="270"/>
                 </Border.Effect>
                 <StackPanel>
                     <!-- 區塊標題 -->
@@ -216,7 +218,7 @@
                                    Foreground="{StaticResource SecondaryBrush}"/>
                         <Border Grid.Row="2" Grid.Column="1"
                                 Background="White"
-                                BorderBrush="#D4B896"
+                                BorderBrush="{StaticResource BorderBrush}"
                                 BorderThickness="1.5"
                                 CornerRadius="4"
                                 Padding="12,10"
@@ -246,7 +248,7 @@
                                    Foreground="{StaticResource SecondaryBrush}"/>
                         <Border Grid.Row="3" Grid.Column="1"
                                 Background="White"
-                                BorderBrush="#D4B896"
+                                BorderBrush="{StaticResource BorderBrush}"
                                 BorderThickness="1.5"
                                 CornerRadius="4"
                                 Padding="12,10"
@@ -306,7 +308,7 @@
                                  Margin="0,0,0,12"
                                  Visibility="{Binding ShowOrderNote, Converter={StaticResource BoolToVisibility}}"/>
 
-                        <!-- 狀態提示 - 不可點燈 -->
+                        <!-- 狀態提示 - 不可點燈（廟宇警示紅） -->
                         <Border Grid.Row="6" Grid.ColumnSpan="2"
                                 CornerRadius="8"
                                 Padding="14"
@@ -330,7 +332,7 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- 狀態提示 - 可點燈 -->
+                        <!-- 狀態提示 - 可點燈（翠綠） -->
                         <Border Grid.Row="6" Grid.ColumnSpan="2"
                                 CornerRadius="8"
                                 Padding="14"
@@ -353,7 +355,7 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- 點燈按鈕 -->
+                        <!-- 點燈按鈕 - 廟宇金 -->
                         <Button Grid.Row="7" Grid.ColumnSpan="2"
                                 Content="&#x2726;  確認點燈  &#x2726;"
                                 Command="{Binding CreateOrderCommand}"
@@ -367,22 +369,22 @@
                 </StackPanel>
             </Border>
 
-            <!-- 即將到期提醒 -->
+            <!-- 即將到期提醒 - 廟宇暖琥珀 -->
             <Border Grid.Row="2"
                     CornerRadius="10"
                     Padding="15"
                     Margin="0,0,0,15"
                     MaxHeight="200"
-                    BorderBrush="#E65100"
+                    BorderBrush="#C86400"
                     BorderThickness="1.5">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#FFFCF5" Offset="0"/>
-                        <GradientStop Color="#FFF8ED" Offset="1"/>
+                        <GradientStop Color="#FAF6EE" Offset="0"/>
+                        <GradientStop Color="#F5EDD8" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.12" Direction="270"/>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" Direction="270"/>
                 </Border.Effect>
                 <Grid>
                     <Grid.RowDefinitions>
@@ -392,11 +394,11 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                        <TextBlock Text="&#x26A0;" FontSize="15" Foreground="#E65100" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="&#x26A0;" FontSize="15" Foreground="#C86400" Margin="0,0,8,0" VerticalAlignment="Center"/>
                         <TextBlock Text="即將到期提醒（30天內）"
                                    FontSize="14"
                                    FontWeight="Bold"
-                                   Foreground="#E65100"/>
+                                   Foreground="#C86400"/>
                     </StackPanel>
 
                     <!-- 表頭 -->
@@ -417,11 +419,11 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border CornerRadius="6" Padding="6,8" Margin="0,0,0,4"
-                                        BorderBrush="#FFE0B2" BorderThickness="1">
+                                        BorderBrush="#D4B87A" BorderThickness="1">
                                     <Border.Background>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                            <GradientStop Color="#FFFAF0" Offset="0"/>
-                                            <GradientStop Color="#FFF3E0" Offset="1"/>
+                                            <GradientStop Color="#FAF6EE" Offset="0"/>
+                                            <GradientStop Color="#F2E8D4" Offset="1"/>
                                         </LinearGradientBrush>
                                     </Border.Background>
                                     <Grid>
@@ -454,8 +456,8 @@
                     BorderThickness="1">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#FFF8ED" Offset="0"/>
-                        <GradientStop Color="#FFF0D6" Offset="1"/>
+                        <GradientStop Color="#FAF6EE" Offset="0"/>
+                        <GradientStop Color="#F2E8D4" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
                 <StackPanel Orientation="Horizontal">

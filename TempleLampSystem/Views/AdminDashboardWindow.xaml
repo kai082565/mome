@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:converters="clr-namespace:TempleLampSystem.Converters"
-        Title="管理員儀表板"
+        Title="鎰翔科技 - 管理員儀表板"
         Height="720"
         Width="1100"
         MinHeight="600"
@@ -21,7 +21,7 @@
         <!-- TabItem 金色主題 -->
         <Style TargetType="TabItem">
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-            <Setter Property="Background" Value="#FFF8ED"/>
+            <Setter Property="Background" Value="#F5EDD8"/>
             <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -41,12 +41,12 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="{StaticResource HeaderGradient}"/>
-                                <Setter Property="Foreground" Value="#FFD700"/>
+                                <Setter Property="Foreground" Value="#E5CA7A"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter TargetName="border" Property="BorderThickness" Value="1.5,1.5,1.5,0"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#FFF3DC"/>
+                                <Setter TargetName="border" Property="Background" Value="#EDE0C4"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -57,7 +57,7 @@
         <!-- DataGrid 欄位標頭金色主題 -->
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="Background" Value="{StaticResource HeaderGradient}"/>
-            <Setter Property="Foreground" Value="#FFD700"/>
+            <Setter Property="Foreground" Value="#E5CA7A"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
@@ -87,7 +87,7 @@
                 <Border Height="4" Background="{StaticResource GoldGradient}"/>
                 <Border Grid.Row="1" Padding="20,12">
                     <TextBlock Text="管理員儀表板" FontSize="22" FontWeight="Bold"
-                               Foreground="#FFD700" FontFamily="{StaticResource PrimaryFont}"/>
+                               Foreground="#E5CA7A" FontFamily="{StaticResource PrimaryFont}"/>
                 </Border>
                 <Border Grid.Row="2" Height="3" Background="{StaticResource GoldGradient}"/>
             </Grid>
@@ -108,7 +108,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- 篩選列 -->
-                    <Border Grid.Row="0" Background="#FFF8ED" CornerRadius="8" Padding="12,8"
+                    <Border Grid.Row="0" Background="#F5EDD8" CornerRadius="8" Padding="12,8"
                             BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1" Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal">
                             <Button Content="今天" Padding="14,5" FontSize="13"
@@ -128,7 +128,7 @@
                     </Border>
 
                     <!-- 統計摘要卡片 -->
-                    <Border Grid.Row="1" Background="#FFF8ED" CornerRadius="8" Padding="14,10"
+                    <Border Grid.Row="1" Background="#F5EDD8" CornerRadius="8" Padding="14,10"
                             BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1" Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
 
@@ -171,8 +171,10 @@
                                             <StackPanel>
                                                 <TextBlock Text="{Binding StaffName}" FontSize="13" FontWeight="SemiBold"
                                                            Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                                                <TextBlock Text="{Binding Count}" FontSize="24" FontWeight="Bold"
+                                                <TextBlock Text="{Binding Count}" FontSize="20" FontWeight="Bold"
                                                            Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:$#,##0}}" FontSize="20" FontWeight="Bold"
+                                                           Foreground="{StaticResource GoldDarkBrush}" Margin="0,2,0,0"/>
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
@@ -192,7 +194,7 @@
                             </Grid.RowDefinitions>
 
                             <!-- DataGrid 標題列 -->
-                            <Border Grid.Row="0" Background="#FFF8ED" CornerRadius="8,8,0,0"
+                            <Border Grid.Row="0" Background="#F5EDD8" CornerRadius="8,8,0,0"
                                     BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="0,0,0,1">
                                 <StackPanel Orientation="Horizontal" Margin="10,8">
                                     <TextBlock Text="點燈紀錄" FontSize="13" VerticalAlignment="Center"
@@ -206,10 +208,10 @@
                                       IsReadOnly="True"
                                       CanUserReorderColumns="False"
                                       GridLinesVisibility="All"
-                                      HorizontalGridLinesBrush="#E8D5A3"
-                                      VerticalGridLinesBrush="#E8D5A3"
+                                      HorizontalGridLinesBrush="#D4C4A0"
+                                      VerticalGridLinesBrush="#D4C4A0"
                                       HeadersVisibility="Column"
-                                      AlternatingRowBackground="#FFFAF0"
+                                      AlternatingRowBackground="#F5EDD8"
                                       RowHeight="32"
                                       FontSize="13"
                                       Margin="0,0,0,0">
@@ -256,13 +258,13 @@
                     </Grid.RowDefinitions>
 
                     <!-- 摘要卡片（與點燈統計同風格） -->
-                    <Border Grid.Row="0" Background="#FFF8ED" CornerRadius="8" Padding="16,10"
+                    <Border Grid.Row="0" Background="#F5EDD8" CornerRadius="8" Padding="16,10"
                             BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1" Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal">
                             <StackPanel Margin="0,0,32,0">
                                 <TextBlock Text="即將到期" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 <TextBlock x:Name="ExpiringCountNumber" FontSize="22" FontWeight="Bold"
-                                           Foreground="#E65100"/>
+                                           Foreground="#C86400"/>
                             </StackPanel>
                             <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="0,0,32,0"/>
                             <TextBlock x:Name="ExpiringCountText" FontSize="13"
@@ -280,7 +282,7 @@
                             </Grid.RowDefinitions>
 
                             <!-- 標題列（與點燈統計篩選列同風格） -->
-                            <Border Grid.Row="0" Background="#FFF8ED" CornerRadius="8,8,0,0"
+                            <Border Grid.Row="0" Background="#F5EDD8" CornerRadius="8,8,0,0"
                                     BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="0,0,0,1">
                                 <StackPanel Orientation="Horizontal" Margin="10,8">
                                     <TextBlock Text="30 天內即將到期的點燈訂單" FontSize="13" VerticalAlignment="Center"
@@ -294,10 +296,10 @@
                                       IsReadOnly="True"
                                       CanUserReorderColumns="False"
                                       GridLinesVisibility="All"
-                                      HorizontalGridLinesBrush="#E8D5A3"
-                                      VerticalGridLinesBrush="#E8D5A3"
+                                      HorizontalGridLinesBrush="#D4C4A0"
+                                      VerticalGridLinesBrush="#D4C4A0"
                                       HeadersVisibility="Column"
-                                      AlternatingRowBackground="#FFFAF0"
+                                      AlternatingRowBackground="#F5EDD8"
                                       RowHeight="32"
                                       FontSize="13"
                                       Margin="0,0,0,0">
@@ -347,7 +349,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Border Padding="12,10" Background="#FFF8ED" CornerRadius="8,8,0,0">
+                            <Border Padding="12,10" Background="#F5EDD8" CornerRadius="8,8,0,0">
                                 <TextBlock Text="工作人員列表" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{StaticResource SecondaryBrush}"/>
                             </Border>

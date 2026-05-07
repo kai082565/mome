@@ -53,14 +53,14 @@
                      LostFocus="PhoneTextBox_LostFocus"/>
         </Grid>
 
-        <!-- 同戶家人提示 (動態顯示) -->
+        <!-- 同戶家人提示（廟宇暖琥珀） -->
         <Border x:Name="FamilyHintBorder" Grid.Row="2"
-                Background="#FFF8E1" BorderBrush="#FFB74D" BorderThickness="1"
+                Background="#F5EDD8" BorderBrush="{StaticResource GoldBrush}" BorderThickness="1.5"
                 CornerRadius="6" Padding="14,10" Margin="0,0,0,15"
                 Visibility="Collapsed">
             <StackPanel>
                 <TextBlock x:Name="FamilyHintText" FontSize="18"
-                           Foreground="#E65100" TextWrapping="Wrap"/>
+                           Foreground="#C86400" TextWrapping="Wrap"/>
             </StackPanel>
         </Border>
 
@@ -90,15 +90,15 @@
                        Foreground="{StaticResource TextPrimaryBrush}"/>
             <StackPanel Grid.Column="1">
                 <TextBox x:Name="AddressTextBox" FontSize="20"/>
-                <!-- 地址建議選項 (同電話家人的地址) -->
+                <!-- 地址建議選項（水墨藍灰風格） -->
                 <ItemsControl x:Name="AddressSuggestions" Margin="0,6,0,0" Visibility="Collapsed">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Button Content="{Binding}" Click="AddressSuggestion_Click"
                                     Margin="0,0,0,4" Padding="12,8" FontSize="18"
                                     HorizontalAlignment="Left" Cursor="Hand"
-                                    Background="#E3F2FD" Foreground="#1565C0"
-                                    BorderBrush="#90CAF9" BorderThickness="1">
+                                    Background="#EDE8DC" Foreground="{StaticResource SecondaryBrush}"
+                                    BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border Background="{TemplateBinding Background}"
@@ -165,8 +165,10 @@
             <ComboBox Grid.Column="1" x:Name="BirthHourComboBox" Width="130" FontSize="20"/>
             <TextBlock Grid.Column="2" Text="生肖:" VerticalAlignment="Center" FontWeight="SemiBold"
                        Foreground="{StaticResource TextPrimaryBrush}" Margin="25,0,10,0"/>
-            <Border Grid.Column="3" Background="#FFF0E0" CornerRadius="8" Padding="18,10"
-                    MinWidth="60" MinHeight="44">
+            <!-- 生肖顯示框 - 宣紙底，金邊 -->
+            <Border Grid.Column="3" Background="#FAF6EE" CornerRadius="8" Padding="18,10"
+                    MinWidth="60" MinHeight="44"
+                    BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1">
                 <TextBlock x:Name="ZodiacText" VerticalAlignment="Center"
                            HorizontalAlignment="Center"
                            FontSize="28"

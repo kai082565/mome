@@ -15,7 +15,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 搜尋列 -->
+        <!-- 搜尋列 - 宣紙底，金邊 -->
         <Border Grid.Row="0"
                 CornerRadius="10"
                 Padding="18,14"
@@ -24,12 +24,12 @@
                 BorderThickness="1.5">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#FFF8ED" Offset="0"/>
-                    <GradientStop Color="#FFF0D6" Offset="1"/>
+                    <GradientStop Color="#FAF6EE" Offset="0"/>
+                    <GradientStop Color="#F2E8D4" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
             <Border.Effect>
-                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.1" Direction="270"/>
+                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.08" Direction="270"/>
             </Border.Effect>
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -89,13 +89,13 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- 左側裝飾條 -->
+                        <!-- 左側廟宇金裝飾條 -->
                         <Border Width="4" CornerRadius="2" Margin="0,0,12,0"
                                 VerticalAlignment="Stretch">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#DAA520" Offset="0"/>
-                                    <GradientStop Color="#B8860B" Offset="1"/>
+                                    <GradientStop Color="#C8A84B" Offset="0"/>
+                                    <GradientStop Color="#9A7C2A" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                         </Border>
@@ -145,8 +145,8 @@
                 BorderThickness="1">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="#FFF8ED" Offset="0"/>
-                    <GradientStop Color="#FFF0D6" Offset="1"/>
+                    <GradientStop Color="#FAF6EE" Offset="0"/>
+                    <GradientStop Color="#F2E8D4" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
             <StackPanel Orientation="Horizontal">

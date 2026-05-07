@@ -96,7 +96,7 @@ public partial class AdminDashboardWindow : Window
 
         var staffSummary = list
             .GroupBy(r => r.StaffName)
-            .Select(g => new StaffSummaryItem { StaffName = g.Key, Count = g.Count() })
+            .Select(g => new StaffSummaryItem { StaffName = g.Key, Count = g.Count(), TotalAmount = g.Sum(r => r.Price) })
             .OrderByDescending(x => x.Count)
             .ToList();
         StaffSummaryControl.ItemsSource = staffSummary;
@@ -386,6 +386,7 @@ public class StaffSummaryItem
 {
     public string StaffName { get; set; } = string.Empty;
     public int Count { get; set; }
+    public decimal TotalAmount { get; set; }
 }
 
 public class ExpiringOrderRow

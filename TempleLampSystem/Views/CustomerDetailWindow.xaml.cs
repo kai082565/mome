@@ -252,9 +252,9 @@ public partial class CustomerDetailWindow : Window
 
                 var window = new CustomerDetailWindow(customer)
                 {
-                    Owner = this.Owner
+                    Owner = this
                 };
-                window.Show();
+                window.ShowDialog();
             }
             catch (Exception ex)
             {

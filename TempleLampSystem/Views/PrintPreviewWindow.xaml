@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:converters="clr-namespace:TempleLampSystem.Converters"
-        Title="列印預覽"
+        Title="鎰翔科技 - 列印預覽"
         Width="720"
         Height="750"
         WindowStartupLocation="CenterOwner"
@@ -120,7 +120,8 @@
                         <ItemsControl x:Name="OrdersItemsControl">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#FFFAF0" CornerRadius="4" Padding="6,8" Margin="0,0,0,4">
+                                    <Border Background="#F5EDD8" CornerRadius="4" Padding="6,8" Margin="0,0,0,4"
+                                            BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="0,0,0,1">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="60"/>
@@ -167,8 +168,14 @@
         </ScrollViewer>
 
         <!-- 底部按鈕列 -->
-        <Border Grid.Row="1" Background="White" Padding="20,15"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+        <Border Grid.Row="1" CornerRadius="0,0,0,0" Padding="20,15"
+                BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="0,1,0,0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#FAF6EE" Offset="0"/>
+                    <GradientStop Color="#F2E8D4" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="儲存為 PDF" Padding="30,10" FontSize="15"
                         Margin="0,0,10,0"

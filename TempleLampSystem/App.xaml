@@ -4,69 +4,75 @@
              xmlns:helpers="clr-namespace:TempleLampSystem.Helpers">
     <Application.Resources>
         <ResourceDictionary>
-            <!-- ══════════════════════════════════════ -->
-            <!-- 廟宇色彩主題 -->
-            <!-- ══════════════════════════════════════ -->
-            <Color x:Key="PrimaryColor">#D4A574</Color>
-            <Color x:Key="PrimaryDarkColor">#B8956A</Color>
-            <Color x:Key="SecondaryColor">#6B1A1A</Color>
-            <Color x:Key="AccentColor">#C41E3A</Color>
-            <Color x:Key="GoldColor">#DAA520</Color>
-            <Color x:Key="GoldLightColor">#FFD700</Color>
-            <Color x:Key="GoldDarkColor">#B8860B</Color>
-            <Color x:Key="SuccessColor">#2E7D32</Color>
-            <Color x:Key="WarningColor">#E65100</Color>
-            <Color x:Key="BackgroundColor">#FBF3E4</Color>
-            <Color x:Key="CardColor">#FFFCF5</Color>
-            <Color x:Key="BorderColor">#D4A574</Color>
-            <Color x:Key="TextPrimaryColor">#2C1810</Color>
-            <Color x:Key="TextSecondaryColor">#6D4C41</Color>
+            <!-- ══════════════════════════════════════════════════════ -->
+            <!-- 鎰翔水墨金章主題                                       -->
+            <!-- 以水墨山川為基調，廟宇金為點綴，宣紙米白為底           -->
+            <!-- ══════════════════════════════════════════════════════ -->
 
-            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
-            <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{StaticResource PrimaryDarkColor}"/>
-            <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
-            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
-            <SolidColorBrush x:Key="GoldBrush" Color="{StaticResource GoldColor}"/>
-            <SolidColorBrush x:Key="GoldLightBrush" Color="{StaticResource GoldLightColor}"/>
-            <SolidColorBrush x:Key="GoldDarkBrush" Color="{StaticResource GoldDarkColor}"/>
-            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
-            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
-            <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
-            <SolidColorBrush x:Key="CardBrush" Color="{StaticResource CardColor}"/>
-            <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
-            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+            <!-- 色彩定義 -->
+            <Color x:Key="PrimaryColor">#1E2B3A</Color>        <!-- 水墨藍灰 - 主按鈕 -->
+            <Color x:Key="PrimaryDarkColor">#141C28</Color>    <!-- 深墨 - hover -->
+            <Color x:Key="SecondaryColor">#1E2B3A</Color>      <!-- 水墨 - 標題文字 -->
+            <Color x:Key="AccentColor">#C8A84B</Color>         <!-- 廟宇金 - 主要動作 -->
+            <Color x:Key="GoldColor">#C8A84B</Color>           <!-- 廟宇金 -->
+            <Color x:Key="GoldLightColor">#E5CA7A</Color>      <!-- 亮金 -->
+            <Color x:Key="GoldDarkColor">#9A7C2A</Color>       <!-- 深金 -->
+            <Color x:Key="SuccessColor">#2E7D32</Color>        <!-- 翠綠 -->
+            <Color x:Key="WarningColor">#C86400</Color>        <!-- 暖琥珀 -->
+            <Color x:Key="BackgroundColor">#F0E8D8</Color>     <!-- 宣紙米白 -->
+            <Color x:Key="CardColor">#FAF6EE</Color>           <!-- 淡皮紙 -->
+            <Color x:Key="BorderColor">#C0A87C</Color>         <!-- 砂岩邊框 -->
+            <Color x:Key="TextPrimaryColor">#1A0D06</Color>    <!-- 深墨文字 -->
+            <Color x:Key="TextSecondaryColor">#5A3C28</Color>  <!-- 暖棕文字 -->
+
+            <SolidColorBrush x:Key="PrimaryBrush"       Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="PrimaryDarkBrush"   Color="{StaticResource PrimaryDarkColor}"/>
+            <SolidColorBrush x:Key="SecondaryBrush"     Color="{StaticResource SecondaryColor}"/>
+            <SolidColorBrush x:Key="AccentBrush"        Color="{StaticResource AccentColor}"/>
+            <SolidColorBrush x:Key="GoldBrush"          Color="{StaticResource GoldColor}"/>
+            <SolidColorBrush x:Key="GoldLightBrush"     Color="{StaticResource GoldLightColor}"/>
+            <SolidColorBrush x:Key="GoldDarkBrush"      Color="{StaticResource GoldDarkColor}"/>
+            <SolidColorBrush x:Key="SuccessBrush"       Color="{StaticResource SuccessColor}"/>
+            <SolidColorBrush x:Key="WarningBrush"       Color="{StaticResource WarningColor}"/>
+            <SolidColorBrush x:Key="BackgroundBrush"    Color="{StaticResource BackgroundColor}"/>
+            <SolidColorBrush x:Key="CardBrush"          Color="{StaticResource CardColor}"/>
+            <SolidColorBrush x:Key="BorderBrush"        Color="{StaticResource BorderColor}"/>
+            <SolidColorBrush x:Key="TextPrimaryBrush"   Color="{StaticResource TextPrimaryColor}"/>
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
 
-            <!-- 漸層筆刷 -->
+            <!-- 水墨山川漸層（標題列、頁首頁尾） -->
             <LinearGradientBrush x:Key="HeaderGradient" StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#4A0E0E" Offset="0"/>
-                <GradientStop Color="#6B1A1A" Offset="0.5"/>
-                <GradientStop Color="#4A0E0E" Offset="1"/>
+                <GradientStop Color="#1A2535" Offset="0"/>
+                <GradientStop Color="#1E2B3A" Offset="0.5"/>
+                <GradientStop Color="#182233" Offset="1"/>
             </LinearGradientBrush>
 
+            <!-- 廟宇金漸層（裝飾線條） -->
             <LinearGradientBrush x:Key="GoldGradient" StartPoint="0,0" EndPoint="1,0">
-                <GradientStop Color="#B8860B" Offset="0"/>
-                <GradientStop Color="#FFD700" Offset="0.3"/>
-                <GradientStop Color="#DAA520" Offset="0.7"/>
-                <GradientStop Color="#B8860B" Offset="1"/>
+                <GradientStop Color="#9A7C2A" Offset="0"/>
+                <GradientStop Color="#E5CA7A" Offset="0.3"/>
+                <GradientStop Color="#C8A84B" Offset="0.7"/>
+                <GradientStop Color="#9A7C2A" Offset="1"/>
             </LinearGradientBrush>
 
+            <!-- 卡片宣紙漸層 -->
             <LinearGradientBrush x:Key="CardGradient" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Color="#FFFCF5" Offset="0"/>
-                <GradientStop Color="#FFF8ED" Offset="1"/>
+                <GradientStop Color="#FAF6EE" Offset="0"/>
+                <GradientStop Color="#F5EDD8" Offset="1"/>
             </LinearGradientBrush>
 
+            <!-- 金色按鈕漸層 -->
             <LinearGradientBrush x:Key="ButtonGoldGradient" StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Color="#DAA520" Offset="0"/>
-                <GradientStop Color="#B8860B" Offset="1"/>
+                <GradientStop Color="#D4B054" Offset="0"/>
+                <GradientStop Color="#9A7C2A" Offset="1"/>
             </LinearGradientBrush>
 
             <!-- 全域字體 -->
             <FontFamily x:Key="PrimaryFont">Microsoft JhengHei UI, Microsoft JhengHei</FontFamily>
 
-            <!-- ══════════════════════════════════════ -->
-            <!-- 按鈕樣式 -->
-            <!-- ══════════════════════════════════════ -->
+            <!-- ══════════════════════════════════════════════════════ -->
+            <!-- 按鈕樣式 - 水墨藍灰                                   -->
+            <!-- ══════════════════════════════════════════════════════ -->
             <Style TargetType="Button">
                 <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
                 <Setter Property="FontSize" Value="13"/>
@@ -87,31 +93,31 @@
                                     CornerRadius="8"
                                     Padding="{TemplateBinding Padding}">
                                 <Border.Effect>
-                                    <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.15" Direction="270"/>
+                                    <DropShadowEffect BlurRadius="6" ShadowDepth="2" Opacity="0.2" Direction="270" Color="#1A2535"/>
                                 </Border.Effect>
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                    RenderOptions.ClearTypeHint="Enabled"/>
+                                                  RenderOptions.ClearTypeHint="Enabled"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryDarkBrush}"/>
                                     <Setter TargetName="border" Property="Effect">
                                         <Setter.Value>
-                                            <DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.25" Direction="270"/>
+                                            <DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.3" Direction="270" Color="#1A2535"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                                    <Setter TargetName="border" Property="Background" Value="#0C1420"/>
                                     <Setter TargetName="border" Property="Effect">
                                         <Setter.Value>
-                                            <DropShadowEffect BlurRadius="3" ShadowDepth="1" Opacity="0.2" Direction="270"/>
+                                            <DropShadowEffect BlurRadius="3" ShadowDepth="1" Opacity="0.15" Direction="270"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
-                                    <Setter TargetName="border" Property="Background" Value="#C8C0B8"/>
-                                    <Setter Property="Foreground" Value="#9E9690"/>
+                                    <Setter TargetName="border" Property="Background" Value="#A8A8A8"/>
+                                    <Setter Property="Foreground" Value="#D0D0D0"/>
                                     <Setter TargetName="border" Property="Effect" Value="{x:Null}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -120,10 +126,11 @@
                 </Setter>
             </Style>
 
-            <!-- 主要操作按鈕 - 廟宇紅 -->
+            <!-- 主要動作按鈕 - 廟宇金 -->
             <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-                <Setter Property="BorderBrush" Value="#A01830"/>
+                <Setter Property="Background" Value="{StaticResource ButtonGoldGradient}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource GoldDarkBrush}"/>
+                <Setter Property="Foreground" Value="#1A0D06"/>
                 <Setter Property="FontWeight" Value="Bold"/>
                 <Setter Property="FontSize" Value="14"/>
                 <Setter Property="Template">
@@ -136,26 +143,32 @@
                                     CornerRadius="8"
                                     Padding="{TemplateBinding Padding}">
                                 <Border.Effect>
-                                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2" Direction="270" Color="#8B0000"/>
+                                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.25" Direction="270" Color="#9A7C2A"/>
                                 </Border.Effect>
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                    RenderOptions.ClearTypeHint="Enabled"/>
+                                                  RenderOptions.ClearTypeHint="Enabled"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="#A01830"/>
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource GoldBrush}"/>
                                     <Setter TargetName="border" Property="Effect">
                                         <Setter.Value>
-                                            <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.35" Direction="270" Color="#8B0000"/>
+                                            <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.4" Direction="270" Color="#9A7C2A"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="#801020"/>
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource GoldDarkBrush}"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter TargetName="border" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect BlurRadius="3" ShadowDepth="1" Opacity="0.2" Direction="270"/>
+                                        </Setter.Value>
+                                    </Setter>
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
-                                    <Setter TargetName="border" Property="Background" Value="#C8C0B8"/>
-                                    <Setter Property="Foreground" Value="#9E9690"/>
+                                    <Setter TargetName="border" Property="Background" Value="#A8A8A8"/>
+                                    <Setter Property="Foreground" Value="#D0D0D0"/>
                                     <Setter TargetName="border" Property="Effect" Value="{x:Null}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -164,7 +177,7 @@
                 </Setter>
             </Style>
 
-            <!-- 成功按鈕 -->
+            <!-- 成功按鈕 - 翠綠 -->
             <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                 <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
                 <Setter Property="BorderBrush" Value="#1B5E20"/>
@@ -183,7 +196,7 @@
                                     <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2" Direction="270" Color="#1B5E20"/>
                                 </Border.Effect>
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                    RenderOptions.ClearTypeHint="Enabled"/>
+                                                  RenderOptions.ClearTypeHint="Enabled"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -198,8 +211,8 @@
                                     <Setter TargetName="border" Property="Background" Value="#0D3D10"/>
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
-                                    <Setter TargetName="border" Property="Background" Value="#C8C0B8"/>
-                                    <Setter Property="Foreground" Value="#9E9690"/>
+                                    <Setter TargetName="border" Property="Background" Value="#A8A8A8"/>
+                                    <Setter Property="Foreground" Value="#D0D0D0"/>
                                     <Setter TargetName="border" Property="Effect" Value="{x:Null}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -208,7 +221,7 @@
                 </Setter>
             </Style>
 
-            <!-- 危險按鈕（刪除用途） -->
+            <!-- 危險按鈕 - 朱紅（刪除用途） -->
             <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                 <Setter Property="Background" Value="#C62828"/>
                 <Setter Property="BorderBrush" Value="#7F0000"/>
@@ -228,7 +241,7 @@
                                     <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2" Direction="270" Color="#7F0000"/>
                                 </Border.Effect>
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                    RenderOptions.ClearTypeHint="Enabled"/>
+                                                  RenderOptions.ClearTypeHint="Enabled"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -238,8 +251,8 @@
                                     <Setter TargetName="border" Property="Background" Value="#4E0000"/>
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
-                                    <Setter TargetName="border" Property="Background" Value="#C8C0B8"/>
-                                    <Setter Property="Foreground" Value="#9E9690"/>
+                                    <Setter TargetName="border" Property="Background" Value="#A8A8A8"/>
+                                    <Setter Property="Foreground" Value="#D0D0D0"/>
                                     <Setter TargetName="border" Property="Effect" Value="{x:Null}"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -252,7 +265,7 @@
             <Style x:Key="GoldButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                 <Setter Property="Background" Value="{StaticResource ButtonGoldGradient}"/>
                 <Setter Property="BorderBrush" Value="{StaticResource GoldDarkBrush}"/>
-                <Setter Property="Foreground" Value="#3E1A00"/>
+                <Setter Property="Foreground" Value="#1A0D06"/>
                 <Setter Property="FontWeight" Value="Bold"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -264,10 +277,10 @@
                                     CornerRadius="8"
                                     Padding="{TemplateBinding Padding}">
                                 <Border.Effect>
-                                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2" Direction="270" Color="#B8860B"/>
+                                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.2" Direction="270" Color="#9A7C2A"/>
                                 </Border.Effect>
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                    RenderOptions.ClearTypeHint="Enabled"/>
+                                                  RenderOptions.ClearTypeHint="Enabled"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -283,16 +296,16 @@
                 </Setter>
             </Style>
 
-            <!-- ══════════════════════════════════════ -->
-            <!-- 文字輸入框樣式 -->
-            <!-- ══════════════════════════════════════ -->
+            <!-- ══════════════════════════════════════════════════════ -->
+            <!-- 文字輸入框 - 宣紙白底，金色焦點框                      -->
+            <!-- ══════════════════════════════════════════════════════ -->
             <Style TargetType="TextBox">
                 <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
                 <Setter Property="FontSize" Value="14"/>
                 <Setter Property="Padding" Value="12,10"/>
                 <Setter Property="Margin" Value="3"/>
                 <Setter Property="Background" Value="White"/>
-                <Setter Property="BorderBrush" Value="#D4B896"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
                 <Setter Property="BorderThickness" Value="1.5"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -303,10 +316,10 @@
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="8">
                                 <Border.Effect>
-                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.08" Direction="270"/>
+                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.07" Direction="270"/>
                                 </Border.Effect>
                                 <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
-                                                            RenderOptions.ClearTypeHint="Enabled"/>
+                                              RenderOptions.ClearTypeHint="Enabled"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -317,7 +330,7 @@
                                     <Setter TargetName="border" Property="BorderThickness" Value="2"/>
                                     <Setter TargetName="border" Property="Effect">
                                         <Setter.Value>
-                                            <DropShadowEffect BlurRadius="8" ShadowDepth="0" Opacity="0.2" Color="#DAA520"/>
+                                            <DropShadowEffect BlurRadius="8" ShadowDepth="0" Opacity="0.22" Color="#C8A84B"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
@@ -327,20 +340,20 @@
                 </Setter>
             </Style>
 
-            <!-- 下拉選單樣式 -->
+            <!-- 下拉選單 -->
             <Style TargetType="ComboBox">
                 <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
                 <Setter Property="FontSize" Value="14"/>
                 <Setter Property="Padding" Value="12,10"/>
                 <Setter Property="Margin" Value="3"/>
                 <Setter Property="Background" Value="White"/>
-                <Setter Property="BorderBrush" Value="#D4B896"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
                 <Setter Property="BorderThickness" Value="1.5"/>
             </Style>
 
-            <!-- ══════════════════════════════════════ -->
-            <!-- 群組框樣式 - 廟宇牌匾風格 -->
-            <!-- ══════════════════════════════════════ -->
+            <!-- ══════════════════════════════════════════════════════ -->
+            <!-- 群組框 - 廟宇牌匾風格，水墨金邊                       -->
+            <!-- ══════════════════════════════════════════════════════ -->
             <Style TargetType="GroupBox">
                 <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
                 <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
@@ -355,11 +368,10 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- 標題 - 牌匾風格 -->
+                                <!-- 標題 - 水墨牌匾 -->
                                 <Border Grid.Row="0"
                                         Background="{StaticResource HeaderGradient}"
                                         CornerRadius="12,12,0,0"
-                                        Padding="0"
                                         BorderBrush="{StaticResource GoldDarkBrush}"
                                         BorderThickness="1.5,1.5,1.5,0">
                                     <Grid>
@@ -368,8 +380,8 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <!-- 上方金邊 -->
-                                        <Border Height="3" Background="{StaticResource GoldGradient}"/>
+                                        <!-- 頂部金飾線 -->
+                                        <Border Height="3" Background="{StaticResource GoldGradient}" CornerRadius="12,12,0,0"/>
                                         <!-- 標題文字 -->
                                         <Border Grid.Row="1" Padding="20,12">
                                             <Grid>
@@ -378,20 +390,20 @@
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="&#x2726;" Foreground="#DAA520" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                <TextBlock Text="&#x2726;" Foreground="#C8A84B" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                                 <ContentPresenter Grid.Column="1" ContentSource="Header"
-                                                                  TextBlock.Foreground="#FFD700"
+                                                                  TextBlock.Foreground="#E5CA7A"
                                                                   TextBlock.FontWeight="Bold"
                                                                   TextBlock.FontSize="16"/>
-                                                <TextBlock Grid.Column="2" Text="&#x2726;" Foreground="#DAA520" FontSize="14" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                                <TextBlock Grid.Column="2" Text="&#x2726;" Foreground="#C8A84B" FontSize="13" VerticalAlignment="Center" Margin="10,0,0,0"/>
                                             </Grid>
                                         </Border>
-                                        <!-- 下方金邊 -->
+                                        <!-- 底部金飾線 -->
                                         <Border Grid.Row="2" Height="2" Background="{StaticResource GoldGradient}"/>
                                     </Grid>
                                 </Border>
 
-                                <!-- 內容區域 -->
+                                <!-- 內容區域 - 宣紙底 -->
                                 <Border Grid.Row="1"
                                         Background="{StaticResource CardGradient}"
                                         CornerRadius="0,0,12,12"
@@ -399,7 +411,7 @@
                                         BorderBrush="{StaticResource GoldDarkBrush}"
                                         BorderThickness="1.5,0,1.5,1.5">
                                     <Border.Effect>
-                                        <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.15" Direction="270"/>
+                                        <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.12" Direction="270"/>
                                     </Border.Effect>
                                     <ContentPresenter RenderOptions.ClearTypeHint="Enabled"/>
                                 </Border>
@@ -414,9 +426,9 @@
                 <Setter Property="CanContentScroll" Value="False"/>
             </Style>
 
-            <!-- ══════════════════════════════════════ -->
-            <!-- 列表視圖樣式 -->
-            <!-- ══════════════════════════════════════ -->
+            <!-- ══════════════════════════════════════════════════════ -->
+            <!-- 列表視圖 - 宣紙卡片風格                               -->
+            <!-- ══════════════════════════════════════════════════════ -->
             <Style TargetType="ListView">
                 <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
                 <Setter Property="Background" Value="Transparent"/>
@@ -434,33 +446,33 @@
                         <ControlTemplate TargetType="ListViewItem">
                             <Border x:Name="border"
                                     Background="White"
-                                    BorderBrush="#E0D0B8"
+                                    BorderBrush="#D4C4A4"
                                     BorderThickness="1"
                                     CornerRadius="10"
                                     Padding="{TemplateBinding Padding}"
                                     Margin="{TemplateBinding Margin}">
                                 <Border.Effect>
-                                    <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.08" Direction="270"/>
+                                    <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.07" Direction="270"/>
                                 </Border.Effect>
                                 <ContentPresenter RenderOptions.ClearTypeHint="Enabled"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="#FFF8DC"/>
+                                    <Setter TargetName="border" Property="Background" Value="#EDE8DC"/>
                                     <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource GoldBrush}"/>
                                     <Setter TargetName="border" Property="Effect">
                                         <Setter.Value>
-                                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.15" Direction="270" Color="#DAA520"/>
+                                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.15" Direction="270" Color="#C8A84B"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="border" Property="Background" Value="#FFF3D6"/>
+                                    <Setter TargetName="border" Property="Background" Value="#E0D4BC"/>
                                     <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource GoldBrush}"/>
                                     <Setter TargetName="border" Property="BorderThickness" Value="2"/>
                                     <Setter TargetName="border" Property="Effect">
                                         <Setter.Value>
-                                            <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.2" Direction="270" Color="#DAA520"/>
+                                            <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.22" Direction="270" Color="#C8A84B"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
@@ -470,11 +482,11 @@
                 </Setter>
             </Style>
 
-            <!-- 狀態列樣式 -->
+            <!-- 狀態列 -->
             <Style TargetType="StatusBar">
                 <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
                 <Setter Property="Background" Value="{StaticResource HeaderGradient}"/>
-                <Setter Property="Foreground" Value="#E8D5B5"/>
+                <Setter Property="Foreground" Value="#C8A84B"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>
