@@ -133,6 +133,9 @@ public static class DbMigrationService
 
     public static void ApplyMigrations(AppDbContext context)
     {
+        // 啟用 WAL 模式，允許讀寫並發，避免背景同步鎖住 UI
+        context.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
+
         // 確保基本結構存在
         context.Database.EnsureCreated();
 

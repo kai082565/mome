@@ -4,13 +4,8 @@ namespace TempleLampSystem.Services;
 
 public class BackupService : IBackupService
 {
-    private static readonly string DbPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "TempleLampSystem", "TempleLamp.db");
-
-    private static readonly string BackupFolder = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "TempleLampSystem", "Backups");
+    private static string DbPath => Path.Combine(AppSettings.AppDataPath, "TempleLamp.db");
+    private static string BackupFolder => Path.Combine(AppSettings.AppDataPath, "Backups");
 
     // 每天晚上幾點觸發備份
     private const int BackupHour = 19;

@@ -6,10 +6,8 @@ namespace TempleLampSystem.Services;
 
 public class SessionService
 {
-    private static readonly string SessionPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "TempleLampSystem",
-        "session.json");
+    private static string SessionPath =>
+        Path.Combine(AppSettings.AppDataPath, "session.json");
 
     public Staff? CurrentStaff { get; private set; }
     public bool IsLoggedIn => CurrentStaff != null;

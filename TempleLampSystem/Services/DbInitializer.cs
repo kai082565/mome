@@ -20,87 +20,71 @@ public static class DbInitializer
 
     private static void InitializeLamps(AppDbContext context)
     {
-        if (context.Lamps.Any())
-            return;
-
-        // MaxQuota = 0 表示不限量
-        var lamps = new List<Lamp>
-        {
-            new() { LampCode = "TAISUI",       LampName = "太歲燈",     Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 4880 },
-            new() { LampCode = "PINGAN",       LampName = "平安燈",     Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 0 },
-            new() { LampCode = "GUANGMING",    LampName = "光明燈",     Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 3000 },
-            new() { LampCode = "YOUXIANG",     LampName = "油香",       Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 0 },
-            new() { LampCode = "YOUXIANG_WU",  LampName = "油香(無)",   Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 0 },
-            new() { LampCode = "YOUXIANG_JN",  LampName = "油香急難救", Temple = "聖雲宮", Deity = "保生大帝", MaxQuota = 0 },
-            new() { LampCode = "YOUXIANG_FD",  LampName = "油香福德祠", Temple = "福德祠", Deity = "福德正神", MaxQuota = 0 },
-            new() { LampCode = "FACAI",        LampName = "發財燈",     Temple = "福德祠", Deity = "福德正神", MaxQuota = 0 },
-            new() { LampCode = "SHENGPING",    LampName = "聖平",       Temple = "聖雲宮", Deity = "保生大帝", MaxQuota = 0 },
-            new() { LampCode = "SHENGGUANG",   LampName = "聖光",       Temple = "聖雲宮", Deity = "保生大帝", MaxQuota = 3000 },
-            new() { LampCode = "SHENGYOU",     LampName = "聖油",       Temple = "聖雲宮", Deity = "保生大帝", MaxQuota = 0 },
-            new() { LampCode = "KAOSHANG",     LampName = "犒賞會",     Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 0 },
-            new() { LampCode = "FUYOU",        LampName = "福油",       Temple = "福德祠", Deity = "福德正神", MaxQuota = 0 },
-            new() { LampCode = "HEJIA_PINGAN", LampName = "闔家平安燈", Temple = "鳳屏宮", Deity = "神農大帝", MaxQuota = 70 },
-        };
-
-        context.Lamps.AddRange(lamps);
-        context.SaveChanges();
+        // 不論是否已有資料，統一交給 SyncLampsFromConfig 處理
     }
 
-    /// <summary>
-    /// 燈種固定對照表：宮廟別、神明別、年度限量
-    /// </summary>
-    private static readonly Dictionary<string, (string? Temple, string? Deity, int MaxQuota)> LampConfigMap = new()
-    {
-        { "TAISUI",       ("鳳屏宮", "神農大帝", 4880) },  // 太歲燈
-        { "PINGAN",       ("鳳屏宮", "神農大帝", 0) },     // 平安燈
-        { "GUANGMING",    ("鳳屏宮", "神農大帝", 3000) },  // 光明燈
-        { "YOUXIANG",     ("鳳屏宮", "神農大帝", 0) },     // 油香
-        { "YOUXIANG_WU",  ("鳳屏宮", "神農大帝", 0) },     // 油香(無)
-        { "YOUXIANG_JN",  ("聖雲宮", "保生大帝", 0) },     // 油香急難救
-        { "YOUXIANG_FD",  ("福德祠", "福德正神", 0) },     // 油香福德祠
-        { "FACAI",        ("福德祠", "福德正神", 0) },     // 發財燈
-        { "SHENGPING",    ("聖雲宮", "保生大帝", 0) },     // 聖平
-        { "SHENGGUANG",   ("聖雲宮", "保生大帝", 3000) },  // 聖光
-        { "SHENGYOU",     ("聖雲宮", "保生大帝", 0) },     // 聖油
-        { "KAOSHANG",     ("鳳屏宮", "神農大帝", 0) },     // 犒賞會
-        { "FUYOU",        ("福德祠", "福德正神", 0) },     // 福油
-        { "HEJIA_PINGAN", ("鳳屏宮", "神農大帝", 70) },    // 闔家平安燈
-    };
-
-    /// <summary>
-    /// 更新既有燈種的宮廟別、神明別、限量（每次啟動都執行，確保資料正確）
-    /// </summary>
+    // 每次啟動時，將資料庫燈種與 appsettings.json 同步
     private static void UpdateLampTemples(AppDbContext context)
     {
-        var lamps = context.Lamps.ToList();
+        var configs = AppSettings.Instance.Lamps;
+        if (configs.Count == 0)
+            return;
+
+        var dbLamps = context.Lamps.ToList();
+        var dbByCode = dbLamps.ToDictionary(l => l.LampCode);
         var updated = false;
 
-        foreach (var lamp in lamps)
+        // 新增或更新 appsettings.json 中有 LampName 的燈種
+        foreach (var cfg in configs)
         {
-            if (LampConfigMap.TryGetValue(lamp.LampCode, out var config))
+            if (string.IsNullOrWhiteSpace(cfg.LampName))
+                continue;
+
+            if (dbByCode.TryGetValue(cfg.LampCode, out var existing))
             {
-                if (config.Temple != null && lamp.Temple != config.Temple)
+                // 更新欄位
+                if (existing.LampName != cfg.LampName) { existing.LampName = cfg.LampName; updated = true; }
+                if (existing.Temple != cfg.Temple)     { existing.Temple = cfg.Temple;       updated = true; }
+                if (existing.Deity != cfg.Deity)       { existing.Deity = cfg.Deity;         updated = true; }
+                if (existing.MaxQuota != cfg.MaxQuota) { existing.MaxQuota = cfg.MaxQuota;   updated = true; }
+            }
+            else
+            {
+                // 新燈種
+                context.Lamps.Add(new Lamp
                 {
-                    lamp.Temple = config.Temple;
-                    updated = true;
-                }
-                if (config.Deity != null && lamp.Deity != config.Deity)
-                {
-                    lamp.Deity = config.Deity;
-                    updated = true;
-                }
-                if (lamp.MaxQuota != config.MaxQuota)
-                {
-                    lamp.MaxQuota = config.MaxQuota;
-                    updated = true;
-                }
+                    LampCode = cfg.LampCode,
+                    LampName = cfg.LampName,
+                    Temple   = cfg.Temple,
+                    Deity    = cfg.Deity,
+                    MaxQuota = cfg.MaxQuota,
+                });
+                updated = true;
+            }
+        }
+
+        // 移除 appsettings.json 中 LampName 為空白（或不存在）的燈種
+        // 若該燈種已有點燈紀錄則保留，避免破壞歷史資料
+        var configCodes = configs
+            .Where(c => !string.IsNullOrWhiteSpace(c.LampName))
+            .Select(c => c.LampCode)
+            .ToHashSet();
+
+        foreach (var lamp in dbLamps)
+        {
+            if (configCodes.Contains(lamp.LampCode))
+                continue;
+
+            var hasOrders = context.LampOrders.Any(o => o.LampId == lamp.Id);
+            if (!hasOrders)
+            {
+                context.Lamps.Remove(lamp);
+                updated = true;
             }
         }
 
         if (updated)
-        {
             context.SaveChanges();
-        }
     }
 
     /// <summary>

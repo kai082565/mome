@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TempleLampSystem.Models;
@@ -15,6 +16,30 @@ public class AutoSyncService : IAutoSyncService
     private DateTime? _lastSyncTime;
     private int _syncCycleCount;
     private int _totalCycleCount; // 含離線次數，用於記憶體清理
+
+    private static string LastSyncTimePath =>
+        Path.Combine(AppSettings.AppDataPath, "last_sync.txt");
+
+    private static DateTime? LoadLastSyncTime()
+    {
+        try
+        {
+            if (File.Exists(LastSyncTimePath))
+            {
+                var text = File.ReadAllText(LastSyncTimePath).Trim();
+                if (DateTime.TryParse(text, out var dt))
+                    return dt;
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private static void SaveLastSyncTime(DateTime time)
+    {
+        try { File.WriteAllText(LastSyncTimePath, time.ToString("o")); }
+        catch { }
+    }
 
     // 每 20 次線上同步（約 10 分鐘）做一次刪除同步
     private const int DeleteSyncInterval = 20;
@@ -44,6 +69,7 @@ public class AutoSyncService : IAutoSyncService
     {
         if (_isRunning) return;
         _isRunning = true;
+        _lastSyncTime = LoadLastSyncTime();
         _cts = new CancellationTokenSource();
         _ = RunSyncLoopAsync(_cts.Token);
     }
@@ -184,6 +210,7 @@ public class AutoSyncService : IAutoSyncService
 
                 // 記錄本次同步時間，下次只同步此時間之後的變動
                 _lastSyncTime = DateTime.Now;
+                SaveLastSyncTime(_lastSyncTime.Value);
 
                 // 定期執行刪除同步（比對雲端 ID，刪除本地多餘的資料）
                 var totalDeleted = 0;

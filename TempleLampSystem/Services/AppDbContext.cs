@@ -20,12 +20,10 @@ public class AppDbContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            var appDataPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "TempleLampSystem");
+            var appDataPath = AppSettings.AppDataPath;
             Directory.CreateDirectory(appDataPath);
             var dbPath = Path.Combine(appDataPath, "TempleLamp.db");
-            optionsBuilder.UseSqlite($"Data Source={dbPath}");
+            optionsBuilder.UseSqlite($"Data Source={dbPath};Mode=ReadWriteCreate");
         }
     }
 

@@ -55,12 +55,28 @@ public class CertificateFormSettings
     public CertificateFieldPosition Temple { get; set; } = new() { X = 0, Y = 0, FontSize = 11 };
 }
 
+public class LampConfig
+{
+    public string LampCode { get; set; } = string.Empty;
+    public string LampName { get; set; } = string.Empty;
+    public string Temple { get; set; } = string.Empty;
+    public string Deity { get; set; } = string.Empty;
+    public int MaxQuota { get; set; } = 0;
+}
+
 public class AppSettings
 {
     public SupabaseSettings Supabase { get; set; } = new();
     public PrintSettings Print { get; set; } = new();
     public UpdateSettings Update { get; set; } = new();
     public CertificateFormSettings CertificateForm { get; set; } = new();
+    public List<LampConfig> Lamps { get; set; } = new();
+    public string DataFolder { get; set; } = "TempleLampSystem";
+
+    public static string AppDataPath =>
+        Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            Instance.DataFolder);
 
     private static AppSettings? _instance;
 

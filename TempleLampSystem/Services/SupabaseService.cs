@@ -440,9 +440,7 @@ public class SupabaseService : ISupabaseService
             if (staffList.Count > 0)
                 await UpsertStaffBatchAsync(staffList);
 
-            // 燈種很少，全量並行同步
-            var lamps = await _localContext.Lamps.AsNoTracking().ToListAsync();
-            await Task.WhenAll(lamps.Select(UpsertLampAsync));
+            // 燈種由 Supabase 集中管理，不從本地推上去（避免覆蓋雲端設定）
 
             // 批量上傳客戶（每批 200 筆）
             var customers = await customerQuery.ToListAsync();
@@ -542,6 +540,9 @@ public class SupabaseService : ISupabaseService
                 {
                     existingById.LampCode = lamp.LampCode;
                     existingById.LampName = lamp.LampName;
+                    existingById.Temple   = lamp.Temple;
+                    existingById.Deity    = lamp.Deity;
+                    existingById.MaxQuota = lamp.MaxQuota;
                 }
                 else if (localLampByCode.TryGetValue(lamp.LampCode, out var existingByCode))
                 {
@@ -558,6 +559,18 @@ public class SupabaseService : ISupabaseService
                     _localContext.Lamps.Add(lamp);
                 }
             }
+            // 移除本地有但雲端已刪除的燈種（有點燈紀錄的保留，避免破壞歷史資料）
+            var cloudLampCodes = cloudLamps.Select(l => l.LampCode).ToHashSet();
+            foreach (var local in localLamps)
+            {
+                if (!cloudLampCodes.Contains(local.LampCode))
+                {
+                    var hasOrders = await _localContext.LampOrders.AnyAsync(o => o.LampId == local.Id);
+                    if (!hasOrders)
+                        _localContext.Lamps.Remove(local);
+                }
+            }
+
             // 先儲存燈種，確保後續訂單的外鍵參照正確
             await _localContext.SaveChangesAsync();
 
