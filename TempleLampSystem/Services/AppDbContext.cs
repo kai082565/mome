@@ -85,6 +85,8 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Deity).HasMaxLength(50);
 
             entity.Property(e => e.MaxQuota).HasDefaultValue(0);
+            entity.Property(e => e.DefaultPrice).HasDefaultValue(0m);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.HasIndex(e => e.LampCode).IsUnique();
         });
 

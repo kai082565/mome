@@ -9,6 +9,6 @@ public class LampRepository : RepositoryBase<Lamp>, ILampRepository
 
     public async Task<List<Lamp>> GetAllOrderedAsync()
     {
-        return await _dbSet.OrderBy(l => l.Id).ToListAsync();
+        return await _dbSet.Where(l => l.IsActive).OrderBy(l => l.Id).ToListAsync();
     }
 }

@@ -538,11 +538,13 @@ public class SupabaseService : ISupabaseService
             {
                 if (localLampById.TryGetValue(lamp.Id, out var existingById))
                 {
-                    existingById.LampCode = lamp.LampCode;
-                    existingById.LampName = lamp.LampName;
-                    existingById.Temple   = lamp.Temple;
-                    existingById.Deity    = lamp.Deity;
-                    existingById.MaxQuota = lamp.MaxQuota;
+                    existingById.LampCode     = lamp.LampCode;
+                    existingById.LampName     = lamp.LampName;
+                    existingById.Temple       = lamp.Temple;
+                    existingById.Deity        = lamp.Deity;
+                    existingById.MaxQuota     = lamp.MaxQuota;
+                    existingById.DefaultPrice = lamp.DefaultPrice;
+                    existingById.IsActive     = lamp.IsActive;
                 }
                 else if (localLampByCode.TryGetValue(lamp.LampCode, out var existingByCode))
                 {
@@ -869,6 +871,12 @@ public class SupabaseLamp : BaseModel
     [Column("MaxQuota")]
     public int MaxQuota { get; set; }
 
+    [Column("DefaultPrice")]
+    public decimal DefaultPrice { get; set; }
+
+    [Column("IsActive")]
+    public bool IsActive { get; set; } = true;
+
     public Lamp ToLamp() => new()
     {
         Id = Id,
@@ -876,7 +884,9 @@ public class SupabaseLamp : BaseModel
         LampName = LampName,
         Temple = Temple,
         Deity = Deity,
-        MaxQuota = MaxQuota
+        MaxQuota = MaxQuota,
+        DefaultPrice = DefaultPrice,
+        IsActive = IsActive
     };
 
     public static SupabaseLamp FromLamp(Lamp l) => new()
@@ -886,7 +896,9 @@ public class SupabaseLamp : BaseModel
         LampName = l.LampName,
         Temple = l.Temple,
         Deity = l.Deity,
-        MaxQuota = l.MaxQuota
+        MaxQuota = l.MaxQuota,
+        DefaultPrice = l.DefaultPrice,
+        IsActive = l.IsActive
     };
 }
 

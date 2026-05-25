@@ -11,6 +11,8 @@ public class Lamp
     public string? Temple { get; set; }                    // 宮廟別，如 "鳳屏宮", "天后宮"
     public string? Deity { get; set; }                     // 神明別，如 "太歲星君", "媽祖"
     public int MaxQuota { get; set; }                      // 年度限量（0 = 不限量）
+    public decimal DefaultPrice { get; set; }              // 預設金額
+    public bool IsActive { get; set; } = true;             // FALSE = 不顯示在系統
 
     // 導航屬性
     public ICollection<LampOrder> LampOrders { get; set; } = new List<LampOrder>();

@@ -104,7 +104,11 @@ public partial class MainWindow : Window
                 ? $"待同步：{e.PendingCount} 筆"
                 : "";
 
-            // 有其他電腦的新資料下載時，刷新剩餘名額顯示
+            // 每次同步完成後刷新燈種列表（IsActive 可能有變動）
+            if (e.IsOnline)
+                _ = _lampOrderViewModel.RefreshLampsAsync();
+
+            // 有其他電腦的新資料下載時，額外刷新剩餘名額
             if (e.HasNewData)
                 _ = _lampOrderViewModel.RefreshQuotaAsync();
         });

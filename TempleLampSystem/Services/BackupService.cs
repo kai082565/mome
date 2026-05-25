@@ -83,11 +83,19 @@ public class BackupService : IBackupService
         }
     }
 
+    private bool HasBackupForToday()
+    {
+        if (!Directory.Exists(BackupFolder)) return false;
+        var today = DateTime.Now;
+        var prefix = $"TempleLamp_{today.Year}年{today.Month:D2}月{today.Day:D2}日_";
+        return Directory.GetFiles(BackupFolder, $"{prefix}*.db").Length > 0;
+    }
+
     private async Task RunBackupLoopAsync(CancellationToken ct)
     {
         // 啟動時補備份：若今天還未備份且已過備份時間（例如程式重啟、電腦重開機）
         var startNow = DateTime.Now;
-        if (_lastBackupDate != startNow.Date && startNow.Hour >= BackupHour)
+        if (startNow.Hour >= BackupHour && !HasBackupForToday())
         {
             await BackupNowAsync();
         }
@@ -106,8 +114,8 @@ public class BackupService : IBackupService
 
             var now = DateTime.Now;
 
-            // 今天已備份過就跳過
-            if (_lastBackupDate == now.Date)
+            // 今天已備份過就跳過（含重啟後的記憶體狀態與實際檔案）
+            if (_lastBackupDate == now.Date || HasBackupForToday())
                 continue;
 
             // 備份時間窗口：19:00 ~ 19:09（給 10 分鐘重試機會，防止備份失敗後整天跳過）

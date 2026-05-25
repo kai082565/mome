@@ -77,10 +77,56 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- 中間裝飾 -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.35">
-                            <TextBlock Text="&#x2500;&#x2500;&#x2500; &#x2726; &#x2500;&#x2500;&#x2500;" Foreground="#C8A84B" FontSize="16"/>
-                        </StackPanel>
+                        <!-- 中間：宮廟牌匾 -->
+                        <Border Grid.Column="1"
+                                BorderBrush="#4A3508"
+                                BorderThickness="1.5"
+                                Padding="3"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Margin="10,0">
+                            <Border BorderBrush="#C8A84B" BorderThickness="1" Padding="18,7">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <!-- 上方裝飾線 -->
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
+                                        <TextBlock Text="&#x2726;" Foreground="#C8A84B" FontSize="11" VerticalAlignment="Center"/>
+                                        <Rectangle Height="1" Width="55" Fill="#7A6020" VerticalAlignment="Center" Margin="6,0"/>
+                                        <TextBlock Text="&#x25C6;" Foreground="#9A7C2A" FontSize="9" VerticalAlignment="Center"/>
+                                        <Rectangle Height="1" Width="55" Fill="#7A6020" VerticalAlignment="Center" Margin="6,0"/>
+                                        <TextBlock Text="&#x2726;" Foreground="#C8A84B" FontSize="11" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <!-- 廟名 -->
+                                    <TextBlock Text="福　清　宮"
+                                               FontSize="38"
+                                               FontWeight="Bold"
+                                               Foreground="#E5CA7A"
+                                               FontFamily="{StaticResource PrimaryFont}"
+                                               HorizontalAlignment="Center">
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect Color="#C8A84B" BlurRadius="14" ShadowDepth="0" Opacity="0.6"/>
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+
+                                    <!-- 副標語 -->
+                                    <TextBlock Text="敬神奉香　·　點燈祈福"
+                                               FontSize="11"
+                                               Foreground="#9A7C2A"
+                                               FontFamily="{StaticResource PrimaryFont}"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,3,0,5"/>
+
+                                    <!-- 下方裝飾線 -->
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="&#x2726;" Foreground="#C8A84B" FontSize="11" VerticalAlignment="Center"/>
+                                        <Rectangle Height="1" Width="55" Fill="#7A6020" VerticalAlignment="Center" Margin="6,0"/>
+                                        <TextBlock Text="&#x25C6;" Foreground="#9A7C2A" FontSize="9" VerticalAlignment="Center"/>
+                                        <Rectangle Height="1" Width="55" Fill="#7A6020" VerticalAlignment="Center" Margin="6,0"/>
+                                        <TextBlock Text="&#x2726;" Foreground="#C8A84B" FontSize="11" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </Border>
 
                         <!-- 右側：登入者、按鈕 -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">

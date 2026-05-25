@@ -67,24 +67,6 @@ public partial class LampOrderViewModel : ViewModelBase
     [ObservableProperty]
     private bool _showOrderNote;
 
-    // 燈種預設金額對照表
-    private static readonly Dictionary<string, decimal> DefaultPriceMap = new()
-    {
-        { "TAISUI",       300 },   // 太歲燈
-        { "PINGAN",       100 },   // 平安燈
-        { "GUANGMING",    300 },   // 光明燈
-        { "YOUXIANG",     100 },   // 油香
-        { "YOUXIANG_WU",  100 },   // 油香(無)
-        { "YOUXIANG_JN",  100 },   // 油香急難救
-        { "YOUXIANG_FD",  100 },   // 油香福德祠
-        { "FACAI",        300 },   // 發財燈
-        { "SHENGPING",    100 },   // 聖平
-        { "SHENGGUANG",   300 },   // 聖光
-        { "SHENGYOU",     100 },   // 聖油
-        { "KAOSHANG",     300 },   // 犒賞會
-        { "FUYOU",        0 },     // 福油
-        { "HEJIA_PINGAN", 1500 },  // 闔家平安燈
-    };
 
     private bool _isRemovingCustomer;
 
@@ -299,10 +281,7 @@ public partial class LampOrderViewModel : ViewModelBase
         SelectedDeity = value?.Deity;
 
         // 自動帶入預設金額
-        if (value != null && DefaultPriceMap.TryGetValue(value.LampCode, out var defaultPrice))
-            Price = defaultPrice;
-        else
-            Price = 600;
+        Price = value?.DefaultPrice ?? 0;
 
         // 闔家平安燈才顯示備註欄
         ShowOrderNote = value?.LampCode == "HEJIA_PINGAN";
@@ -325,6 +304,15 @@ public partial class LampOrderViewModel : ViewModelBase
 
     /// <summary>AutoSync 下載新資料後由外部呼叫，刷新剩餘名額顯示</summary>
     public Task RefreshQuotaAsync() => UpdateQuotaInfoAsync(SelectedLamp);
+
+    /// <summary>AutoSync 同步後由外部呼叫，重新載入燈種列表（IsActive 可能有變動）</summary>
+    public async Task RefreshLampsAsync()
+    {
+        var lamps = await _lampRepository.GetAllOrderedAsync();
+        Lamps.Clear();
+        foreach (var lamp in lamps)
+            Lamps.Add(lamp);
+    }
 
     private async Task UpdateQuotaInfoAsync(Lamp? lamp)
     {

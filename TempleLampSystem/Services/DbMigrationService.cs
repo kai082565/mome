@@ -128,6 +128,12 @@ public static class DbMigrationService
         ",
         ["2.2.0"] = @"
             ALTER TABLE ""LampOrders"" ADD COLUMN ""OrderNumber"" TEXT;
+        ",
+        ["2.3.0"] = @"
+            ALTER TABLE ""Lamps"" ADD COLUMN ""DefaultPrice"" REAL NOT NULL DEFAULT 0;
+        ",
+        ["2.4.0"] = @"
+            ALTER TABLE ""Lamps"" ADD COLUMN ""IsActive"" INTEGER NOT NULL DEFAULT 1;
         "
     };
 
