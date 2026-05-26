@@ -631,6 +631,7 @@ public class SupabaseService : ISupabaseService
                     existing.Village = customer.Village;
                     existing.PostalCode = customer.PostalCode;
                     existing.BirthYear = customer.BirthYear;
+                    existing.BirthYearText = customer.BirthYearText;
                     existing.BirthMonth = customer.BirthMonth;
                     existing.BirthDay = customer.BirthDay;
                     existing.BirthHour = customer.BirthHour;
@@ -797,6 +798,9 @@ public class SupabaseCustomer : BaseModel
     [Column("BirthYear")]
     public int? BirthYear { get; set; }
 
+    [Column("BirthYearText")]
+    public string? BirthYearText { get; set; }
+
     [Column("BirthMonth")]
     public int? BirthMonth { get; set; }
 
@@ -823,6 +827,7 @@ public class SupabaseCustomer : BaseModel
         Village = Village,
         PostalCode = PostalCode,
         BirthYear = BirthYear,
+        BirthYearText = BirthYearText,
         BirthMonth = BirthMonth,
         BirthDay = BirthDay,
         BirthHour = BirthHour,
@@ -841,6 +846,7 @@ public class SupabaseCustomer : BaseModel
         Village = c.Village,
         PostalCode = c.PostalCode,
         BirthYear = c.BirthYear,
+        BirthYearText = c.BirthYearText,
         BirthMonth = c.BirthMonth,
         BirthDay = c.BirthDay,
         BirthHour = c.BirthHour,

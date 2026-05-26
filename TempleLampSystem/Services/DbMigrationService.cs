@@ -134,6 +134,9 @@ public static class DbMigrationService
         ",
         ["2.4.0"] = @"
             ALTER TABLE ""Lamps"" ADD COLUMN ""IsActive"" INTEGER NOT NULL DEFAULT 1;
+        ",
+        ["2.5.0"] = @"
+            ALTER TABLE ""Customers"" ADD COLUMN ""BirthYearText"" TEXT;
         "
     };
 

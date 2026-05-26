@@ -46,12 +46,14 @@ public partial class CustomerDetailWindow : Window
         NoteText.Text = customer.Note ?? "-";
 
         // 出生日期（處理吉年/吉月/吉日）
-        var yearStr = customer.BirthYear switch
-        {
-            null => "",
-            0 => "吉年",
-            _ => $"民國{customer.BirthYear}年"
-        };
+        string yearStr;
+        if (customer.BirthYear == 0)
+            yearStr = "吉年";
+        else if (!string.IsNullOrWhiteSpace(customer.BirthYearText))
+            yearStr = $"{customer.BirthYearText}年";
+        else
+            yearStr = "";
+
         var monthStr = customer.BirthMonth switch
         {
             null => "",
@@ -71,9 +73,10 @@ public partial class CustomerDetailWindow : Window
         BirthHourText.Text = customer.BirthHour ?? "-";
 
         // 生肖
-        if (customer.BirthYear is > 0)
+        var zodiac = customer.Zodiac;
+        if (!string.IsNullOrEmpty(zodiac))
         {
-            ZodiacText.Text = $"({customer.Zodiac})";
+            ZodiacText.Text = $"({zodiac})";
         }
 
         // 點燈紀錄

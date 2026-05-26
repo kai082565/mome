@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="新增客戶"
         Width="900"
-        Height="880"
+        Height="980"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{StaticResource BackgroundBrush}"
@@ -15,9 +15,48 @@
         RenderOptions.BitmapScalingMode="HighQuality"
         PreviewKeyDown="Window_PreviewKeyDown">
 
+    <Window.Resources>
+        <Style x:Key="GanZhiBtn" TargetType="Button">
+            <Setter Property="Width" Value="42"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Margin" Value="3,2"/>
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="#FAF6EE"
+                                BorderBrush="{StaticResource GoldBrush}"
+                                BorderThickness="1" CornerRadius="4">
+                            <TextBlock Text="{TemplateBinding Content}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       Foreground="{StaticResource SecondaryBrush}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource GoldBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource GoldDarkBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#EEECE8"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#D0C8B8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0">
     <Grid Margin="40" TextBlock.FontSize="20">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -125,7 +164,7 @@
             <TextBlock Text="出生" VerticalAlignment="Center" FontWeight="SemiBold"
                        Foreground="{StaticResource TextPrimaryBrush}"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="民國" VerticalAlignment="Center" Margin="5,0,5,0"
+                <TextBlock Text="歲次" VerticalAlignment="Center" Margin="5,0,5,0"
                            Foreground="{StaticResource TextSecondaryBrush}"/>
                 <TextBox x:Name="BirthYearTextBox" Width="90" Padding="8,8" FontSize="20"
                          TextChanged="BirthYearTextBox_TextChanged"/>
@@ -151,8 +190,49 @@
             </StackPanel>
         </Grid>
 
+        <!-- 干支快選 -->
+        <Border x:Name="GanZhiPanel" Grid.Row="6"
+                Background="#FAF6EE" BorderBrush="{StaticResource GoldBrush}"
+                BorderThickness="1" CornerRadius="6"
+                Padding="14,10" Margin="110,0,0,15">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <TextBlock Text="天干" FontSize="14" FontWeight="SemiBold" Width="36"
+                               VerticalAlignment="Center" Margin="0,0,8,0"
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <Button Content="甲" Style="{StaticResource GanZhiBtn}" Click="TianGan_Click"/>
+                    <Button Content="乙" Style="{StaticResource GanZhiBtn}" Click="TianGan_Click"/>
+                    <Button Content="丙" Style="{StaticResource GanZhiBtn}" Click="TianGan_Click"/>
+                    <Button Content="丁" Style="{StaticResource GanZhiBtn}" Click="TianGan_Click"/>
+                    <Button Content="戊" Style="{StaticResource GanZhiBtn}" Click="TianGan_Click"/>
+                    <Button Content="己" Style="{StaticResource GanZhiBtn}" Click="TianGan_Click"/>
+                    <Button Content="庚" Style="{StaticResource GanZhiBtn}" Click="TianGan_Click"/>
+                    <Button Content="辛" Style="{StaticResource GanZhiBtn}" Click="TianGan_Click"/>
+                    <Button Content="壬" Style="{StaticResource GanZhiBtn}" Click="TianGan_Click"/>
+                    <Button Content="癸" Style="{StaticResource GanZhiBtn}" Click="TianGan_Click"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="地支" FontSize="14" FontWeight="SemiBold" Width="36"
+                               VerticalAlignment="Center" Margin="0,0,8,0"
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <Button Content="子" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="丑" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="寅" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="卯" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="辰" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="巳" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="午" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="未" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="申" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="酉" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="戌" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                    <Button Content="亥" Style="{StaticResource GanZhiBtn}" Click="DiZhi_Click"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
         <!-- 生辰 / 生肖 -->
-        <Grid Grid.Row="6" Margin="0,0,0,15">
+        <Grid Grid.Row="7" Margin="0,0,0,15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="110"/>
                 <ColumnDefinition Width="Auto"/>
@@ -177,7 +257,7 @@
         </Grid>
 
         <!-- 備註 -->
-        <Grid Grid.Row="7" Margin="0,0,0,12">
+        <Grid Grid.Row="8" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="110"/>
                 <ColumnDefinition Width="*"/>
@@ -190,7 +270,7 @@
         </Grid>
 
         <!-- 按鈕 -->
-        <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
+        <StackPanel Grid.Row="10" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
             <Button x:Name="ConfirmButton" Content="確認新增" Style="{StaticResource SuccessButton}"
                     Padding="40,16" FontSize="22" Click="ConfirmButton_Click"/>
             <Button Content="取消" Padding="40,16" FontSize="22" Margin="12,0,0,0"

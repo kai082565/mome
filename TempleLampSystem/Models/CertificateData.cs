@@ -42,7 +42,7 @@ public class CertificateData
             CustomerCode = customer.CustomerCode,
             Phone = customer.Phone ?? customer.Mobile,
             Address = string.IsNullOrEmpty(fullAddress) ? null : fullAddress,
-            BirthYear = FormatBirthField(customer.BirthYear),
+            BirthYear = FormatBirthYear(customer),
             BirthMonth = FormatBirthField(customer.BirthMonth),
             BirthDay = FormatBirthField(customer.BirthDay),
             BirthHour = customer.BirthHour,
@@ -63,6 +63,13 @@ public class CertificateData
     {
         if (value == null) return null;
         return value == 0 ? "吉" : value.ToString();
+    }
+
+    private static string? FormatBirthYear(Customer customer)
+    {
+        if (customer.BirthYear == 0) return "吉";
+        if (!string.IsNullOrWhiteSpace(customer.BirthYearText)) return customer.BirthYearText;
+        return customer.BirthYear?.ToString();
     }
 
     /// <summary>
@@ -94,7 +101,7 @@ public class CertificateData
             CustomerCode = firstCustomer.CustomerCode,
             Phone = firstCustomer.Phone ?? firstCustomer.Mobile,
             Address = string.IsNullOrEmpty(fullAddress) ? null : fullAddress,
-            BirthYear = FormatBirthField(firstCustomer.BirthYear),
+            BirthYear = FormatBirthYear(firstCustomer),
             BirthMonth = FormatBirthField(firstCustomer.BirthMonth),
             BirthDay = FormatBirthField(firstCustomer.BirthDay),
             BirthHour = firstCustomer.BirthHour,

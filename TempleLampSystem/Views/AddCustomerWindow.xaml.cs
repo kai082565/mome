@@ -50,8 +50,8 @@ public partial class AddCustomerWindow : Window
 
         if (c.BirthYear == 0)
             JiYearCheckBox.IsChecked = true;
-        else if (c.BirthYear != null)
-            BirthYearTextBox.Text = c.BirthYear.ToString();
+        else if (!string.IsNullOrWhiteSpace(c.BirthYearText))
+            BirthYearTextBox.Text = c.BirthYearText;
 
         if (c.BirthMonth == 0)
             JiMonthCheckBox.IsChecked = true;
@@ -69,16 +69,18 @@ public partial class AddCustomerWindow : Window
 
     private void BirthYearTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (int.TryParse(BirthYearTextBox.Text.Trim(), out var rocYear) && rocYear > 0)
+        var text = BirthYearTextBox.Text.Trim();
+        const string diZhi = "子丑寅卯辰巳午未申酉戌亥";
+        if (text.Length >= 2)
         {
-            var westernYear = rocYear + 1911;
-            var index = ((westernYear - 4) % 12 + 12) % 12;
-            ZodiacText.Text = ZodiacAnimals[index];
+            var idx = diZhi.IndexOf(text[1]);
+            if (idx >= 0)
+            {
+                ZodiacText.Text = ZodiacAnimals[idx];
+                return;
+            }
         }
-        else
-        {
-            ZodiacText.Text = string.Empty;
-        }
+        ZodiacText.Text = string.Empty;
     }
 
     private async void PhoneTextBox_LostFocus(object sender, RoutedEventArgs e)
@@ -180,11 +182,32 @@ public partial class AddCustomerWindow : Window
     {
         var isChecked = JiYearCheckBox.IsChecked == true;
         BirthYearTextBox.IsEnabled = !isChecked;
+        GanZhiPanel.IsEnabled = !isChecked;
         if (isChecked)
         {
             BirthYearTextBox.Text = string.Empty;
             ZodiacText.Text = string.Empty;
         }
+    }
+
+    private void TianGan_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn) return;
+        var ch = btn.Content as string ?? "";
+        var current = BirthYearTextBox.Text;
+        var di = current.Length >= 2 ? current[1].ToString() : "";
+        BirthYearTextBox.Text = ch + di;
+        BirthYearTextBox.CaretIndex = BirthYearTextBox.Text.Length;
+    }
+
+    private void DiZhi_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn) return;
+        var ch = btn.Content as string ?? "";
+        var current = BirthYearTextBox.Text;
+        var tian = current.Length >= 1 ? current[0].ToString() : "";
+        BirthYearTextBox.Text = tian + ch;
+        BirthYearTextBox.CaretIndex = BirthYearTextBox.Text.Length;
     }
 
     private void JiMonthCheckBox_Changed(object sender, RoutedEventArgs e)
@@ -226,8 +249,16 @@ public partial class AddCustomerWindow : Window
             _editCustomer.BirthHour = BirthHourComboBox.SelectedItem as string;
             _editCustomer.UpdatedAt = DateTime.Now;
 
-            _editCustomer.BirthYear = JiYearCheckBox.IsChecked == true ? 0
-                : int.TryParse(BirthYearTextBox.Text.Trim(), out var ey) ? ey : null;
+            if (JiYearCheckBox.IsChecked == true)
+            {
+                _editCustomer.BirthYear = 0;
+                _editCustomer.BirthYearText = null;
+            }
+            else
+            {
+                _editCustomer.BirthYear = null;
+                _editCustomer.BirthYearText = NullIfEmpty(BirthYearTextBox.Text.Trim());
+            }
             _editCustomer.BirthMonth = JiMonthCheckBox.IsChecked == true ? 0
                 : int.TryParse(BirthMonthTextBox.Text.Trim(), out var em) ? em : null;
             _editCustomer.BirthDay = JiDayCheckBox.IsChecked == true ? 0
@@ -279,11 +310,17 @@ public partial class AddCustomerWindow : Window
             CustomerCode = customerCode
         };
 
-        // 吉年/吉月/吉日 以 0 儲存，正常數值則存實際值
+        // 歲次以文字儲存，吉年以 BirthYear=0 標記
         if (JiYearCheckBox.IsChecked == true)
+        {
             NewCustomer.BirthYear = 0;
-        else if (int.TryParse(BirthYearTextBox.Text.Trim(), out var birthYear))
-            NewCustomer.BirthYear = birthYear;
+            NewCustomer.BirthYearText = null;
+        }
+        else
+        {
+            NewCustomer.BirthYear = null;
+            NewCustomer.BirthYearText = NullIfEmpty(BirthYearTextBox.Text.Trim());
+        }
 
         if (JiMonthCheckBox.IsChecked == true)
             NewCustomer.BirthMonth = 0;
