@@ -78,9 +78,9 @@
                      FontSize="15" Padding="10,8"
                      FontFamily="Consolas, Courier New"
                      CharacterCasing="Upper"
-                     MaxLength="19"
+                     MaxLength="9"
                      Margin="0,0,0,8"/>
-            <TextBlock Text="格式：XXXX-XXXX-XXXX-XXXX" FontSize="11"
+            <TextBlock Text="格式：XXXX-XXXX" FontSize="11"
                        Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,16"/>
 
             <!-- 錯誤訊息 -->

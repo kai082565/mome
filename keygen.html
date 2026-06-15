@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>點燈系統 授權金鑰產生器</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+    background: #1E2B3A;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  .card {
+    background: #F0E8D8;
+    border-radius: 16px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .gold { color: #C8A84B; }
+  .header h1 { font-size: 20px; color: #1A0D06; margin-top: 6px; }
+  .header p { font-size: 13px; color: #5A3C28; margin-top: 4px; }
+
+  label { display: block; font-size: 14px; font-weight: 600; color: #5A3C28; margin-bottom: 6px; }
+  input[type=text], input[type=password] {
+    width: 100%;
+    font-size: 22px;
+    font-family: "Consolas", "Courier New", monospace;
+    padding: 12px 14px;
+    border: 1.5px solid #C0A87C;
+    border-radius: 8px;
+    background: white;
+    color: #1A0D06;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    outline: none;
+    margin-bottom: 20px;
+  }
+  input:focus { border-color: #C8A84B; box-shadow: 0 0 0 3px rgba(200,168,75,0.2); }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    background: linear-gradient(135deg, #1E2B3A, #141C28);
+    color: #E5CA7A;
+    border: 1.5px solid #C8A84B;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  button:active { opacity: 0.85; }
+
+  .result-box {
+    display: none;
+    margin-top: 24px;
+    background: white;
+    border: 1.5px solid #C0A87C;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+  .result-box p { font-size: 13px; color: #5A3C28; margin-bottom: 8px; }
+  .result-key {
+    font-size: 30px;
+    font-weight: 700;
+    font-family: "Consolas", "Courier New", monospace;
+    color: #1E2B3A;
+    letter-spacing: 4px;
+  }
+  .copy-btn {
+    margin-top: 14px;
+    padding: 10px;
+    font-size: 14px;
+    background: #C8A84B;
+    color: white;
+    border: none;
+    border-radius: 6px;
+  }
+
+  .error { color: #C62828; font-size: 13px; margin-top: -12px; margin-bottom: 16px; }
+
+  /* 鎖定畫面 */
+  #lock-screen {
+    text-align: center;
+  }
+  #lock-screen h2 { color: #C8A84B; font-size: 22px; margin-bottom: 8px; }
+  #lock-screen p { color: #8A7A60; font-size: 13px; margin-bottom: 24px; }
+  #lock-screen input {
+    font-size: 18px;
+    letter-spacing: 0;
+    text-transform: none;
+    margin-bottom: 16px;
+  }
+  .lock-error { color: #ff6b6b; font-size: 13px; margin-top: -8px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- 鎖定畫面 -->
+  <div id="lock-screen">
+    <div class="header">
+      <div class="gold" style="font-size:28px">✦</div>
+      <h1>鎰翔科技</h1>
+      <p>授權金鑰產生器</p>
+    </div>
+    <label for="pwd-input">請輸入存取密碼</label>
+    <input type="password" id="pwd-input" placeholder="密碼" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter')unlock()">
+    <div class="lock-error" id="lock-error" style="display:none">密碼錯誤</div>
+    <button onclick="unlock()">進入</button>
+  </div>
+
+  <!-- 金鑰產生器 -->
+  <div id="keygen-screen" style="display:none">
+    <div class="header">
+      <div class="gold" style="font-size:24px">✦</div>
+      <h1>授權金鑰產生器</h1>
+      <p>鎰翔科技 點燈管理系統</p>
+    </div>
+
+    <label for="mid-input">客戶機器碼</label>
+    <input type="text" id="mid-input" placeholder="XXXX-XXXX" maxlength="9"
+           oninput="formatMachineId(this)"
+           onkeydown="if(event.key==='Enter')generate()">
+    <div class="error" id="mid-error" style="display:none">請輸入正確格式的機器碼（XXXX-XXXX）</div>
+
+    <button onclick="generate()">產生授權金鑰</button>
+
+    <div class="result-box" id="result-box">
+      <p>授權金鑰</p>
+      <div class="result-key" id="result-key">—</div>
+      <button class="copy-btn" onclick="copyKey()">複製金鑰</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// 密碼設定（請改成只有你知道的密語）
+const ACCESS_PASSWORD = 'yixiang2025';
+// ═══════════════════════════════════════════════════════
+
+// 如果 URL hash 等於密碼，直接解鎖（方便書籤直接進入）
+if (location.hash.substring(1) === ACCESS_PASSWORD) {
+  showKeygen();
+}
+
+function unlock() {
+  const pwd = document.getElementById('pwd-input').value;
+  if (pwd === ACCESS_PASSWORD) {
+    showKeygen();
+  } else {
+    document.getElementById('lock-error').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+function showKeygen() {
+  document.getElementById('lock-screen').style.display = 'none';
+  document.getElementById('keygen-screen').style.display = 'block';
+  setTimeout(() => document.getElementById('mid-input').focus(), 100);
+}
+
+// 自動補連字號：輸入第4碼後自動加 -
+function formatMachineId(input) {
+  let v = input.value.replace(/-/g, '').toUpperCase();
+  if (v.length > 4) v = v.slice(0,4) + '-' + v.slice(4,8);
+  input.value = v;
+}
+
+async function generate() {
+  document.getElementById('mid-error').style.display = 'none';
+  document.getElementById('result-box').style.display = 'none';
+
+  const mid = document.getElementById('mid-input').value.trim();
+  const normalized = mid.replace(/-/g,'');
+  if (normalized.length !== 8 || !/^[0-9A-Fa-f]{8}$/.test(normalized)) {
+    document.getElementById('mid-error').style.display = 'block';
+    return;
+  }
+
+  const key = await computeLicenseKey(normalized.toUpperCase());
+  document.getElementById('result-key').textContent = key;
+  document.getElementById('result-box').style.display = 'block';
+}
+
+async function computeLicenseKey(normalizedMachineId) {
+  const enc = new TextEncoder();
+
+  // SHA256 of secret (matches C# GetSecretKey())
+  const secretText = '鎰翔-科技-點燈-授權-2025-SYS-KEY';
+  const secretHash = await crypto.subtle.digest('SHA-256', enc.encode(secretText));
+
+  // Import as HMAC key
+  const hmacKey = await crypto.subtle.importKey(
+    'raw', secretHash,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false, ['sign']
+  );
+
+  // HMAC-SHA256 of normalized machine ID
+  const sig = await crypto.subtle.sign('HMAC', hmacKey, enc.encode(normalizedMachineId));
+
+  // Take first 4 bytes = 8 hex chars, format as XXXX-XXXX
+  const bytes = new Uint8Array(sig).slice(0, 4);
+  const hex = Array.from(bytes).map(b => b.toString(16).padStart(2,'0').toUpperCase()).join('');
+  return hex.slice(0,4) + '-' + hex.slice(4,8);
+}
+
+function copyKey() {
+  const key = document.getElementById('result-key').textContent;
+  if (key === '—') return;
+  navigator.clipboard.writeText(key).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '已複製 ✓';
+    setTimeout(() => btn.textContent = '複製金鑰', 2000);
+  });
+}
+</script>
+</body>
+</html>

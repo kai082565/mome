@@ -55,16 +55,16 @@ public static class LicenseService
             components.Add(Environment.MachineName);
 
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(string.Join("|", components)));
-        var hex = Convert.ToHexString(hash)[..16].ToUpper();
-        return $"{hex[..4]}-{hex[4..8]}-{hex[8..12]}-{hex[12..16]}";
+        var hex = Convert.ToHexString(hash)[..8].ToUpper();
+        return $"{hex[..4]}-{hex[4..8]}";
     }
 
     public static string GenerateLicenseKey(string machineId)
     {
         var normalized = machineId.Replace("-", "").ToUpper();
         var hmac = HMACSHA256.HashData(GetSecretKey(), Encoding.UTF8.GetBytes(normalized));
-        var hex = Convert.ToHexString(hmac)[..16].ToUpper();
-        return $"{hex[..4]}-{hex[4..8]}-{hex[8..12]}-{hex[12..16]}";
+        var hex = Convert.ToHexString(hmac)[..8].ToUpper();
+        return $"{hex[..4]}-{hex[4..8]}";
     }
 
     public static bool Validate(string machineId, string licenseKey)

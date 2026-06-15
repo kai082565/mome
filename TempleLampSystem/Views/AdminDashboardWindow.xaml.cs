@@ -388,9 +388,9 @@ public partial class AdminDashboardWindow : Window
         }
 
         var normalized = machineId.Replace("-", "").Replace(" ", "");
-        if (normalized.Length != 16)
+        if (normalized.Length != 8)
         {
-            KeyGenErrorText.Text = "機器碼格式不正確，應為 XXXX-XXXX-XXXX-XXXX（16碼）";
+            KeyGenErrorText.Text = "機器碼格式不正確，應為 XXXX-XXXX（8碼）";
             KeyGenErrorText.Visibility = Visibility.Visible;
             return;
         }

@@ -498,9 +498,9 @@
                                        Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                 <TextBox x:Name="TargetMachineIdBox"
-                                         FontSize="14" Padding="10,8" Width="230"
+                                         FontSize="14" Padding="10,8" Width="160"
                                          FontFamily="Consolas, Courier New"
-                                         CharacterCasing="Upper" MaxLength="19"
+                                         CharacterCasing="Upper" MaxLength="9"
                                          Margin="0,0,10,0"/>
                                 <Button Content="產生金鑰" FontSize="13" Padding="18,8"
                                         Click="GenerateLicenseKey_Click"/>
