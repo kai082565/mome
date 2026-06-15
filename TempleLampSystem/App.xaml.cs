@@ -22,6 +22,29 @@ public partial class App : Application
 
         try
         {
+            // 1. 授權檢查（最優先，在任何初始化之前）
+            if (!LicenseService.IsLicensed())
+            {
+                var licenseWindow = new LicenseActivationWindow();
+                if (licenseWindow.ShowDialog() != true)
+                {
+                    Shutdown(0);
+                    return;
+                }
+            }
+
+            // 2. 首次設定精靈（宮廟資訊 + Supabase），在 DI 初始化之前執行
+            if (NeedsInitialSetup())
+            {
+                var setupWindow = new SetupConfigWindow();
+                if (setupWindow.ShowDialog() != true)
+                {
+                    Shutdown(0);
+                    return;
+                }
+                AppSettings.Reload(); // 清除快取，讓 DI 初始化時讀取新設定
+            }
+
             // 設定 DI 容器
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddAppServices();
@@ -106,6 +129,32 @@ public partial class App : Application
     {
         e.SetObserved();
         // 背景 Task 的未觀察例外，記錄但不中斷程式
+    }
+
+    private static bool NeedsInitialSetup()
+    {
+        // 如果用戶設定檔已存在，代表之前已完成設定
+        if (UserSettings.FileExists()) return false;
+
+        // 如果 appsettings.json 裡已有宮廟名稱（非預設值），代表是舊版升級，不需再設定
+        var basePath = System.IO.Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+        if (System.IO.File.Exists(basePath))
+        {
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(basePath));
+                if (doc.RootElement.TryGetProperty("Print", out var print) &&
+                    print.TryGetProperty("TempleName", out var nameEl))
+                {
+                    var name = nameEl.GetString();
+                    if (!string.IsNullOrEmpty(name) && name != "○○宮")
+                        return false;
+                }
+            }
+            catch { }
+        }
+
+        return true;
     }
 
     private async Task CheckForUpdatesAsync()

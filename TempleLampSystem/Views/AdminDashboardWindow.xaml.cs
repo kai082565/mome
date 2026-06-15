@@ -27,7 +27,11 @@ public partial class AdminDashboardWindow : Window
         StartDatePicker.SelectedDate = DateTime.Today;
         EndDatePicker.SelectedDate = DateTime.Today;
 
-        Loaded += async (_, _) => await LoadAsync();
+        Loaded += async (_, _) =>
+        {
+            await LoadAsync();
+            CurrentMachineIdText.Text = LicenseService.GetMachineId();
+        };
     }
 
     private async Task LoadAsync()
@@ -362,6 +366,47 @@ public partial class AdminDashboardWindow : Window
         catch (Exception ex)
         {
             StyledMessageBox.Show($"操作失敗：{(ex.InnerException ?? ex).Message}", "錯誤");
+        }
+    }
+
+    #endregion
+
+    #region 授權工具
+
+    private void GenerateLicenseKey_Click(object sender, RoutedEventArgs e)
+    {
+        KeyGenErrorText.Visibility = Visibility.Collapsed;
+        GeneratedKeyText.Text = "—";
+        CopyKeyButton.IsEnabled = false;
+
+        var machineId = TargetMachineIdBox.Text.Trim();
+        if (string.IsNullOrEmpty(machineId))
+        {
+            KeyGenErrorText.Text = "請輸入目標電腦的機器碼";
+            KeyGenErrorText.Visibility = Visibility.Visible;
+            return;
+        }
+
+        var normalized = machineId.Replace("-", "").Replace(" ", "");
+        if (normalized.Length != 16)
+        {
+            KeyGenErrorText.Text = "機器碼格式不正確，應為 XXXX-XXXX-XXXX-XXXX（16碼）";
+            KeyGenErrorText.Visibility = Visibility.Visible;
+            return;
+        }
+
+        var key = LicenseService.GenerateLicenseKey(machineId);
+        GeneratedKeyText.Text = key;
+        CopyKeyButton.IsEnabled = true;
+    }
+
+    private void CopyKey_Click(object sender, RoutedEventArgs e)
+    {
+        if (GeneratedKeyText.Text != "—")
+        {
+            Clipboard.SetText(GeneratedKeyText.Text);
+            CopyKeyButton.Content = "已複製 ✓";
+            Task.Delay(2000).ContinueWith(_ => Dispatcher.Invoke(() => CopyKeyButton.Content = "複製"));
         }
     }
 

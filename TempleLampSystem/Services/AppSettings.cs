@@ -97,8 +97,42 @@ public class AppSettings
                 {
                     _instance = new AppSettings();
                 }
+
+                // 用戶設定檔（%APPDATA%\TempleLampSystem\appsettings.user.json）覆蓋基礎設定
+                var userPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "TempleLampSystem", "appsettings.user.json");
+                if (File.Exists(userPath))
+                {
+                    try
+                    {
+                        var userJson = File.ReadAllText(userPath);
+                        var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                        var u = JsonSerializer.Deserialize<UserSettingsOverlay>(userJson, opts);
+                        if (u != null)
+                        {
+                            if (!string.IsNullOrEmpty(u.TempleName))    _instance.Print.TempleName    = u.TempleName;
+                            if (!string.IsNullOrEmpty(u.TempleAddress)) _instance.Print.TempleAddress = u.TempleAddress;
+                            if (!string.IsNullOrEmpty(u.TemplePhone))   _instance.Print.TemplePhone   = u.TemplePhone;
+                            if (!string.IsNullOrEmpty(u.SupabaseUrl))   _instance.Supabase.Url        = u.SupabaseUrl;
+                            if (!string.IsNullOrEmpty(u.SupabaseAnonKey)) _instance.Supabase.AnonKey  = u.SupabaseAnonKey;
+                        }
+                    }
+                    catch { }
+                }
             }
             return _instance;
         }
+    }
+
+    public static void Reload() => _instance = null;
+
+    private sealed class UserSettingsOverlay
+    {
+        public string? TempleName { get; set; }
+        public string? TempleAddress { get; set; }
+        public string? TemplePhone { get; set; }
+        public string? SupabaseUrl { get; set; }
+        public string? SupabaseAnonKey { get; set; }
     }
 }

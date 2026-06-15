@@ -461,6 +461,75 @@
                     </StackPanel>
                 </Grid>
             </TabItem>
+            <!-- ===== 授權工具 TabItem ===== -->
+            <TabItem Header="授權工具" FontSize="14" FontWeight="SemiBold">
+                <StackPanel Margin="0,20,0,0" MaxWidth="560" HorizontalAlignment="Left">
+
+                    <!-- 本機機器碼 -->
+                    <Border Background="#F5EDD8" CornerRadius="8" Padding="20"
+                            BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1"
+                            Margin="0,0,0,20">
+                        <StackPanel>
+                            <TextBlock Text="本機機器碼" FontSize="14" FontWeight="Bold"
+                                       Foreground="{StaticResource SecondaryBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="此電腦目前已啟用授權。下方為本機識別碼供參考。"
+                                       FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap" Margin="0,0,0,10"/>
+                            <TextBlock x:Name="CurrentMachineIdText"
+                                       FontSize="15" FontWeight="Bold"
+                                       FontFamily="Consolas, Courier New"
+                                       Foreground="{StaticResource SecondaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 產生授權金鑰 -->
+                    <Border Background="White" CornerRadius="8" Padding="20"
+                            BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="產生新客戶授權金鑰" FontSize="14" FontWeight="Bold"
+                                       Foreground="{StaticResource SecondaryBrush}" Margin="0,0,0,6"/>
+                            <TextBlock TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,16">
+                                請客戶在目標電腦上啟動軟體，取得「機器碼」後填入下方，<LineBreak/>
+                                按下「產生金鑰」即可取得授權金鑰提供給客戶輸入。
+                            </TextBlock>
+
+                            <TextBlock Text="目標電腦的機器碼" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <TextBox x:Name="TargetMachineIdBox"
+                                         FontSize="14" Padding="10,8" Width="230"
+                                         FontFamily="Consolas, Courier New"
+                                         CharacterCasing="Upper" MaxLength="19"
+                                         Margin="0,0,10,0"/>
+                                <Button Content="產生金鑰" FontSize="13" Padding="18,8"
+                                        Click="GenerateLicenseKey_Click"/>
+                            </StackPanel>
+
+                            <TextBlock Text="產生的授權金鑰" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#F0E8D8" CornerRadius="4"
+                                        BorderBrush="{StaticResource GoldDarkBrush}" BorderThickness="1"
+                                        Padding="12,8" MinWidth="200" Margin="0,0,10,0">
+                                    <TextBlock x:Name="GeneratedKeyText"
+                                               FontSize="15" FontWeight="Bold"
+                                               FontFamily="Consolas, Courier New"
+                                               Foreground="{StaticResource SecondaryBrush}"
+                                               Text="—"/>
+                                </Border>
+                                <Button x:Name="CopyKeyButton" Content="複製"
+                                        FontSize="13" Padding="16,8"
+                                        IsEnabled="False"
+                                        Click="CopyKey_Click"/>
+                            </StackPanel>
+                            <TextBlock x:Name="KeyGenErrorText" Foreground="#C62828" FontSize="12"
+                                       Margin="0,8,0,0" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+
         </TabControl>
     </Grid>
 </Window>
