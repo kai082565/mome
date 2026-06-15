@@ -1,6 +1,6 @@
 #define MyAppName "點燈管理系統"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "○○宮"
+#define MyAppPublisher "鎰翔科技"
 #define MyAppExeName "TempleLampSystem.exe"
 
 [Setup]
@@ -17,22 +17,26 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
+; 預設語言：繁體中文
+ShowLanguageDialog=no
 
 [Languages]
-Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 Name: "chinesetraditional"; MessagesFile: "compiler:Languages\ChineseTraditional.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "在桌面建立捷徑"; GroupDescription: "額外圖示："; Flags: unchecked
 
 [Files]
-Source: "bin\publish\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "appsettings.json"; DestDir: "{app}"; Flags: ignoreversion
+; 主程式與必要 DLL（排除除錯符號 .pdb）
+Source: "bin\publish\win-x64\TempleLampSystem.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\publish\win-x64\*.dll";               DestDir: "{app}"; Flags: ignoreversion
+; 使用乾淨的設定範本（不含開發者的 Supabase 帳號）
+Source: "appsettings.dist.json"; DestDir: "{app}"; DestName: "appsettings.json"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{group}\{#MyAppName}";                          Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\解除安裝 {#MyAppName}";                 Filename: "{uninstallexe}"
+Name: "{autodesktop}\{#MyAppName}";                    Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "立即啟動 {#MyAppName}"; Flags: nowait postinstall skipifsilent

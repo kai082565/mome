@@ -6,3 +6,4 @@ obj/
 nul
 *.zip
 publish/
+installer/
