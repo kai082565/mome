@@ -1,0 +1,95 @@
+{
+  "PageWidthMm": 241,
+  "PageHeightMm": 141,
+  "Name": {
+    "X": 100,
+    "Y": 26,
+    "FontSize": 16,
+    "Rotation": 0
+  },
+  "CustomerCode": {
+    "X": 60,
+    "Y": 26,
+    "FontSize": 12,
+    "Rotation": 0
+  },
+  "Phone": {
+    "X": 50,
+    "Y": 52,
+    "FontSize": 12,
+    "Rotation": 0
+  },
+  "Address": {
+    "X": 50,
+    "Y": 39,
+    "FontSize": 12,
+    "Rotation": 0
+  },
+  "BirthYear": {
+    "X": 125,
+    "Y": 50,
+    "FontSize": 12,
+    "Rotation": 0
+  },
+  "BirthMonth": {
+    "X": 145,
+    "Y": 50,
+    "FontSize": 12,
+    "Rotation": 0
+  },
+  "BirthDay": {
+    "X": 162,
+    "Y": 50,
+    "FontSize": 12,
+    "Rotation": 0
+  },
+  "BirthHour": {
+    "X": 179,
+    "Y": 50,
+    "FontSize": 12,
+    "Rotation": 0
+  },
+  "PrintDate": {
+    "X": 180,
+    "Y": 26,
+    "FontSize": 11,
+    "Rotation": 0
+  },
+  "RocYear": 115,
+  "LunarStartDate": {
+    "X": 40,
+    "Y": 65,
+    "FontSize": 12,
+    "Rotation": 0
+  },
+  "LunarEndDate": {
+    "X": 125,
+    "Y": 65,
+    "FontSize": 12,
+    "Rotation": 0
+  },
+  "Amount": {
+    "X": 50,
+    "Y": 100,
+    "FontSize": 14,
+    "Rotation": 0
+  },
+  "LampType": {
+    "X": 40,
+    "Y": 80,
+    "FontSize": 14,
+    "Rotation": 0
+  },
+  "OrderNumber": {
+    "X": 200,
+    "Y": 90,
+    "FontSize": 11,
+    "Rotation": 0
+  },
+  "Temple": {
+    "X": 170,
+    "Y": 90,
+    "FontSize": 11,
+    "Rotation": 0
+  }
+}

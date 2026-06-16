@@ -120,7 +120,9 @@
       <p>授權金鑰產生器</p>
     </div>
     <label for="pwd-input">請輸入存取密碼</label>
-    <input type="password" id="pwd-input" placeholder="密碼" autocomplete="current-password"
+    <input type="password" id="pwd-input" placeholder="密碼"
+           autocomplete="current-password"
+           autocorrect="off" autocapitalize="off" spellcheck="false"
            onkeydown="if(event.key==='Enter')unlock()">
     <div class="lock-error" id="lock-error" style="display:none">密碼錯誤</div>
     <button onclick="unlock()">進入</button>

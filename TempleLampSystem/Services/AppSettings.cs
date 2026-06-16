@@ -121,11 +121,40 @@ public class AppSettings
                     catch { }
                 }
             }
+
+            // 列印座標設定（%APPDATA%\TempleLampSystem\print_settings.json）
+            var printPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "TempleLampSystem", "print_settings.json");
+            if (File.Exists(printPath))
+            {
+                try
+                {
+                    var ps = JsonSerializer.Deserialize<CertificateFormSettings>(
+                        File.ReadAllText(printPath),
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (ps != null) _instance.CertificateForm = ps;
+                }
+                catch { }
+            }
+
             return _instance;
         }
     }
 
     public static void Reload() => _instance = null;
+
+    public static void SaveCertificateForm(CertificateFormSettings form)
+    {
+        var dir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "TempleLampSystem");
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, "print_settings.json");
+        var opts = new JsonSerializerOptions { WriteIndented = true };
+        File.WriteAllText(path, JsonSerializer.Serialize(form, opts));
+        Reload();
+    }
 
     private sealed class UserSettingsOverlay
     {

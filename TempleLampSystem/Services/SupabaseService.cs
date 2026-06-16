@@ -19,9 +19,11 @@ public class SupabaseService : ISupabaseService
 
         var settings = AppSettings.Instance.Supabase;
 
-        if (!string.IsNullOrEmpty(settings.Url) &&
+        var cleanUrl = settings.Url.TrimEnd('/').Split("/rest/v1")[0].Split("/auth/v1")[0];
+
+        if (!string.IsNullOrEmpty(cleanUrl) &&
             !string.IsNullOrEmpty(settings.AnonKey) &&
-            !settings.Url.Contains("your-project"))
+            !cleanUrl.Contains("your-project"))
         {
             var options = new SupabaseOptions
             {
@@ -29,7 +31,7 @@ public class SupabaseService : ISupabaseService
                 AutoConnectRealtime = false
             };
 
-            _client = new Client(settings.Url, settings.AnonKey, options);
+            _client = new Client(cleanUrl, settings.AnonKey, options);
             _isConfigured = true;
         }
         else

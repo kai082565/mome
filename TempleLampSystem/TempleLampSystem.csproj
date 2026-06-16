@@ -33,4 +33,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="Resources\CertificateTemplate.webp"/>
+  </ItemGroup>
+
 </Project>

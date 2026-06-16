@@ -71,10 +71,11 @@ public partial class LoginWindow : Window
             SetLoginFormEnabled(true);
             await ShowFirstRunSetupAsync();
         }
-        catch
+        catch (Exception ex)
         {
             StatusTextBlock.Visibility = Visibility.Collapsed;
-            ShowCloudError("無法連線至雲端伺服器，請確認：\n1. 網路是否正常\n2. Supabase 專案是否已暫停（免費方案閒置會自動暫停）");
+            var detail = ex.InnerException?.Message ?? ex.Message;
+            ShowCloudError($"無法連線至雲端伺服器：\n{detail}");
         }
     }
 

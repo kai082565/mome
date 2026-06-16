@@ -30,7 +30,7 @@ public partial class AdminDashboardWindow : Window
         Loaded += async (_, _) =>
         {
             await LoadAsync();
-            CurrentMachineIdText.Text = LicenseService.GetMachineId();
+InitPrintSettingsTab();
         };
     }
 
@@ -371,46 +371,6 @@ public partial class AdminDashboardWindow : Window
 
     #endregion
 
-    #region 授權工具
-
-    private void GenerateLicenseKey_Click(object sender, RoutedEventArgs e)
-    {
-        KeyGenErrorText.Visibility = Visibility.Collapsed;
-        GeneratedKeyText.Text = "—";
-        CopyKeyButton.IsEnabled = false;
-
-        var machineId = TargetMachineIdBox.Text.Trim();
-        if (string.IsNullOrEmpty(machineId))
-        {
-            KeyGenErrorText.Text = "請輸入目標電腦的機器碼";
-            KeyGenErrorText.Visibility = Visibility.Visible;
-            return;
-        }
-
-        var normalized = machineId.Replace("-", "").Replace(" ", "");
-        if (normalized.Length != 8)
-        {
-            KeyGenErrorText.Text = "機器碼格式不正確，應為 XXXX-XXXX（8碼）";
-            KeyGenErrorText.Visibility = Visibility.Visible;
-            return;
-        }
-
-        var key = LicenseService.GenerateLicenseKey(machineId);
-        GeneratedKeyText.Text = key;
-        CopyKeyButton.IsEnabled = true;
-    }
-
-    private void CopyKey_Click(object sender, RoutedEventArgs e)
-    {
-        if (GeneratedKeyText.Text != "—")
-        {
-            Clipboard.SetText(GeneratedKeyText.Text);
-            CopyKeyButton.Content = "已複製 ✓";
-            Task.Delay(2000).ContinueWith(_ => Dispatcher.Invoke(() => CopyKeyButton.Content = "複製"));
-        }
-    }
-
-    #endregion
 }
 
 public class DashboardOrderRow
