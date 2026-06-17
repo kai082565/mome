@@ -51,44 +51,41 @@ public class PrintService : IPrintService
         try
         {
             var settings = AppSettings.Instance.CertificateForm;
-            var printDialog = new PrintDialog();
-
-            // 設定 Landscape 方向
-            printDialog.PrintTicket.PageOrientation = PageOrientation.Landscape;
 
             // 建立 FixedDocument
             var fixedDoc = new FixedDocument();
             var pageContent = new PageContent();
-            var page = new FixedPage();
-
-            if (settings.PageWidthMm > 0 && settings.PageHeightMm > 0)
+            var page = new FixedPage
             {
-                page.Width = MmToDip(settings.PageWidthMm);
-                page.Height = MmToDip(settings.PageHeightMm);
-            }
+                Width  = MmToDip(settings.PageWidthMm  > 0 ? settings.PageWidthMm  : 241),
+                Height = MmToDip(settings.PageHeightMm > 0 ? settings.PageHeightMm : 142)
+            };
 
-            // 依序加入各欄位文字
-            AddField(page, settings.Name, data.Name);
-            AddField(page, settings.CustomerCode, data.CustomerCode);
-            AddField(page, settings.PrintDate, data.PrintDate);
-            AddField(page, settings.Phone, data.Phone);
-            AddField(page, settings.Address, data.Address);
-            AddField(page, settings.BirthYear, data.BirthYear);
-            AddField(page, settings.BirthMonth, data.BirthMonth);
-            AddField(page, settings.BirthDay, data.BirthDay);
-            AddField(page, settings.BirthHour, data.BirthHour);
+            AddField(page, settings.Name,           data.Name);
+            AddField(page, settings.CustomerCode,   data.CustomerCode);
+            AddField(page, settings.PrintDate,      data.PrintDate);
+            AddField(page, settings.Phone,          data.Phone);
+            AddField(page, settings.Address,        data.Address);
+            AddField(page, settings.BirthYear,      data.BirthYear);
+            AddField(page, settings.BirthMonth,     data.BirthMonth);
+            AddField(page, settings.BirthDay,       data.BirthDay);
+            AddField(page, settings.BirthHour,      data.BirthHour);
             AddField(page, settings.LunarStartDate, data.LunarStartDate);
-            AddField(page, settings.LunarEndDate, data.LunarEndDate);
-            AddField(page, settings.Amount, data.Amount);
-            AddField(page, settings.LampType, data.LampType);
-            AddField(page, settings.OrderNumber, data.OrderNumber);
-            AddField(page, settings.Temple, data.Temple);
+            AddField(page, settings.LunarEndDate,   data.LunarEndDate);
+            AddField(page, settings.Amount,         data.Amount);
+            AddField(page, settings.LampType,       data.LampType);
+            AddField(page, settings.OrderNumber,    data.OrderNumber);
+            AddField(page, settings.Temple,         data.Temple);
 
             ((System.Windows.Markup.IAddChild)pageContent).AddChild(page);
             fixedDoc.Pages.Add(pageContent);
 
-            var paginator = fixedDoc.DocumentPaginator;
-            printDialog.PrintDocument(paginator, $"感謝狀 - {data.Name}");
+            // 直接送印表機，不顯示對話框
+            var printDialog = new PrintDialog
+            {
+                PrintQueue = ResolvePrintQueue()
+            };
+            printDialog.PrintDocument(fixedDoc.DocumentPaginator, $"感謝狀 - {data.Name}");
 
             return Task.FromResult(true);
         }
@@ -97,6 +94,27 @@ public class PrintService : IPrintService
             MessageBox.Show($"列印感謝狀失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
             return Task.FromResult(false);
         }
+    }
+
+    private static PrintQueue ResolvePrintQueue()
+    {
+        var server = new LocalPrintServer();
+        var configuredName = AppSettings.Instance.Print.DefaultPrinterName;
+
+        // 優先使用設定檔指定的印表機
+        if (!string.IsNullOrEmpty(configuredName))
+        {
+            try { return server.GetPrintQueue(configuredName); }
+            catch { }
+        }
+
+        // 自動略過虛擬印表機（PDF / XPS / Fax / OneNote）
+        var virtualKeywords = new[] { "PDF", "XPS", "Fax", "OneNote", "虛擬" };
+        var queues = server.GetPrintQueues(new[] { EnumeratedPrintQueueTypes.Local });
+        var physical = queues.FirstOrDefault(q =>
+            !virtualKeywords.Any(k => q.Name.Contains(k, StringComparison.OrdinalIgnoreCase)));
+
+        return physical ?? server.DefaultPrintQueue;
     }
 
     private static double MmToDip(double mm)
