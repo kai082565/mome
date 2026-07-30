@@ -54,18 +54,25 @@ public partial class CustomerDetailWindow : Window
         else
             yearStr = "";
 
-        var monthStr = customer.BirthMonth switch
-        {
-            null => "",
-            0 => "吉月",
-            _ => $"{customer.BirthMonth}月"
-        };
-        var dayStr = customer.BirthDay switch
-        {
-            null => "",
-            0 => "吉日",
-            _ => $"{customer.BirthDay}日"
-        };
+        string monthStr;
+        if (customer.BirthMonth == 0)
+            monthStr = "吉月";
+        else if (!string.IsNullOrWhiteSpace(customer.BirthMonthText))
+            monthStr = $"{customer.BirthMonthText}月";
+        else if (customer.BirthMonth != null)
+            monthStr = $"{customer.BirthMonth}月";
+        else
+            monthStr = "";
+
+        string dayStr;
+        if (customer.BirthDay == 0)
+            dayStr = "吉日";
+        else if (!string.IsNullOrWhiteSpace(customer.BirthDayText))
+            dayStr = $"{customer.BirthDayText}日";
+        else if (customer.BirthDay != null)
+            dayStr = $"{customer.BirthDay}日";
+        else
+            dayStr = "";
         var birthParts = new[] { yearStr, monthStr, dayStr }.Where(s => s.Length > 0);
         BirthDateText.Text = birthParts.Any() ? string.Join(" ", birthParts) : "-";
 

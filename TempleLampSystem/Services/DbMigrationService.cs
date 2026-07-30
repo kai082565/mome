@@ -137,6 +137,10 @@ public static class DbMigrationService
         ",
         ["2.5.0"] = @"
             ALTER TABLE ""Customers"" ADD COLUMN ""BirthYearText"" TEXT;
+        ",
+        ["2.6.0"] = @"
+            ALTER TABLE ""Customers"" ADD COLUMN ""BirthMonthText"" TEXT;
+            ALTER TABLE ""Customers"" ADD COLUMN ""BirthDayText"" TEXT;
         "
     };
 

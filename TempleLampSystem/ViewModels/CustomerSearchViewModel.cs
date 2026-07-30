@@ -178,4 +178,42 @@ public partial class CustomerSearchViewModel : ViewModelBase
                 .ToList();
         }
     }
+
+    // 客戶資料被編輯後，替換列表中對應項目，讓畫面顯示最新資料
+    public void ReplaceCustomer(Customer customer)
+    {
+        var index = -1;
+        for (var i = 0; i < Customers.Count; i++)
+        {
+            if (Customers[i].Id == customer.Id)
+            {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0) return;
+
+        Customers[index] = new CustomerDisplayModel
+        {
+            Id = customer.Id,
+            CustomerCode = customer.CustomerCode,
+            Name = customer.Name,
+            Phone = customer.Phone,
+            Mobile = customer.Mobile,
+            Address = customer.Address,
+            Orders = customer.LampOrders
+                .OrderByDescending(o => o.Year)
+                .ThenBy(o => o.Lamp.LampName)
+                .Select(o => new LampOrderDisplayModel
+                {
+                    Id = o.Id,
+                    LampName = o.Lamp.LampName,
+                    Year = o.Year,
+                    StartDate = o.StartDate,
+                    EndDate = o.EndDate,
+                    Price = o.Price
+                })
+                .ToList()
+        };
+    }
 }

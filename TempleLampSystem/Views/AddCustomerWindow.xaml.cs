@@ -55,11 +55,15 @@ public partial class AddCustomerWindow : Window
 
         if (c.BirthMonth == 0)
             JiMonthCheckBox.IsChecked = true;
+        else if (!string.IsNullOrWhiteSpace(c.BirthMonthText))
+            BirthMonthTextBox.Text = c.BirthMonthText;
         else if (c.BirthMonth != null)
             BirthMonthTextBox.Text = c.BirthMonth.ToString();
 
         if (c.BirthDay == 0)
             JiDayCheckBox.IsChecked = true;
+        else if (!string.IsNullOrWhiteSpace(c.BirthDayText))
+            BirthDayTextBox.Text = c.BirthDayText;
         else if (c.BirthDay != null)
             BirthDayTextBox.Text = c.BirthDay.ToString();
 
@@ -147,37 +151,6 @@ public partial class AddCustomerWindow : Window
         }
     }
 
-    private void BirthMonthTextBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        ClampNumericTextBox(BirthMonthTextBox, 1, 12);
-    }
-
-    private void BirthDayTextBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        ClampNumericTextBox(BirthDayTextBox, 1, 31);
-    }
-
-    private static void ClampNumericTextBox(TextBox textBox, int min, int max)
-    {
-        var text = textBox.Text.Trim();
-        if (string.IsNullOrEmpty(text)) return;
-
-        // 只保留數字
-        var digitsOnly = new string(text.Where(char.IsDigit).ToArray());
-        if (digitsOnly != text)
-        {
-            textBox.Text = digitsOnly;
-            textBox.CaretIndex = digitsOnly.Length;
-            return;
-        }
-
-        if (int.TryParse(digitsOnly, out var value) && value > max)
-        {
-            textBox.Text = max.ToString();
-            textBox.CaretIndex = textBox.Text.Length;
-        }
-    }
-
     private void JiYearCheckBox_Changed(object sender, RoutedEventArgs e)
     {
         var isChecked = JiYearCheckBox.IsChecked == true;
@@ -259,10 +232,27 @@ public partial class AddCustomerWindow : Window
                 _editCustomer.BirthYear = null;
                 _editCustomer.BirthYearText = NullIfEmpty(BirthYearTextBox.Text.Trim());
             }
-            _editCustomer.BirthMonth = JiMonthCheckBox.IsChecked == true ? 0
-                : int.TryParse(BirthMonthTextBox.Text.Trim(), out var em) ? em : null;
-            _editCustomer.BirthDay = JiDayCheckBox.IsChecked == true ? 0
-                : int.TryParse(BirthDayTextBox.Text.Trim(), out var ed) ? ed : null;
+            if (JiMonthCheckBox.IsChecked == true)
+            {
+                _editCustomer.BirthMonth = 0;
+                _editCustomer.BirthMonthText = null;
+            }
+            else
+            {
+                _editCustomer.BirthMonth = null;
+                _editCustomer.BirthMonthText = NullIfEmpty(BirthMonthTextBox.Text.Trim());
+            }
+
+            if (JiDayCheckBox.IsChecked == true)
+            {
+                _editCustomer.BirthDay = 0;
+                _editCustomer.BirthDayText = null;
+            }
+            else
+            {
+                _editCustomer.BirthDay = null;
+                _editCustomer.BirthDayText = NullIfEmpty(BirthDayTextBox.Text.Trim());
+            }
 
             EditedCustomer = _editCustomer;
             DialogResult = true;
@@ -270,6 +260,17 @@ public partial class AddCustomerWindow : Window
         }
 
         // ===== 新增模式 =====
+        // 姓名+電話 或 姓名+地址 完全相同視為重複客戶，擋下不給新增
+        var duplicate = await _customerRepository.FindDuplicateAsync(
+            name, NullIfEmpty(PhoneTextBox.Text), NullIfEmpty(AddressTextBox.Text));
+        if (duplicate != null)
+        {
+            StyledMessageBox.Show(
+                $"已有姓名、電話或地址相同的客戶「{duplicate.Name}」（電話：{duplicate.Phone ?? "-"}，地址：{duplicate.Address ?? "-"}），可能是重複資料，無法新增。",
+                "客戶重複");
+            return;
+        }
+
         // 取得下一個客戶編號（取本地和雲端的最大值，確保不重複）
         string customerCode;
         try
@@ -324,13 +325,13 @@ public partial class AddCustomerWindow : Window
 
         if (JiMonthCheckBox.IsChecked == true)
             NewCustomer.BirthMonth = 0;
-        else if (int.TryParse(BirthMonthTextBox.Text.Trim(), out var birthMonth))
-            NewCustomer.BirthMonth = birthMonth;
+        else
+            NewCustomer.BirthMonthText = NullIfEmpty(BirthMonthTextBox.Text.Trim());
 
         if (JiDayCheckBox.IsChecked == true)
             NewCustomer.BirthDay = 0;
-        else if (int.TryParse(BirthDayTextBox.Text.Trim(), out var birthDay))
-            NewCustomer.BirthDay = birthDay;
+        else
+            NewCustomer.BirthDayText = NullIfEmpty(BirthDayTextBox.Text.Trim());
 
         DialogResult = true;
     }

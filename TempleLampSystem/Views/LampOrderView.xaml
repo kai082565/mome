@@ -19,7 +19,6 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- 已選客戶資訊 - 宣紙底，金邊 -->
@@ -369,87 +368,8 @@
                 </StackPanel>
             </Border>
 
-            <!-- 即將到期提醒 - 廟宇暖琥珀 -->
-            <Border Grid.Row="2"
-                    CornerRadius="10"
-                    Padding="15"
-                    Margin="0,0,0,15"
-                    MaxHeight="200"
-                    BorderBrush="#C86400"
-                    BorderThickness="1.5">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#FAF6EE" Offset="0"/>
-                        <GradientStop Color="#F5EDD8" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" Direction="270"/>
-                </Border.Effect>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                        <TextBlock Text="&#x26A0;" FontSize="15" Foreground="#C86400" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="即將到期提醒（30天內）"
-                                   FontSize="14"
-                                   FontWeight="Bold"
-                                   Foreground="#C86400"/>
-                    </StackPanel>
-
-                    <!-- 表頭 -->
-                    <Grid Grid.Row="1" Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="70"/>
-                            <ColumnDefinition Width="70"/>
-                            <ColumnDefinition Width="90"/>
-                            <ColumnDefinition Width="50"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="客戶" FontWeight="Bold" Foreground="{StaticResource SecondaryBrush}" FontSize="12"/>
-                        <TextBlock Grid.Column="1" Text="燈種" FontWeight="Bold" Foreground="{StaticResource SecondaryBrush}" FontSize="12"/>
-                        <TextBlock Grid.Column="2" Text="到期日" FontWeight="Bold" Foreground="{StaticResource SecondaryBrush}" FontSize="12"/>
-                        <TextBlock Grid.Column="3" Text="剩餘" FontWeight="Bold" Foreground="{StaticResource SecondaryBrush}" FontSize="12"/>
-                    </Grid>
-
-                    <ItemsControl Grid.Row="2" ItemsSource="{Binding ExpiringOrders}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border CornerRadius="6" Padding="6,8" Margin="0,0,0,4"
-                                        BorderBrush="#D4B87A" BorderThickness="1">
-                                    <Border.Background>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                            <GradientStop Color="#FAF6EE" Offset="0"/>
-                                            <GradientStop Color="#F2E8D4" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="70"/>
-                                            <ColumnDefinition Width="70"/>
-                                            <ColumnDefinition Width="90"/>
-                                            <ColumnDefinition Width="50"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{Binding CustomerName}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding LampName}" FontSize="12" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="2" Text="{Binding EndDate, StringFormat=yyyy/MM/dd}" FontSize="12" VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="3"
-                                                   Text="{Binding DaysLeft, StringFormat='{}{0}天'}"
-                                                   Foreground="{Binding EndDate, Converter={StaticResource StatusToColor}}"
-                                                   FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Grid>
-            </Border>
-
             <!-- 狀態列 -->
-            <Border Grid.Row="3"
+            <Border Grid.Row="2"
                     CornerRadius="8"
                     Padding="14,8"
                     BorderBrush="{StaticResource GoldDarkBrush}"

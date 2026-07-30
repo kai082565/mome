@@ -10,18 +10,18 @@ public static class LunarCalendarHelper
     private static readonly ChineseLunisolarCalendar _lunar = new();
 
     /// <summary>
-    /// 取得當前農曆年份的農曆12月24日（送神日）對應的西曆日期。
-    /// 若今天已過今年的農曆12/24，則回傳下一個農曆年的12/24。
+    /// 取得當前農曆年份的農曆12月1日對應的西曆日期。
+    /// 若今天已過今年的農曆12/1，則回傳下一個農曆年的12/1。
     /// </summary>
     public static DateTime GetLunarYearEndDate(DateTime referenceDate)
     {
         int lunarYear = _lunar.GetYear(referenceDate);
-        var endDate = LunarToGregorian(lunarYear, 12, 24);
+        var endDate = LunarToGregorian(lunarYear, 12, 1);
 
-        // 若今天已超過今年農曆12/24，使用下一年的
+        // 若今天已超過今年農曆12/1，使用下一年的
         if (referenceDate.Date >= endDate.Date)
         {
-            endDate = LunarToGregorian(lunarYear + 1, 12, 24);
+            endDate = LunarToGregorian(lunarYear + 1, 12, 1);
         }
 
         return endDate;

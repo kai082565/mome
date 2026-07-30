@@ -13,8 +13,10 @@ public class Customer
     public string? CustomerCode { get; set; }
     public int? BirthYear { get; set; }       // 保留給「吉」(0) 的判斷，新資料不再填入年份數字
     public string? BirthYearText { get; set; } // 歲次，如「丙午」「甲子」
-    public int? BirthMonth { get; set; }
-    public int? BirthDay { get; set; }
+    public int? BirthMonth { get; set; }       // 保留給「吉」(0) 的判斷，新資料不再填入月份數字
+    public string? BirthMonthText { get; set; } // 月份，如「8」「閏8」
+    public int? BirthDay { get; set; }         // 保留給「吉」(0) 的判斷，新資料不再填入日期數字
+    public string? BirthDayText { get; set; }   // 日期，如「15」
     public string? BirthHour { get; set; }
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 

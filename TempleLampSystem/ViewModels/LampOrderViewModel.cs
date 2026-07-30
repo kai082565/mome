@@ -241,18 +241,21 @@ public partial class LampOrderViewModel : ViewModelBase
             return;
         }
 
+        // 存成區域變數，避免檢查過程中使用者變更選擇導致 null 參考例外
+        var lamp = SelectedLamp;
+
         IsBusy = true;
         try
         {
             // 檢查所有選中的客戶是否都可以點這個燈
             var cannotOrderCustomers = new List<string>();
 
-            foreach (var customer in SelectedCustomers)
+            foreach (var customer in SelectedCustomers.ToList())
             {
-                var canOrder = await _lampOrderService.CanOrderLampAsync(customer.Id, SelectedLamp.Id);
+                var canOrder = await _lampOrderService.CanOrderLampAsync(customer.Id, lamp.Id);
                 if (!canOrder)
                 {
-                    var reason = await _lampOrderService.GetCannotOrderReasonAsync(customer.Id, SelectedLamp.Id);
+                    var reason = await _lampOrderService.GetCannotOrderReasonAsync(customer.Id, lamp.Id);
                     cannotOrderCustomers.Add($"{customer.Name}：{reason}");
                 }
             }
@@ -353,14 +356,18 @@ public partial class LampOrderViewModel : ViewModelBase
             return;
         }
 
+        // 存成區域變數，避免檢查過程中使用者變更選擇導致 null 參考例外
+        var customer = SelectedCustomer;
+        var lamp = SelectedLamp;
+
         IsBusy = true;
         try
         {
-            CanOrder = await _lampOrderService.CanOrderLampAsync(SelectedCustomer.Id, SelectedLamp.Id);
+            CanOrder = await _lampOrderService.CanOrderLampAsync(customer.Id, lamp.Id);
 
             CannotOrderReason = CanOrder
                 ? null
-                : await _lampOrderService.GetCannotOrderReasonAsync(SelectedCustomer.Id, SelectedLamp.Id);
+                : await _lampOrderService.GetCannotOrderReasonAsync(customer.Id, lamp.Id);
         }
         finally
         {
@@ -388,11 +395,20 @@ public partial class LampOrderViewModel : ViewModelBase
             return;
         }
 
+        if (Price <= 0)
+        {
+            StyledMessageBox.Show("金額必須大於 0，請確認金額後再點燈。", "提示");
+            return;
+        }
+
         if (!CanOrder)
         {
             StyledMessageBox.Show(CannotOrderReason ?? "無法點燈", "無法點燈");
             return;
         }
+
+        // 存成區域變數，避免點燈過程中使用者變更燈種選擇導致 null 參考例外
+        var lamp = SelectedLamp;
 
         IsBusy = true;
         StatusMessage = $"正在為 {customersToOrder.Count} 位客戶建立點燈紀錄...";
@@ -409,7 +425,7 @@ public partial class LampOrderViewModel : ViewModelBase
                     // 點燈前再次即時查詢雲端，防止兩台電腦同時點燈
                     if (_supabaseService.IsConfigured)
                     {
-                        var alreadyOrdered = await _supabaseService.HasActiveOrderAsync(customer.Id, SelectedLamp.Id);
+                        var alreadyOrdered = await _supabaseService.HasActiveOrderAsync(customer.Id, lamp.Id);
                         if (alreadyOrdered)
                         {
                             failedCustomers.Add($"{customer.Name}：該客戶已有未過期的此燈種點燈紀錄（其他電腦剛點過）");
@@ -418,7 +434,7 @@ public partial class LampOrderViewModel : ViewModelBase
                     }
 
                     var order = await _lampOrderService.CreateLampOrderAsync(
-                        customer.Id, SelectedLamp.Id, Price, OrderNote,
+                        customer.Id, lamp.Id, Price, OrderNote,
                         _sessionService.CurrentStaff?.Id,
                         _sessionService.CurrentStaff?.Name);
 
@@ -432,7 +448,7 @@ public partial class LampOrderViewModel : ViewModelBase
                         {
                             if (fullCustomer != null)
                                 await _supabaseService.UpsertCustomerAsync(fullCustomer);
-                            await _supabaseService.UpsertLampAsync(SelectedLamp);
+                            await _supabaseService.UpsertLampAsync(lamp);
                             await _supabaseService.UpsertLampOrderAsync(order);
                         }
                         createdOrders.Add((customer, order, fullCustomer));
@@ -453,7 +469,7 @@ public partial class LampOrderViewModel : ViewModelBase
 
             // 顯示結果
             var successNames = string.Join("、", createdOrders.Select(x => x.Customer.Name));
-            var lampInfo = SelectedLamp.LampName;
+            var lampInfo = lamp.LampName;
             if (!string.IsNullOrEmpty(SelectedTemple))
                 lampInfo += $"\n宮廟：{SelectedTemple}";
             if (!string.IsNullOrEmpty(SelectedDeity))
@@ -475,7 +491,7 @@ public partial class LampOrderViewModel : ViewModelBase
             // 列印感謝狀（重用上方已查詢的完整客戶資料）
             try
             {
-                if (SelectedLamp.LampCode == "HEJIA_PINGAN")
+                if (lamp.LampCode == "HEJIA_PINGAN")
                 {
                     // 闔家平安燈：所有客戶合併成一張感謝狀
                     var allCustomerOrders = createdOrders
@@ -484,7 +500,7 @@ public partial class LampOrderViewModel : ViewModelBase
                         .ToList();
                     if (allCustomerOrders.Count > 0)
                     {
-                        var certData = CertificateData.FromFamilyOrder(allCustomerOrders, SelectedLamp);
+                        var certData = CertificateData.FromFamilyOrder(allCustomerOrders, lamp);
                         await _printService.PrintCertificateAsync(certData);
                     }
                 }
@@ -495,7 +511,7 @@ public partial class LampOrderViewModel : ViewModelBase
                     {
                         if (fullCustomer != null)
                         {
-                            var certData = CertificateData.FromOrder(order, fullCustomer, SelectedLamp);
+                            var certData = CertificateData.FromOrder(order, fullCustomer, lamp);
                             await _printService.PrintCertificateAsync(certData);
                         }
                     }
@@ -523,7 +539,7 @@ public partial class LampOrderViewModel : ViewModelBase
             {
                 await CheckCanOrderAsync();
             }
-            await UpdateQuotaInfoAsync(SelectedLamp);
+            await UpdateQuotaInfoAsync(lamp);
         }
         catch (Exception ex)
         {

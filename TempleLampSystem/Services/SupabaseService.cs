@@ -635,7 +635,9 @@ public class SupabaseService : ISupabaseService
                     existing.BirthYear = customer.BirthYear;
                     existing.BirthYearText = customer.BirthYearText;
                     existing.BirthMonth = customer.BirthMonth;
+                    existing.BirthMonthText = customer.BirthMonthText;
                     existing.BirthDay = customer.BirthDay;
+                    existing.BirthDayText = customer.BirthDayText;
                     existing.BirthHour = customer.BirthHour;
                     if (string.IsNullOrEmpty(existing.CustomerCode))
                         existing.CustomerCode = customer.CustomerCode;
@@ -806,8 +808,14 @@ public class SupabaseCustomer : BaseModel
     [Column("BirthMonth")]
     public int? BirthMonth { get; set; }
 
+    [Column("BirthMonthText")]
+    public string? BirthMonthText { get; set; }
+
     [Column("BirthDay")]
     public int? BirthDay { get; set; }
+
+    [Column("BirthDayText")]
+    public string? BirthDayText { get; set; }
 
     [Column("BirthHour")]
     public string? BirthHour { get; set; }
@@ -831,7 +839,9 @@ public class SupabaseCustomer : BaseModel
         BirthYear = BirthYear,
         BirthYearText = BirthYearText,
         BirthMonth = BirthMonth,
+        BirthMonthText = BirthMonthText,
         BirthDay = BirthDay,
+        BirthDayText = BirthDayText,
         BirthHour = BirthHour,
         CustomerCode = CustomerCode,
         UpdatedAt = UpdatedAt
@@ -850,7 +860,9 @@ public class SupabaseCustomer : BaseModel
         BirthYear = c.BirthYear,
         BirthYearText = c.BirthYearText,
         BirthMonth = c.BirthMonth,
+        BirthMonthText = c.BirthMonthText,
         BirthDay = c.BirthDay,
+        BirthDayText = c.BirthDayText,
         BirthHour = c.BirthHour,
         CustomerCode = c.CustomerCode,
         UpdatedAt = c.UpdatedAt

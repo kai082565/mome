@@ -173,15 +173,13 @@
                           Checked="JiYearCheckBox_Changed" Unchecked="JiYearCheckBox_Changed"/>
                 <TextBlock Text="年" VerticalAlignment="Center" Margin="4,0,8,0"
                            Foreground="{StaticResource TextSecondaryBrush}"/>
-                <TextBox x:Name="BirthMonthTextBox" Width="75" Padding="8,8" FontSize="20"
-                         TextChanged="BirthMonthTextBox_TextChanged"/>
+                <TextBox x:Name="BirthMonthTextBox" Width="75" Padding="8,8" FontSize="20"/>
                 <CheckBox x:Name="JiMonthCheckBox" Content="吉" VerticalAlignment="Center"
                           Margin="4,0,0,0" FontSize="18"
                           Checked="JiMonthCheckBox_Changed" Unchecked="JiMonthCheckBox_Changed"/>
                 <TextBlock Text="月" VerticalAlignment="Center" Margin="4,0,8,0"
                            Foreground="{StaticResource TextSecondaryBrush}"/>
-                <TextBox x:Name="BirthDayTextBox" Width="75" Padding="8,8" FontSize="20"
-                         TextChanged="BirthDayTextBox_TextChanged"/>
+                <TextBox x:Name="BirthDayTextBox" Width="75" Padding="8,8" FontSize="20"/>
                 <CheckBox x:Name="JiDayCheckBox" Content="吉" VerticalAlignment="Center"
                           Margin="4,0,0,0" FontSize="18"
                           Checked="JiDayCheckBox_Changed" Unchecked="JiDayCheckBox_Changed"/>

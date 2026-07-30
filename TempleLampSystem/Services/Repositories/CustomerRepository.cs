@@ -60,10 +60,32 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
                     (c.CustomerCode != null && c.CustomerCode.Contains(keyword)));
         }
 
-        return await query
+        var matched = await query
             .OrderBy(c => c.Name)
             .Take(200)
             .ToListAsync();
+
+        // 同住址視為一戶：符合搜尋條件的客戶，其他住在同一個地址的人也一併顯示
+        var addresses = matched
+            .Where(c => !string.IsNullOrWhiteSpace(c.Address))
+            .Select(c => c.Address!)
+            .Distinct()
+            .ToList();
+
+        if (addresses.Count > 0)
+        {
+            var matchedIds = matched.Select(c => c.Id).ToHashSet();
+            var sameAddress = await _dbSet
+                .AsNoTracking()
+                .Include(c => c.LampOrders)
+                    .ThenInclude(o => o.Lamp)
+                .Where(c => c.Address != null && addresses.Contains(c.Address) && !matchedIds.Contains(c.Id))
+                .ToListAsync();
+
+            matched.AddRange(sameAddress);
+        }
+
+        return matched.OrderBy(c => c.Name).ToList();
     }
 
     public override async Task UpdateAsync(Customer entity)
@@ -110,6 +132,23 @@ public class CustomerRepository : RepositoryBase<Customer>, ICustomerRepository
                 (hasMobile && c.Mobile == mobile))
             .OrderBy(c => c.Name)
             .ToListAsync();
+    }
+
+    public async Task<Customer?> FindDuplicateAsync(string name, string? phone, string? address, Guid? excludeId = null)
+    {
+        var trimmedName = name.Trim();
+        var hasPhone = !string.IsNullOrWhiteSpace(phone);
+        var hasAddress = !string.IsNullOrWhiteSpace(address);
+
+        if (trimmedName.Length == 0 || (!hasPhone && !hasAddress))
+            return null;
+
+        return await _dbSet
+            .AsNoTracking()
+            .Where(c => c.Id != excludeId && c.Name == trimmedName &&
+                ((hasPhone && (c.Phone == phone || c.Mobile == phone)) ||
+                 (hasAddress && c.Address == address)))
+            .FirstOrDefaultAsync();
     }
 
     public async Task<string> GetNextCustomerCodeAsync()

@@ -43,12 +43,12 @@ public class CertificateData
             Phone = customer.Phone ?? customer.Mobile,
             Address = string.IsNullOrEmpty(fullAddress) ? null : fullAddress,
             BirthYear = FormatBirthYear(customer),
-            BirthMonth = FormatBirthField(customer.BirthMonth),
-            BirthDay = FormatBirthField(customer.BirthDay),
+            BirthMonth = FormatBirthMonth(customer),
+            BirthDay = FormatBirthDay(customer),
             BirthHour = customer.BirthHour,
             PrintDate = $"{DateTime.Now.Year - 1911}/{DateTime.Now:MM/dd}",
             LunarStartDate = $"{rocYear}/01/15",
-            LunarEndDate = $"{rocYear}/12/24",
+            LunarEndDate = $"{rocYear}/12/01",
             Amount = $"${order.Price:N0}元整",
             LampType = lamp.LampName,
             OrderNumber = order.OrderNumber,
@@ -56,13 +56,18 @@ public class CertificateData
         };
     }
 
-    /// <summary>
-    /// 0 顯示「吉」，其他顯示數字
-    /// </summary>
-    private static string? FormatBirthField(int? value)
+    private static string? FormatBirthMonth(Customer customer)
     {
-        if (value == null) return null;
-        return value == 0 ? "吉" : value.ToString();
+        if (customer.BirthMonth == 0) return "吉";
+        if (!string.IsNullOrWhiteSpace(customer.BirthMonthText)) return customer.BirthMonthText;
+        return customer.BirthMonth?.ToString();
+    }
+
+    private static string? FormatBirthDay(Customer customer)
+    {
+        if (customer.BirthDay == 0) return "吉";
+        if (!string.IsNullOrWhiteSpace(customer.BirthDayText)) return customer.BirthDayText;
+        return customer.BirthDay?.ToString();
     }
 
     private static string? FormatBirthYear(Customer customer)
@@ -102,12 +107,12 @@ public class CertificateData
             Phone = firstCustomer.Phone ?? firstCustomer.Mobile,
             Address = string.IsNullOrEmpty(fullAddress) ? null : fullAddress,
             BirthYear = FormatBirthYear(firstCustomer),
-            BirthMonth = FormatBirthField(firstCustomer.BirthMonth),
-            BirthDay = FormatBirthField(firstCustomer.BirthDay),
+            BirthMonth = FormatBirthMonth(firstCustomer),
+            BirthDay = FormatBirthDay(firstCustomer),
             BirthHour = firstCustomer.BirthHour,
             PrintDate = $"{DateTime.Now.Year - 1911}/{DateTime.Now:MM/dd}",
             LunarStartDate = $"{rocYear}/01/15",
-            LunarEndDate = $"{rocYear}/12/24",
+            LunarEndDate = $"{rocYear}/12/01",
             Amount = $"${firstOrder.Price:N0}元整",
             LampType = lamp.LampName,
             OrderNumber = firstOrder.OrderNumber,
